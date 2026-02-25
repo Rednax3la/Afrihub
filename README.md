@@ -8,39 +8,71 @@
 
 ```
 afrihub/
+├── .gitignore
+├── docker-compose.yml
 ├── backend/          ← FastAPI + MongoDB
+│   ├── .dockerignore
+│   ├── .env.example
+│   ├── Dockerfile
+│   ├── pyproject.toml
+│   ├── requirements.txt
 │   ├── main.py       ← App entry point
 │   ├── database.py   ← MongoDB connection
 │   ├── auth.py       ← JWT + password hashing
 │   ├── seed.py       ← Populate DB with sample data
 │   ├── models/
+│   │   ├── __init__.py
 │   │   ├── user.py
 │   │   ├── lesson.py
 │   │   └── progress.py
 │   ├── routes/
+│   │   ├── __init__.py
 │   │   ├── auth.py       ← /api/auth/register, /api/auth/login
 │   │   ├── users.py      ← /api/users/me
-│   │   └── lessons.py    ← /api/languages, /api/lessons, /api/lessons/answer
-│   └── requirements.txt
+│   │   ├── lessons.py    ← /api/languages, /api/lessons, /api/lessons/answer
+│   │   └── progress.py   ← /api/progress/me
+│   └── tests/
+│       ├── __init__.py
+│       └── test_api.py
 │
 └── frontend/         ← Vue 3 + Pinia + Tailwind CSS
+    ├── .env.example
+    ├── index.html
+    ├── package.json
+    ├── vite.config.js
+    ├── tailwind.config.js
+    ├── postcss.config.js
+    ├── jsconfig.json
+    ├── eslint.config.js
     └── src/
+        ├── main.js
+        ├── App.vue
+        ├── style.css
         ├── views/
         │   ├── SplashView.vue       ← Landing page
         │   ├── LoginView.vue
         │   ├── RegisterView.vue
         │   ├── DashboardView.vue    ← Learning path
-        │   ├── CoursesView.vue      ← Browse all languages ← NEW
+        │   ├── CoursesView.vue      ← Browse all languages
         │   ├── LessonView.vue       ← Interactive quiz
         │   ├── SubscriptionView.vue
-        │   └── ProfileView.vue
+        │   ├── ProfileView.vue
+        │   └── NotFoundView.vue     ← 404 page
         ├── stores/
         │   ├── auth.js              ← Login, register, logout
-        │   └── content.js           ← Languages, units, lessons
-        ├── api/index.js             ← Axios API client
-        ├── router/index.js          ← Vue Router
+        │   ├── content.js           ← Languages, units, lessons
+        │   └── progress.js          ← User progress
+        ├── composables/
+        │   └── useLesson.js         ← Quiz state logic
+        ├── api/
+        │   └── index.js             ← Axios API client
+        ├── router/
+        │   └── index.js             ← Vue Router
         └── components/
-            └── BottomNav.vue
+            ├── BottomNav.vue
+            ├── LanguageCard.vue
+            ├── LoadingSpinner.vue
+            └── StatBadge.vue
 ```
 
 ---
