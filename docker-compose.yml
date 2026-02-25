@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  # ── MongoDB ────────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: afrihub_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: afrihub
+
+  # ── Mongo Express (optional GUI) ───────────────────────────────────────────
+  mongo-express:
+    image: mongo-express:latest
+    container_name: afrihub_mongo_ui
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: afrihub123
+    depends_on:
+      - mongo
+
+  # ── FastAPI Backend ────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: afrihub_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      MONGODB_URI: mongodb://mongo:27017
+      DB_NAME: afrihub
+      SECRET_KEY: change-this-in-production
+      ACCESS_TOKEN_EXPIRE_MINUTES: 10080
+    depends_on:
+      - mongo
+    volumes:
+      - ./backend:/app
+
+volumes:
+  mongo_data:
