@@ -8,11 +8,30 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = ref(false)
 
   const isLoggedIn = computed(() => !!token.value && !!user.value)
+  const role = computed(() => user.value?.role || 'student')
+  const isAdmin = computed(() => role.value === 'admin')
+  const isTutor = computed(() => role.value === 'tutor')
+  const isStudent = computed(() => role.value === 'student')
 
   async function register(name, email, password, location = '') {
     loading.value = true
     try {
       const { data } = await authApi.register({ name, email, password, location })
+      token.value = data.access_token
+      user.value = data.user
+      localStorage.setItem('token', data.access_token)
+      return { success: true }
+    } catch (err) {
+      return { success: false, message: err.response?.data?.detail || 'Registration failed' }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function registerTutor(payload) {
+    loading.value = true
+    try {
+      const { data } = await authApi.registerTutor(payload)
       token.value = data.access_token
       user.value = data.user
       localStorage.setItem('token', data.access_token)
@@ -31,7 +50,7 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = data.access_token
       user.value = data.user
       localStorage.setItem('token', data.access_token)
-      return { success: true }
+      return { success: true, role: data.user.role }
     } catch (err) {
       return { success: false, message: err.response?.data?.detail || 'Invalid credentials' }
     } finally {
@@ -55,5 +74,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('token')
   }
 
-  return { user, token, loading, isLoggedIn, register, login, fetchMe, logout }
+  return { user, token, loading, isLoggedIn, role, isAdmin, isTutor, isStudent, register, registerTutor, login, fetchMe, logout }
 })

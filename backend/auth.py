@@ -50,3 +50,30 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     if not user:
         raise credentials_exception
     return user
+
+
+def require_role(*roles: str):
+    """Dependency factory — raises 403 if user's role is not in `roles`."""
+    async def checker(current_user=Depends(get_current_user)):
+        user_role = current_user.get("role", "student")
+        if user_role not in roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Insufficient permissions",
+            )
+        return current_user
+    return checker
+
+
+def require_active_tutor():
+    """Dependency — requires role=tutor AND tutor_status=active."""
+    async def checker(current_user=Depends(get_current_user)):
+        if current_user.get("role") != "tutor":
+            raise HTTPException(status_code=403, detail="Tutor access required")
+        if current_user.get("tutor_status") != "active":
+            raise HTTPException(
+                status_code=403,
+                detail="Your tutor account is pending approval by an administrator",
+            )
+        return current_user
+    return checker

@@ -1,205 +1,217 @@
 <template>
-  <section class="min-h-screen bg-[#FDFCFB] safe-bottom">
-    <!-- Header -->
-    <header class="p-6 pb-2 sticky top-0 bg-[#FDFCFB]/80 backdrop-blur-md z-20">
-      <h3 class="text-2xl font-bold text-slate-900">Explore Languages</h3>
-      <p class="text-slate-500 text-sm mt-1">50+ African vernaculars, curriculum-backed.</p>
-    </header>
+  <section class="min-h-screen bg-[#FDFCFB] flex flex-col md:pl-64">
+    <div class="flex-1 flex flex-col max-w-xl mx-auto w-full">
 
-    <!-- Search -->
-    <div class="px-6 py-3">
-      <div class="flex items-center bg-white border border-slate-200 rounded-2xl px-4 py-3 gap-3">
-        <span class="material-icons-outlined text-slate-400">search</span>
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search languages..."
-          class="flex-1 outline-none text-slate-700 bg-transparent placeholder-slate-400"
-        />
+      <!-- Loading -->
+      <div v-if="lesson.loading" class="flex-1 flex items-center justify-center">
+        <div class="w-10 h-10 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin"></div>
       </div>
-    </div>
 
-    <!-- Region Filter -->
-    <div class="px-6 py-3 overflow-x-auto whitespace-nowrap flex gap-3 no-scrollbar">
-      <button
-        v-for="region in regions"
-        :key="region"
-        @click="activeRegion = region"
-        class="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-        :class="activeRegion === region
-          ? 'bg-emerald-900 text-white'
-          : 'bg-white border border-slate-200 text-slate-600'"
-      >
-        {{ region }}
-      </button>
-    </div>
+      <!-- Error -->
+      <div v-else-if="lesson.error" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
+        <span class="material-icons-outlined text-4xl text-slate-300 mb-3">error_outline</span>
+        <p class="text-slate-500 font-medium mb-6">{{ lesson.error }}</p>
+        <RouterLink to="/dashboard" class="bg-emerald-900 text-white px-6 py-3 rounded-2xl font-bold">Back to Dashboard</RouterLink>
+      </div>
 
-    <!-- Your Active Languages -->
-    <div v-if="auth.user?.active_languages?.length" class="px-6 mt-4 mb-2">
-      <h4 class="text-sm font-bold text-slate-400 tracking-widest uppercase mb-4">Currently Learning</h4>
-      <div class="space-y-3">
-        <RouterLink
-          v-for="lang in activeLangs"
-          :key="lang.id"
-          to="/dashboard"
-          class="flex items-center gap-4 bg-white border border-slate-100 rounded-3xl p-4 shadow-sm"
+      <!-- Cultural Note screen (shown after last question, before results) -->
+      <div v-else-if="showCulturalNote" class="flex-1 flex flex-col p-6 justify-center">
+        <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mb-5">
+          <span class="material-icons-outlined text-amber-600 text-3xl">auto_stories</span>
+        </div>
+        <p class="text-xs font-bold tracking-widest text-amber-600 uppercase mb-2">Cultural Note</p>
+        <h2 class="text-2xl font-bold text-slate-900 mb-4 leading-snug">
+          {{ lesson.culturalNoteTitle || 'Did you know?' }}
+        </h2>
+        <p class="text-slate-600 leading-relaxed text-base">{{ lesson.culturalNote }}</p>
+        <button
+          @click="lesson.dismissCulturalNote()"
+          class="mt-8 w-full py-5 rounded-3xl font-bold text-lg bg-emerald-900 text-white shadow-lg shadow-emerald-900/20 active:scale-95 transition-transform"
         >
-          <div
-            class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-bold text-white"
-            :style="{ backgroundColor: colorMap[lang.color] || '#065F46' }"
-          >
-            {{ lang.flag_emoji }}
+          Continue
+        </button>
+      </div>
+
+      <!-- Finished Screen -->
+      <div v-else-if="lesson.finished" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
+        <div class="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mb-6">
+          <span class="material-icons-outlined text-emerald-600 text-5xl">emoji_events</span>
+        </div>
+        <h2 class="text-3xl font-bold text-slate-900 mb-2">Lesson Complete!</h2>
+        <p class="text-slate-500 mb-8">You answered {{ lesson.correctCount }} of {{ lesson.questions.length }} correctly.</p>
+
+        <div class="flex gap-4 mb-10 w-full max-w-xs">
+          <div class="flex-1 bg-emerald-50 rounded-3xl p-4 text-center border border-emerald-100">
+            <p class="text-2xl font-bold text-emerald-700">+{{ lesson.xpEarned }}</p>
+            <p class="text-xs text-emerald-600 font-bold uppercase tracking-wider">XP Earned</p>
           </div>
-          <div class="flex-1">
-            <h5 class="font-bold text-slate-900">{{ lang.name }}</h5>
-            <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-              <div class="bg-emerald-500 h-full w-1/5"></div>
-            </div>
+          <div class="flex-1 bg-amber-50 rounded-3xl p-4 text-center border border-amber-100">
+            <p class="text-2xl font-bold text-amber-700">
+              {{ lesson.questions.length ? Math.round((lesson.correctCount / lesson.questions.length) * 100) : 0 }}%
+            </p>
+            <p class="text-xs text-amber-600 font-bold uppercase tracking-wider">Accuracy</p>
           </div>
-          <span class="text-xs font-bold text-emerald-700">CONTINUE →</span>
+        </div>
+
+        <RouterLink
+          to="/dashboard"
+          class="w-full max-w-xs bg-emerald-900 text-white py-5 rounded-3xl font-bold text-lg text-center shadow-lg shadow-emerald-900/20 block"
+        >
+          Continue
         </RouterLink>
       </div>
-    </div>
 
-    <!-- All Languages -->
-    <div class="px-6 mt-6">
-      <h4 class="text-sm font-bold text-slate-400 tracking-widest uppercase mb-4">All Languages</h4>
-
-      <div v-if="content.loading" class="flex justify-center py-10">
-        <div class="w-8 h-8 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin"></div>
-      </div>
-
-      <div class="space-y-4">
-        <div
-          v-for="lang in filteredLanguages"
-          :key="lang.id"
-          class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm overflow-hidden relative"
-        >
-          <!-- Premium badge -->
-          <div v-if="!lang.is_free && !auth.user?.is_premium"
-            class="absolute top-0 right-0 bg-amber-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-2xl"
-          >
-            PREMIUM
-          </div>
-
-          <div class="flex items-start gap-4">
+      <!-- Quiz Screen -->
+      <template v-else-if="lesson.currentQuestion">
+        <!-- Header -->
+        <header class="px-6 pt-6 pb-4 flex items-center gap-4">
+          <RouterLink to="/dashboard" class="w-10 h-10 flex items-center justify-center text-slate-400 shrink-0">
+            <span class="material-icons-outlined">close</span>
+          </RouterLink>
+          <div class="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
             <div
-              class="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shrink-0"
-              :style="{ backgroundColor: `${colorMap[lang.color]}20` }"
-            >
-              {{ lang.flag_emoji }}
-            </div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2">
-                <h5 class="font-bold text-slate-900 text-lg">{{ lang.name }}</h5>
-                <span class="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium">{{ lang.country }}</span>
-              </div>
-              <p class="text-slate-500 text-sm mt-1 leading-relaxed">{{ lang.description }}</p>
-              <div class="flex items-center gap-2 mt-3">
-                <span class="material-icons-outlined text-slate-400 text-sm">people</span>
-                <span class="text-xs text-slate-400 font-medium">{{ lang.speaker_count }} speakers</span>
-              </div>
-            </div>
+              class="h-full bg-emerald-500 rounded-full transition-all duration-500"
+              :style="{ width: `${lesson.progressPercent}%` }"
+            ></div>
           </div>
+          <div class="flex items-center gap-1 shrink-0 bg-amber-50 px-3 py-1.5 rounded-full">
+            <span class="material-icons-outlined text-amber-500 text-sm">bolt</span>
+            <span class="font-bold text-amber-700 text-sm">{{ lesson.xpEarned }}</span>
+          </div>
+        </header>
 
-          <div class="mt-4">
+        <!-- Lesson intro audio (first question only) -->
+        <div v-if="lesson.audioIntroUrl && lesson.currentIndex === 0" class="px-6 mb-2">
+          <AudioPlayer :src="lesson.audioIntroUrl" label="Lesson Introduction" />
+        </div>
+
+        <main class="flex-1 px-6 py-4 flex flex-col">
+          <!-- Question type label -->
+          <p class="text-xs font-bold tracking-widest text-emerald-700 uppercase mb-4">
+            {{ questionTypeLabel }}
+          </p>
+
+          <!-- LISTEN: audio player as the prompt -->
+          <template v-if="lesson.currentQuestion.type === 'listen'">
+            <div class="bg-emerald-50 border border-emerald-100 rounded-[2rem] p-6 mb-6 flex flex-col items-center gap-4 shadow-sm">
+              <AudioPlayer :src="lesson.currentQuestion.audio_url" label="Play & Listen" />
+              <p class="text-slate-500 text-sm italic">Listen, then choose the correct translation below</p>
+            </div>
+          </template>
+
+          <!-- IMAGE: image as the prompt -->
+          <template v-else-if="lesson.currentQuestion.type === 'image'">
+            <div class="bg-slate-50 border border-slate-100 rounded-[2rem] overflow-hidden mb-6 shadow-sm">
+              <img
+                :src="lesson.currentQuestion.image_url"
+                :alt="lesson.currentQuestion.prompt"
+                class="w-full max-h-52 object-cover"
+              />
+              <div class="p-4 text-center">
+                <p class="text-sm font-semibold text-slate-700">{{ lesson.currentQuestion.prompt }}</p>
+              </div>
+            </div>
+          </template>
+
+          <!-- TRANSLATE / MULTIPLE CHOICE: text prompt -->
+          <template v-else>
+            <div class="bg-emerald-50 border border-emerald-100 rounded-[2rem] p-6 mb-4 text-center shadow-sm">
+              <div v-if="lesson.currentQuestion.audio_url" class="flex justify-center mb-3">
+                <AudioPlayer :src="lesson.currentQuestion.audio_url" label="Hear Pronunciation" />
+              </div>
+              <p class="text-2xl font-bold text-emerald-950 leading-relaxed">
+                {{ lesson.currentQuestion.prompt }}
+              </p>
+              <p v-if="lesson.currentQuestion.native_text" class="text-slate-400 text-sm mt-2 italic">
+                {{ lesson.currentQuestion.native_text }}
+              </p>
+            </div>
+          </template>
+
+          <!-- Answer options -->
+          <div class="space-y-3 flex-1">
             <button
-              v-if="!isEnrolled(lang.id)"
-              @click="enroll(lang)"
-              :disabled="!lang.is_free && !auth.user?.is_premium"
-              class="w-full py-3 rounded-2xl font-bold text-sm transition-all active:scale-95"
-              :class="lang.is_free || auth.user?.is_premium
-                ? 'bg-emerald-900 text-white shadow-md shadow-emerald-900/10'
-                : 'bg-slate-100 text-slate-400 cursor-not-allowed'"
+              v-for="option in lesson.currentQuestion.options"
+              :key="option.id"
+              @click="lesson.selectAnswer(option.id)"
+              :disabled="!!lesson.feedback"
+              class="w-full p-4 rounded-2xl border-2 font-semibold text-left transition-all"
+              :class="lesson.answerClass(option.id)"
             >
-              {{ lang.is_free || auth.user?.is_premium ? '+ Start Learning' : '🔒 Premium Only' }}
+              {{ option.text }}
             </button>
-            <RouterLink
-              v-else
-              to="/dashboard"
-              class="block w-full py-3 rounded-2xl font-bold text-sm text-center bg-emerald-50 text-emerald-800 border border-emerald-200"
+          </div>
+
+          <!-- Feedback banner -->
+          <div
+            v-if="lesson.feedback"
+            class="mt-4 p-4 rounded-2xl flex items-start gap-3"
+            :class="lesson.feedback.correct ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'"
+          >
+            <span
+              class="material-icons-outlined text-xl mt-0.5"
+              :class="lesson.feedback.correct ? 'text-emerald-600' : 'text-red-500'"
             >
-              Continue Learning →
-            </RouterLink>
+              {{ lesson.feedback.correct ? 'check_circle' : 'cancel' }}
+            </span>
+            <div>
+              <p class="font-bold" :class="lesson.feedback.correct ? 'text-emerald-700' : 'text-red-600'">
+                {{ lesson.feedback.correct ? 'Correct!' : 'Not quite' }}
+              </p>
+              <p v-if="!lesson.feedback.correct" class="text-sm text-slate-500 mt-0.5">
+                Correct answer: <span class="font-semibold">{{ lesson.correctOptionText }}</span>
+              </p>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </main>
 
-    <!-- Partner Schools -->
-    <div class="px-6 mt-10 mb-4">
-      <h4 class="text-sm font-bold text-slate-400 tracking-widest uppercase mb-4">Partner Schools</h4>
-      <div class="space-y-3">
-        <div v-for="school in partnerSchools" :key="school.name"
-          class="bg-white border border-slate-100 rounded-3xl p-4 flex items-center gap-4 shadow-sm"
-        >
-          <img :src="school.img" class="w-14 h-14 rounded-2xl object-cover shrink-0" />
-          <div class="flex-1">
-            <p class="text-[10px] font-bold text-amber-600 tracking-wider">OFFICIAL PARTNER</p>
-            <h5 class="font-bold text-slate-900">{{ school.name }}</h5>
-            <p class="text-xs text-slate-500">{{ school.curriculum }}</p>
-          </div>
-          <span class="material-icons-outlined text-emerald-500">verified</span>
-        </div>
-      </div>
-    </div>
+        <!-- Footer -->
+        <footer class="px-6 pb-8 pt-2">
+          <button
+            v-if="!lesson.feedback"
+            @click="lesson.checkAnswer()"
+            :disabled="!lesson.selectedAnswer"
+            class="w-full py-5 rounded-3xl font-bold text-lg transition-all"
+            :class="lesson.selectedAnswer
+              ? 'bg-emerald-900 text-white shadow-lg shadow-emerald-900/20 active:scale-95'
+              : 'bg-slate-100 text-slate-400 cursor-not-allowed'"
+          >
+            Check
+          </button>
+          <button
+            v-else
+            @click="lesson.nextQuestion()"
+            class="w-full py-5 rounded-3xl font-bold text-lg bg-emerald-900 text-white shadow-lg shadow-emerald-900/20 active:scale-95 transition-transform"
+          >
+            {{ lesson.currentIndex < lesson.questions.length - 1 ? 'Next' : 'Finish' }}
+          </button>
+        </footer>
+      </template>
 
-    <BottomNav />
+    </div>
   </section>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-import { useContentStore } from '@/stores/content'
-import BottomNav from '@/components/BottomNav.vue'
+import { computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useLesson } from '@/composables/useLesson'
+import AudioPlayer from '@/components/AudioPlayer.vue'
 
-const auth = useAuthStore()
-const content = useContentStore()
-const searchQuery = ref('')
-const activeRegion = ref('All')
+const route = useRoute()
+const lesson = useLesson(route.params.id)
 
-const regions = ['All', 'West Africa', 'East Africa', 'Southern Africa', 'North Africa']
-
-const colorMap = {
-  emerald: '#065F46',
-  blue: '#1E40AF',
-  amber: '#B45309',
-  red: '#B91C1C',
-}
-
-const partnerSchools = [
-  {
-    name: 'Lagos Academy of Arts',
-    curriculum: 'Yoruba – Units 1–4',
-    img: 'https://images.pexels.com/photos/1007066/pexels-photo-1007066.jpeg?auto=compress&cs=tinysrgb&w=200',
-  },
-  {
-    name: 'Nairobi Language Institute',
-    curriculum: 'Swahili – All Units',
-    img: 'https://images.pexels.com/photos/256490/pexels-photo-256490.jpeg?auto=compress&cs=tinysrgb&w=200',
-  },
-]
-
-const filteredLanguages = computed(() => {
-  return content.languages.filter((l) =>
-    l.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
-})
-
-const activeLangs = computed(() =>
-  content.languages.filter((l) => auth.user?.active_languages?.includes(l.id))
+const showCulturalNote = computed(() =>
+  lesson.pendingCulturalNote.value && !lesson.finished.value
 )
 
-function isEnrolled(langId) {
-  return auth.user?.active_languages?.includes(langId)
-}
+const questionTypeLabel = computed(() => {
+  const type = lesson.currentQuestion.value?.type
+  if (type === 'listen') return 'Listen & choose'
+  if (type === 'image') return 'What does this show?'
+  if (type === 'multiple_choice') return 'Choose the correct answer'
+  return 'Translate this phrase'
+})
 
-async function enroll(lang) {
-  await content.enrollInLanguage(lang.id)
-  await auth.fetchMe() // refresh user to update active_languages
-  content.selectLanguage(lang.id)
-}
-
-onMounted(() => content.fetchLanguages())
+onMounted(() => lesson.load())
 </script>

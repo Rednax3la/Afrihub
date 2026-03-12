@@ -1,5 +1,5 @@
 <template>
-  <nav class="fixed bottom-0 left-0 right-0 glass border-t border-slate-100 px-8 py-4 flex justify-between items-center z-30">
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 glass border-t border-slate-100 px-8 py-4 flex justify-between items-center z-30">
     <RouterLink
       v-for="item in navItems"
       :key="item.to"

@@ -1,24 +1,22 @@
-/**
- * useLesson — composable that drives quiz state for LessonView.
- *
- * Separates all quiz logic from the view template so it's
- * easy to test, reuse, or swap out the question engine later.
- */
 import { ref, computed } from 'vue'
 import { contentApi } from '@/api'
 
 export function useLesson(lessonId) {
-  const questions   = ref([])
-  const currentIndex = ref(0)
-  const selectedAnswer = ref(null)
-  const feedback    = ref(null)   // { correct, correct_answer_id, xp_earned }
-  const correctCount = ref(0)
-  const xpEarned   = ref(0)
-  const loading    = ref(true)
-  const finished   = ref(false)
-  const error      = ref(null)
+  const questions        = ref([])
+  const currentIndex     = ref(0)
+  const selectedAnswer   = ref(null)
+  const feedback         = ref(null)
+  const correctCount     = ref(0)
+  const xpEarned         = ref(0)
+  const loading          = ref(true)
+  const finished         = ref(false)
+  const error            = ref(null)
+  // Phase 2
+  const audioIntroUrl       = ref(null)
+  const culturalNote        = ref(null)
+  const culturalNoteTitle   = ref(null)
+  const pendingCulturalNote = ref(false)
 
-  // ── Computed ────────────────────────────────────────────────────────────────
   const currentQuestion = computed(() => questions.value[currentIndex.value] ?? null)
 
   const progressPercent = computed(() =>
@@ -36,7 +34,6 @@ export function useLesson(lessonId) {
     )
   })
 
-  // ── Actions ─────────────────────────────────────────────────────────────────
   function selectAnswer(optionId) {
     if (!feedback.value) selectedAnswer.value = optionId
   }
@@ -77,6 +74,16 @@ export function useLesson(lessonId) {
     try {
       await contentApi.completeLesson(lessonId, score)
     } catch { /* non-blocking */ }
+
+    if (culturalNote.value) {
+      pendingCulturalNote.value = true
+    } else {
+      finished.value = true
+    }
+  }
+
+  function dismissCulturalNote() {
+    pendingCulturalNote.value = false
     finished.value = true
   }
 
@@ -93,12 +100,14 @@ export function useLesson(lessonId) {
     return 'border-slate-100 text-slate-400'
   }
 
-  // ── Init ────────────────────────────────────────────────────────────────────
   async function load() {
     loading.value = true
     try {
       const { data } = await contentApi.getLesson(lessonId)
-      questions.value = data?.questions ?? []
+      questions.value         = data?.questions ?? []
+      audioIntroUrl.value     = data?.audio_intro_url ?? null
+      culturalNote.value      = data?.cultural_note ?? null
+      culturalNoteTitle.value = data?.cultural_note_title ?? null
     } catch (err) {
       error.value = 'Failed to load lesson.'
       console.error(err)
@@ -108,22 +117,10 @@ export function useLesson(lessonId) {
   }
 
   return {
-    questions,
-    currentIndex,
-    currentQuestion,
-    selectedAnswer,
-    feedback,
-    correctCount,
-    xpEarned,
-    correctOptionText,
-    loading,
-    finished,
-    error,
-    progressPercent,
-    selectAnswer,
-    checkAnswer,
-    nextQuestion,
-    answerClass,
-    load,
+    questions, currentIndex, currentQuestion, selectedAnswer,
+    feedback, correctCount, xpEarned, correctOptionText,
+    loading, finished, error, progressPercent,
+    audioIntroUrl, culturalNote, culturalNoteTitle, pendingCulturalNote,
+    selectAnswer, checkAnswer, nextQuestion, dismissCulturalNote, answerClass, load,
   }
 }

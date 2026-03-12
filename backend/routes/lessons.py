@@ -3,6 +3,7 @@ from database import get_db
 from auth import get_current_user
 from models.lesson import AnswerSubmit, AnswerResult
 from bson import ObjectId
+import datetime
 
 router = APIRouter(prefix="/api", tags=["lessons"])
 
@@ -44,7 +45,11 @@ async def list_units(language_id: str):
 @router.get("/units/{unit_id}/lessons")
 async def list_lessons(unit_id: str):
     db = get_db()
-    lessons = await db.lessons.find({"unit_id": unit_id}, {"questions": 0}).sort("order", 1).to_list(50)
+    # Only return published lessons to learners
+    lessons = await db.lessons.find(
+        {"unit_id": unit_id, "status": {"$ne": "draft"}},
+        {"questions": 0}
+    ).sort("order", 1).to_list(50)
     for lesson in lessons:
         lesson["_id"] = str(lesson["_id"])
     return lessons
@@ -54,10 +59,10 @@ async def list_lessons(unit_id: str):
 async def get_lesson(lesson_id: str, current_user=Depends(get_current_user)):
     db = get_db()
     lesson = await db.lessons.find_one({"id": lesson_id})
-    if not lesson:
+    if not lesson or lesson.get("status") == "draft":
         raise HTTPException(status_code=404, detail="Lesson not found")
     lesson["_id"] = str(lesson["_id"])
-    # Strip correct answers from questions before sending
+    # Strip correct answers before sending to client
     for q in lesson.get("questions", []):
         q.pop("correct_answer_id", None)
     return lesson
@@ -86,12 +91,11 @@ async def submit_answer(body: AnswerSubmit, current_user=Depends(get_current_use
             {"$inc": {"xp": xp_earned}}
         )
 
-    # Upsert progress record
     await db.progress.update_one(
         {"user_id": str(current_user["_id"]), "lesson_id": body.lesson_id},
         {
             "$inc": {"attempts": 1},
-            "$set": {"last_attempted": __import__("datetime").datetime.utcnow()},
+            "$set": {"last_attempted": datetime.datetime.utcnow()},
             "$setOnInsert": {"completed": False, "score": 0},
         },
         upsert=True
@@ -106,9 +110,7 @@ async def submit_answer(body: AnswerSubmit, current_user=Depends(get_current_use
 
 @router.post("/lessons/{lesson_id}/complete")
 async def complete_lesson(lesson_id: str, score: int, current_user=Depends(get_current_user)):
-    """Mark a lesson as complete with a final score (0-100)."""
     db = get_db()
-    import datetime
 
     await db.progress.update_one(
         {"user_id": str(current_user["_id"]), "lesson_id": lesson_id},
@@ -123,7 +125,6 @@ async def complete_lesson(lesson_id: str, score: int, current_user=Depends(get_c
         upsert=True
     )
 
-    # Award bonus XP on completion
     lesson = await db.lessons.find_one({"id": lesson_id})
     bonus_xp = lesson.get("xp_reward", 10) if lesson else 10
     await db.users.update_one(
