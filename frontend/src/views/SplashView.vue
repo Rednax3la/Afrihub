@@ -11,11 +11,11 @@
         <div class="w-10 h-10 bg-emerald-900 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-900/20">
           <span class="material-icons-outlined text-white text-xl">menu_book</span>
         </div>
-        <span class="text-lg font-bold tracking-tight text-slate-900">Vernaculearn</span>
+        <span class="text-xl font-bold tracking-tight text-slate-900">Vernaculearn</span>
       </div>
       <RouterLink
         to="/login"
-        class="text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+        class="text-base font-semibold text-slate-500 hover:text-slate-900 transition-colors"
       >Sign in</RouterLink>
     </nav>
 
@@ -25,56 +25,56 @@
       <!-- Badge -->
       <div class="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full px-4 py-1.5 mb-8">
         <span class="text-base">🌍</span>
-        <span class="text-sm font-semibold text-emerald-800">Authentic lessons from native tutors</span>
+        <span class="text-base font-semibold text-emerald-800">Authentic lessons from native tutors</span>
       </div>
 
       <!-- Headline -->
-      <h1 class="text-5xl md:text-7xl font-bold text-slate-900 leading-[1.1] mb-6 max-w-3xl">
+      <h1 class="text-6xl md:text-8xl font-bold text-slate-900 leading-[1.05] mb-8 max-w-4xl">
         Learn the pulse<br />of
         <span class="text-emerald-700 italic">Africa.</span>
       </h1>
 
       <!-- Sub -->
-      <p class="text-lg md:text-xl text-slate-500 leading-relaxed max-w-lg mb-10">
+      <p class="text-xl md:text-2xl text-slate-500 leading-relaxed max-w-2xl mb-12">
         Master vernacular languages — Kikuyu, Yoruba, Swahili, Zulu and hundreds more — one lesson at a time.
       </p>
 
       <!-- CTAs -->
-      <div class="flex flex-col sm:flex-row gap-3 w-full max-w-xs sm:max-w-none sm:justify-center">
+      <div class="flex flex-col sm:flex-row gap-4 w-full max-w-xs sm:max-w-none sm:justify-center">
         <RouterLink
           to="/register"
-          class="bg-emerald-900 text-white px-8 py-4 rounded-2xl font-bold text-base shadow-xl shadow-emerald-900/20 hover:bg-emerald-800 active:scale-95 transition-all"
+          class="bg-emerald-900 text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-xl shadow-emerald-900/20 hover:bg-emerald-800 active:scale-95 transition-all"
         >
-          Start Learning — It's Free
+          Start Learning
         </RouterLink>
         <RouterLink
           to="/login"
-          class="bg-white border border-slate-200 text-slate-800 px-8 py-4 rounded-2xl font-bold text-base hover:border-slate-300 active:scale-95 transition-all"
+          class="bg-white border border-slate-200 text-slate-800 px-10 py-5 rounded-2xl font-bold text-lg hover:border-slate-300 active:scale-95 transition-all"
         >
           I have an account
         </RouterLink>
       </div>
 
       <!-- Feature pills -->
-      <div class="flex flex-wrap gap-3 justify-center mt-12 max-w-lg">
-        <div class="flex items-center gap-1.5 bg-white border border-slate-100 rounded-full px-3.5 py-2 text-sm text-slate-600 font-medium shadow-sm">
-          <span class="material-icons-outlined text-emerald-600 text-sm">verified</span> Native speaker tutors
+      <div class="flex flex-wrap gap-3 justify-center mt-14 max-w-2xl">
+        <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-full px-5 py-3 text-base text-slate-600 font-medium shadow-sm">
+          <span class="material-icons-outlined text-emerald-600">verified</span> Native speaker tutors
         </div>
-        <div class="flex items-center gap-1.5 bg-white border border-slate-100 rounded-full px-3.5 py-2 text-sm text-slate-600 font-medium shadow-sm">
-          <span class="material-icons-outlined text-amber-500 text-sm">local_fire_department</span> Daily streaks
+        <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-full px-5 py-3 text-base text-slate-600 font-medium shadow-sm">
+          <span class="material-icons-outlined text-amber-500">local_fire_department</span> Daily streaks
         </div>
-        <div class="flex items-center gap-1.5 bg-white border border-slate-100 rounded-full px-3.5 py-2 text-sm text-slate-600 font-medium shadow-sm">
-          <span class="material-icons-outlined text-emerald-600 text-sm">headphones</span> Audio-first lessons
+        <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-full px-5 py-3 text-base text-slate-600 font-medium shadow-sm">
+          <span class="material-icons-outlined text-emerald-600">headphones</span> Audio-first lessons
         </div>
-        <div class="flex items-center gap-1.5 bg-white border border-slate-100 rounded-full px-3.5 py-2 text-sm text-slate-600 font-medium shadow-sm">
-          <span class="material-icons-outlined text-purple-500 text-sm">language</span> 50+ languages
+        <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-full px-5 py-3 text-base text-slate-600 font-medium shadow-sm">
+          <span class="material-icons-outlined text-purple-500">language</span> 50+ languages
         </div>
       </div>
 
       <!-- Language showcase -->
-      <div class="flex flex-wrap gap-2 justify-center mt-8 max-w-xl opacity-60">
+      <div class="flex flex-wrap gap-2 justify-center mt-10 max-w-2xl opacity-60">
         <span v-for="lang in languages" :key="lang.name"
-          class="text-xs font-semibold text-slate-500 bg-slate-100 rounded-full px-3 py-1">
+          class="text-sm font-semibold text-slate-500 bg-slate-100 rounded-full px-4 py-1.5">
           {{ lang.flag }} {{ lang.name }}
         </span>
       </div>
