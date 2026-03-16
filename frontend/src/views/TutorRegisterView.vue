@@ -44,26 +44,29 @@
 
         <div>
           <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Languages You Can Teach</label>
-          <div class="grid grid-cols-2 gap-2">
-            <label
-              v-for="lang in availableLanguages"
-              :key="lang.value"
-              class="flex items-center gap-2.5 p-3 border-2 rounded-2xl cursor-pointer transition-all"
-              :class="form.languages_taught.includes(lang.value)
-                ? 'border-emerald-500 bg-emerald-50'
-                : 'border-slate-200 hover:border-slate-300'"
+          <!-- Tag chips -->
+          <div v-if="form.languages_taught.length" class="flex flex-wrap gap-2 mb-2">
+            <span
+              v-for="lang in form.languages_taught"
+              :key="lang"
+              class="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold px-3 py-1.5 rounded-full"
             >
-              <input
-                type="checkbox"
-                :value="lang.value"
-                v-model="form.languages_taught"
-                class="sr-only"
-              />
-              <span class="text-xl">{{ lang.flag }}</span>
-              <span class="text-sm font-semibold text-slate-700">{{ lang.label }}</span>
-              <span v-if="form.languages_taught.includes(lang.value)" class="ml-auto material-icons-outlined text-emerald-600 text-base">check_circle</span>
-            </label>
+              {{ lang }}
+              <button type="button" @click="removeLanguage(lang)" class="text-emerald-500 hover:text-red-500 transition-colors leading-none">&times;</button>
+            </span>
           </div>
+          <!-- Input row -->
+          <div class="flex gap-2">
+            <input
+              v-model="languageInput"
+              @keydown.enter.prevent="addLanguage"
+              @keydown.comma.prevent="addLanguage"
+              class="flex-1 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition-colors"
+              placeholder="e.g. Kikuyu, Luo, Shona — press Enter to add"
+            />
+            <button type="button" @click="addLanguage" class="px-4 py-3 bg-emerald-900 text-white text-sm font-bold rounded-2xl hover:bg-emerald-800 transition-colors">Add</button>
+          </div>
+          <p class="text-xs text-slate-400 mt-1.5">Type any African language and press Enter or Add. You can add multiple.</p>
         </div>
 
         <div>
@@ -107,6 +110,7 @@ import { useAuthStore } from '@/stores/auth'
 const auth = useAuthStore()
 const router = useRouter()
 const error = ref('')
+const languageInput = ref('')
 
 const form = ref({
   name: '',
@@ -118,14 +122,17 @@ const form = ref({
   bio: '',
 })
 
-const availableLanguages = [
-  { value: 'yoruba', label: 'Yoruba', flag: '🇳🇬' },
-  { value: 'swahili', label: 'Swahili', flag: '🌍' },
-  { value: 'zulu', label: 'Zulu', flag: '🇿🇦' },
-  { value: 'amharic', label: 'Amharic', flag: '🇪🇹' },
-  { value: 'igbo', label: 'Igbo', flag: '🇳🇬' },
-  { value: 'hausa', label: 'Hausa', flag: '🇳🇬' },
-]
+function addLanguage() {
+  const val = languageInput.value.trim().replace(/,$/, '')
+  if (val && !form.value.languages_taught.includes(val)) {
+    form.value.languages_taught.push(val)
+  }
+  languageInput.value = ''
+}
+
+function removeLanguage(lang) {
+  form.value.languages_taught = form.value.languages_taught.filter(l => l !== lang)
+}
 
 async function submit() {
   error.value = ''

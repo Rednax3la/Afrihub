@@ -1,107 +1,112 @@
 <template>
-  <section class="min-h-screen bg-[#FDFCFB] flex flex-col md:flex-row">
-    <!-- Left branding panel (desktop only) -->
-    <div class="hidden md:flex flex-col justify-between w-1/2 bg-emerald-950 p-16 relative overflow-hidden">
-      <div class="absolute top-0 right-0 w-80 h-80 bg-emerald-800 rounded-full blur-[120px] opacity-30 -mr-40 -mt-40"></div>
-      <div class="absolute bottom-0 left-0 w-80 h-80 bg-amber-600 rounded-full blur-[120px] opacity-10 -ml-40 -mb-40"></div>
+  <section class="min-h-screen bg-[#FDFCFB] flex flex-col relative overflow-hidden">
 
-      <div class="flex items-center gap-3 relative">
-        <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
-          <span class="material-icons-outlined text-white text-2xl">menu_book</span>
+    <!-- Decorative blobs -->
+    <div class="pointer-events-none select-none absolute -top-32 -right-32 w-[500px] h-[500px] bg-emerald-100 rounded-full blur-[100px] opacity-60"></div>
+    <div class="pointer-events-none select-none absolute -bottom-40 -left-32 w-[420px] h-[420px] bg-amber-100 rounded-full blur-[100px] opacity-50"></div>
+
+    <!-- Nav -->
+    <nav class="relative z-10 flex items-center justify-between px-6 md:px-16 pt-8">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-emerald-900 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-900/20">
+          <span class="material-icons-outlined text-white text-xl">menu_book</span>
         </div>
-        <span class="text-xl font-bold text-white tracking-tight">Vernaculearn</span>
+        <span class="text-lg font-bold tracking-tight text-slate-900">Vernaculearn</span>
+      </div>
+      <RouterLink
+        to="/login"
+        class="text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+      >Sign in</RouterLink>
+    </nav>
+
+    <!-- Hero -->
+    <div class="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6 py-12 md:py-20">
+
+      <!-- Badge -->
+      <div class="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full px-4 py-1.5 mb-8">
+        <span class="text-base">🌍</span>
+        <span class="text-sm font-semibold text-emerald-800">Authentic lessons from native tutors</span>
       </div>
 
-      <div class="relative">
-        <h2 class="text-5xl font-bold serif text-white leading-tight mb-6">
-          Learn the pulse of <span class="text-amber-400 italic">Africa.</span>
-        </h2>
-        <p class="text-emerald-200/70 text-lg leading-relaxed max-w-sm">
-          Master vernacular languages with authentic lessons from native-speaking tutors.
-        </p>
-        <div class="flex gap-4 mt-10">
-          <div class="flex items-center gap-2 bg-white/10 rounded-2xl px-4 py-3">
-            <span class="material-icons-outlined text-amber-400 text-sm">language</span>
-            <span class="text-white text-sm font-semibold">50+ Languages</span>
-          </div>
-          <div class="flex items-center gap-2 bg-white/10 rounded-2xl px-4 py-3">
-            <span class="material-icons-outlined text-emerald-400 text-sm">people</span>
-            <span class="text-white text-sm font-semibold">Native Tutors</span>
-          </div>
-        </div>
-      </div>
+      <!-- Headline -->
+      <h1 class="text-5xl md:text-7xl font-bold text-slate-900 leading-[1.1] mb-6 max-w-3xl">
+        Learn the pulse<br />of
+        <span class="text-emerald-700 italic">Africa.</span>
+      </h1>
 
-      <p class="text-emerald-200/30 text-xs relative">© 2026 Vernaculearn</p>
-    </div>
+      <!-- Sub -->
+      <p class="text-lg md:text-xl text-slate-500 leading-relaxed max-w-lg mb-10">
+        Master vernacular languages — Kikuyu, Yoruba, Swahili, Zulu and hundreds more — one lesson at a time.
+      </p>
 
-    <!-- Right / Mobile content -->
-    <div class="flex-1 flex flex-col justify-between p-8 md:p-16 relative overflow-hidden">
-      <div class="blob w-64 h-64 bg-emerald-500 rounded-full -top-10 -left-10"></div>
-      <div class="blob w-64 h-64 bg-amber-500 rounded-full bottom-20 -right-10"></div>
-
-      <!-- Mobile logo -->
-      <div class="mt-12 md:hidden">
-        <div class="flex items-center gap-2 mb-4">
-          <div class="w-12 h-12 bg-emerald-800 rounded-2xl flex items-center justify-center">
-            <span class="material-icons-outlined text-white">menu_book</span>
-          </div>
-          <h1 class="text-2xl font-bold tracking-tight text-emerald-950">Vernaculearn</h1>
-        </div>
-        <h2 class="text-5xl font-bold serif leading-tight mb-6">
-          Learn the pulse of <span class="text-emerald-700 italic">Africa.</span>
-        </h2>
-        <p class="text-lg text-slate-600 leading-relaxed max-w-xs">
-          Master vernacular languages with authentic lessons from native-speaking tutors.
-        </p>
-      </div>
-
-      <!-- Desktop heading -->
-      <div class="hidden md:flex flex-col justify-center flex-1">
-        <h2 class="text-4xl font-bold serif text-emerald-950 leading-tight mb-3">
-          Begin your journey
-        </h2>
-        <p class="text-slate-500 text-lg mb-10">Connect with your heritage, one lesson at a time.</p>
-
-        <div class="space-y-4 max-w-sm">
-          <RouterLink
-            to="/register"
-            class="block w-full bg-emerald-900 text-white py-5 rounded-3xl font-semibold text-lg text-center shadow-xl shadow-emerald-900/20 active:scale-95 transition-transform"
-          >
-            Start Learning
-          </RouterLink>
-          <RouterLink
-            to="/login"
-            class="block w-full bg-white border border-slate-200 text-slate-800 py-5 rounded-3xl font-semibold text-lg text-center active:scale-95 transition-transform"
-          >
-            I already have an account
-          </RouterLink>
-          <RouterLink
-            to="/register/tutor"
-            class="block w-full text-center text-sm text-slate-400 hover:text-emerald-700 font-semibold py-2 transition-colors"
-          >
-            Apply as a Tutor →
-          </RouterLink>
-        </div>
-      </div>
-
-      <!-- Mobile CTA -->
-      <div class="space-y-4 mb-8 md:hidden">
+      <!-- CTAs -->
+      <div class="flex flex-col sm:flex-row gap-3 w-full max-w-xs sm:max-w-none sm:justify-center">
         <RouterLink
           to="/register"
-          class="block w-full bg-emerald-900 text-white py-5 rounded-3xl font-semibold text-lg text-center shadow-xl shadow-emerald-900/20 active:scale-95 transition-transform"
+          class="bg-emerald-900 text-white px-8 py-4 rounded-2xl font-bold text-base shadow-xl shadow-emerald-900/20 hover:bg-emerald-800 active:scale-95 transition-all"
         >
-          Start Learning
+          Start Learning — It's Free
         </RouterLink>
         <RouterLink
           to="/login"
-          class="block w-full bg-white border border-slate-200 text-slate-800 py-5 rounded-3xl font-semibold text-lg text-center active:scale-95 transition-transform"
+          class="bg-white border border-slate-200 text-slate-800 px-8 py-4 rounded-2xl font-bold text-base hover:border-slate-300 active:scale-95 transition-all"
         >
-          I already have an account
-        </RouterLink>
-        <RouterLink to="/register/tutor" class="block w-full text-center text-sm text-slate-400 font-semibold py-2">
-          Apply as a Tutor →
+          I have an account
         </RouterLink>
       </div>
+
+      <!-- Feature pills -->
+      <div class="flex flex-wrap gap-3 justify-center mt-12 max-w-lg">
+        <div class="flex items-center gap-1.5 bg-white border border-slate-100 rounded-full px-3.5 py-2 text-sm text-slate-600 font-medium shadow-sm">
+          <span class="material-icons-outlined text-emerald-600 text-sm">verified</span> Native speaker tutors
+        </div>
+        <div class="flex items-center gap-1.5 bg-white border border-slate-100 rounded-full px-3.5 py-2 text-sm text-slate-600 font-medium shadow-sm">
+          <span class="material-icons-outlined text-amber-500 text-sm">local_fire_department</span> Daily streaks
+        </div>
+        <div class="flex items-center gap-1.5 bg-white border border-slate-100 rounded-full px-3.5 py-2 text-sm text-slate-600 font-medium shadow-sm">
+          <span class="material-icons-outlined text-emerald-600 text-sm">headphones</span> Audio-first lessons
+        </div>
+        <div class="flex items-center gap-1.5 bg-white border border-slate-100 rounded-full px-3.5 py-2 text-sm text-slate-600 font-medium shadow-sm">
+          <span class="material-icons-outlined text-purple-500 text-sm">language</span> 50+ languages
+        </div>
+      </div>
+
+      <!-- Language showcase -->
+      <div class="flex flex-wrap gap-2 justify-center mt-8 max-w-xl opacity-60">
+        <span v-for="lang in languages" :key="lang.name"
+          class="text-xs font-semibold text-slate-500 bg-slate-100 rounded-full px-3 py-1">
+          {{ lang.flag }} {{ lang.name }}
+        </span>
+      </div>
     </div>
+
+    <!-- Footer -->
+    <div class="relative z-10 pb-8 flex flex-col items-center gap-3">
+      <RouterLink
+        to="/register/tutor"
+        class="text-sm text-slate-400 hover:text-emerald-700 font-semibold transition-colors"
+      >
+        Are you a native speaker? Apply as a Tutor →
+      </RouterLink>
+      <p class="text-xs text-slate-300">© 2026 Vernaculearn</p>
+    </div>
+
   </section>
 </template>
+
+<script setup>
+const languages = [
+  { name: 'Kikuyu', flag: '🇰🇪' },
+  { name: 'Yoruba', flag: '🇳🇬' },
+  { name: 'Swahili', flag: '🌍' },
+  { name: 'Zulu', flag: '🇿🇦' },
+  { name: 'Amharic', flag: '🇪🇹' },
+  { name: 'Igbo', flag: '🇳🇬' },
+  { name: 'Hausa', flag: '🇳🇬' },
+  { name: 'Shona', flag: '🇿🇼' },
+  { name: 'Wolof', flag: '🇸🇳' },
+  { name: 'Twi', flag: '🇬🇭' },
+  { name: 'Luo', flag: '🇰🇪' },
+  { name: 'Xhosa', flag: '🇿🇦' },
+]
+</script>
