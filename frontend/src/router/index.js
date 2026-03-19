@@ -51,6 +51,7 @@ const routes = [
       { path: 'users', name: 'admin-users', component: () => import('@/views/admin/AdminUsersView.vue') },
       { path: 'tutors', name: 'admin-tutors', component: () => import('@/views/admin/AdminTutorsView.vue') },
       { path: 'content', name: 'admin-content', component: () => import('@/views/admin/AdminContentView.vue') },
+      { path: 'review', name: 'admin-review', component: () => import('@/views/admin/AdminReviewView.vue') },
     ],
   },
 
@@ -64,6 +65,7 @@ const routes = [
       { path: 'dashboard', name: 'tutor-dashboard', component: () => import('@/views/tutor/TutorDashboardView.vue') },
       { path: 'content', name: 'tutor-content', component: () => import('@/views/tutor/TutorContentView.vue') },
       { path: 'profile', name: 'tutor-profile', component: () => import('@/views/tutor/TutorProfileView.vue') },
+      { path: 'review', name: 'tutor-review', component: () => import('@/views/tutor/TutorReviewView.vue') },
     ],
   },
 

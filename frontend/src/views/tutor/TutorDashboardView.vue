@@ -70,6 +70,20 @@
       </div>
     </div>
 
+    <!-- Review Queue card (2E) -->
+    <div v-if="reviewCount > 0" class="bg-amber-50 border border-amber-200 rounded-3xl p-5 mb-6 flex items-center gap-4">
+      <div class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center shrink-0">
+        <span class="material-icons-outlined text-amber-600 text-2xl">rate_review</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="font-bold text-amber-900">{{ reviewCount }} lesson{{ reviewCount === 1 ? '' : 's' }} awaiting review</p>
+        <p class="text-amber-700 text-sm">Scraped content needs your approval before going live.</p>
+      </div>
+      <RouterLink to="/tutor/review" class="px-4 py-2 rounded-2xl bg-amber-500 text-white font-bold text-sm shrink-0 hover:bg-amber-600">
+        Review
+      </RouterLink>
+    </div>
+
     <!-- Quick actions -->
     <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
       <h2 class="font-bold text-slate-900 mb-4">Quick Actions</h2>
@@ -78,6 +92,11 @@
           class="flex items-center gap-3 p-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all group">
           <span class="material-icons-outlined text-2xl text-slate-400 group-hover:text-emerald-700">add_circle</span>
           <span class="text-sm font-semibold text-slate-600 group-hover:text-emerald-700">Add New Lesson</span>
+        </RouterLink>
+        <RouterLink to="/tutor/review"
+          class="flex items-center gap-3 p-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all group">
+          <span class="material-icons-outlined text-2xl text-slate-400 group-hover:text-emerald-700">rate_review</span>
+          <span class="text-sm font-semibold text-slate-600 group-hover:text-emerald-700">Review Queue</span>
         </RouterLink>
         <RouterLink to="/tutor/profile"
           class="flex items-center gap-3 p-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all group">
@@ -90,19 +109,27 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useTutorStore } from '@/stores/tutor'
+import { tutorApi } from '@/api'
 
 const auth = useAuthStore()
 const tutorStore = useTutorStore()
+const reviewCount = ref(0)
 
 const firstName = computed(() => auth.user?.name?.split(' ')[0] || 'Tutor')
 const totalQuestions = computed(() =>
   tutorStore.lessons.reduce((sum, l) => sum + (l.questions?.length || 0), 0)
 )
 
-onMounted(() => {
-  if (auth.user?.tutor_status === 'active') tutorStore.fetchContent()
+onMounted(async () => {
+  if (auth.user?.tutor_status === 'active') {
+    tutorStore.fetchContent()
+    try {
+      const { data } = await tutorApi.getReviewQueueCount()
+      reviewCount.value = data.count ?? 0
+    } catch { /* non-critical */ }
+  }
 })
 </script>

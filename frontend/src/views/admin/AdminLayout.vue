@@ -113,6 +113,7 @@ const navItems = [
   { to: '/admin/users', icon: 'people', label: 'Users' },
   { to: '/admin/tutors', icon: 'school', label: 'Tutors' },
   { to: '/admin/content', icon: 'library_books', label: 'Content CMS' },
+  { to: '/admin/review', icon: 'rate_review', label: 'Review Queue' },
 ]
 
 function handleLogout() {
