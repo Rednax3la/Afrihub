@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from database import connect_db, close_db
 from routes import auth, users, lessons, progress
-from routes import admin, tutors, upload
+from routes import admin, tutors, upload, tts
 
 
 @asynccontextmanager
@@ -65,6 +65,7 @@ app.include_router(progress.router)
 app.include_router(admin.router)
 app.include_router(tutors.router)
 app.include_router(upload.router)
+app.include_router(tts.router)
 
 
 @app.get("/")
