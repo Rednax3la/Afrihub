@@ -218,3 +218,51 @@ async def update_lesson(lesson_id: str, body: dict, admin=Depends(_admin)):
 async def delete_lesson(lesson_id: str, admin=Depends(_admin)):
     db = get_db()
     await db.lessons.delete_one({"id": lesson_id})
+
+
+# ── Review Queue (2E) ──────────────────────────────────────────────────────────
+
+@router.get("/review-queue/stats")
+async def review_queue_stats(admin=Depends(_admin)):
+    db = get_db()
+    pipeline = [
+        {"$match": {"status": "pending_review"}},
+        {"$group": {"_id": "$language_id", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+    ]
+    rows = await db.lessons.aggregate(pipeline).to_list(100)
+    total = sum(r["count"] for r in rows)
+    return {"total": total, "by_language": {r["_id"]: r["count"] for r in rows}}
+
+
+@router.get("/review-queue")
+async def get_review_queue(admin=Depends(_admin)):
+    db = get_db()
+    lessons = await db.lessons.find({"status": "pending_review"}).sort("language_id", 1).to_list(500)
+    # Group by language
+    grouped: dict = {}
+    for lesson in lessons:
+        lesson.pop("_id", None)
+        lang = lesson.get("language_id", "unknown")
+        grouped.setdefault(lang, []).append(lesson)
+    return grouped
+
+
+@router.patch("/lessons/{lesson_id}/approve")
+async def approve_lesson(lesson_id: str, admin=Depends(_admin)):
+    db = get_db()
+    await db.lessons.update_one({"id": lesson_id}, {"$set": {"status": "published"}})
+    lesson = await db.lessons.find_one({"id": lesson_id})
+    if not lesson:
+        raise HTTPException(404, "Lesson not found")
+    return _serialize_lesson(lesson)
+
+
+@router.patch("/lessons/{lesson_id}/reject")
+async def reject_lesson(lesson_id: str, admin=Depends(_admin)):
+    db = get_db()
+    await db.lessons.update_one({"id": lesson_id}, {"$set": {"status": "rejected"}})
+    lesson = await db.lessons.find_one({"id": lesson_id})
+    if not lesson:
+        raise HTTPException(404, "Lesson not found")
+    return _serialize_lesson(lesson)

@@ -2,10 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from database import get_db
 from auth import get_current_user
 from models.lesson import AnswerSubmit, AnswerResult
+from pydantic import BaseModel
+from typing import List, Optional
 from bson import ObjectId
 import datetime
 
 router = APIRouter(prefix="/api", tags=["lessons"])
+
+_PUBLISHED_FILTER = {"$nin": ["draft", "rejected", "pending_review"]}
 
 
 # ── Languages ──────────────────────────────────────────────────────────────────
@@ -29,15 +33,59 @@ async def get_language(language_id: str):
     return lang
 
 
-# ── Units ──────────────────────────────────────────────────────────────────────
+# ── Cultural Notes ─────────────────────────────────────────────────────────────
+
+@router.get("/languages/{language_id}/cultural-notes")
+async def list_cultural_notes(language_id: str):
+    db = get_db()
+    notes = await db.cultural_notes.find({"language_id": language_id}).sort("_id", 1).to_list(200)
+    for note in notes:
+        note["_id"] = str(note["_id"])
+    return notes
+
+
+# ── Leaderboard ────────────────────────────────────────────────────────────────
+
+@router.get("/leaderboard/{language_id}")
+async def get_leaderboard(language_id: str):
+    """Phase 3 scaffold: top 20 users by XP (language-specific XP tracking is a future enhancement)."""
+    db = get_db()
+    # Only users who have this language active
+    users = await db.users.find(
+        {"active_languages": language_id, "role": {"$nin": ["admin", "tutor"]}},
+        {"name": 1, "xp": 1, "streak": 1, "avatar_url": 1}
+    ).sort("xp", -1).to_list(20)
+    return [
+        {
+            "id": str(u["_id"]),
+            "name": u.get("name", "Learner"),
+            "xp": u.get("xp", 0),
+            "streak": u.get("streak", 0),
+            "avatar_url": u.get("avatar_url"),
+        }
+        for u in users
+    ]
+
+
+# ── Units (with embedded lessons for dashboard) ────────────────────────────────
 
 @router.get("/languages/{language_id}/units")
 async def list_units(language_id: str):
     db = get_db()
     units = await db.units.find({"language_id": language_id}).sort("order", 1).to_list(50)
+    result = []
     for unit in units:
         unit["_id"] = str(unit["_id"])
-    return units
+        lessons = await db.lessons.find(
+            {"unit_id": unit["id"], "status": _PUBLISHED_FILTER},
+            {"questions": 0}
+        ).sort("order", 1).to_list(50)
+        for lesson in lessons:
+            lesson.pop("_id", None)
+        if lessons:  # only include units that have at least one published lesson
+            unit["lessons"] = lessons
+            result.append(unit)
+    return result
 
 
 # ── Lessons ────────────────────────────────────────────────────────────────────
@@ -45,9 +93,8 @@ async def list_units(language_id: str):
 @router.get("/units/{unit_id}/lessons")
 async def list_lessons(unit_id: str):
     db = get_db()
-    # Only return published lessons to learners
     lessons = await db.lessons.find(
-        {"unit_id": unit_id, "status": {"$ne": "draft"}},
+        {"unit_id": unit_id, "status": _PUBLISHED_FILTER},
         {"questions": 0}
     ).sort("order", 1).to_list(50)
     for lesson in lessons:
@@ -59,10 +106,9 @@ async def list_lessons(unit_id: str):
 async def get_lesson(lesson_id: str, current_user=Depends(get_current_user)):
     db = get_db()
     lesson = await db.lessons.find_one({"id": lesson_id})
-    if not lesson or lesson.get("status") == "draft":
+    if not lesson or lesson.get("status") in ("draft", "rejected", "pending_review"):
         raise HTTPException(status_code=404, detail="Lesson not found")
     lesson["_id"] = str(lesson["_id"])
-    # Strip correct answers before sending to client
     for q in lesson.get("questions", []):
         q.pop("correct_answer_id", None)
     return lesson
@@ -108,28 +154,81 @@ async def submit_answer(body: AnswerSubmit, current_user=Depends(get_current_use
     )
 
 
+# ── Lesson Completion (Gap 3 + Gap 5) ─────────────────────────────────────────
+
+class QuestionResult(BaseModel):
+    question_id: str
+    correct: bool
+    answer_given: str
+    correct_answer: Optional[str] = None
+
+
+class LessonCompleteBody(BaseModel):
+    score: int
+    questions_attempted: List[QuestionResult] = []
+
+
 @router.post("/lessons/{lesson_id}/complete")
-async def complete_lesson(lesson_id: str, score: int, current_user=Depends(get_current_user)):
+async def complete_lesson(
+    lesson_id: str,
+    body: LessonCompleteBody,
+    current_user=Depends(get_current_user),
+):
     db = get_db()
+    user_id = str(current_user["_id"])
+    now = datetime.datetime.utcnow()
+
+    # Per-question accuracy + spaced repetition scaffold (Phase 3)
+    progress_update = {
+        "$set": {
+            "completed": True,
+            "score": body.score,
+            "last_attempted": now,
+            "questions_attempted": [q.model_dump() for q in body.questions_attempted],
+            "review_schedule": {
+                "next_review_date": None,
+                "interval_days": 1,
+                "ease_factor": 2.5,
+            },
+        },
+        "$inc": {"attempts": 1},
+    }
 
     await db.progress.update_one(
-        {"user_id": str(current_user["_id"]), "lesson_id": lesson_id},
-        {
-            "$set": {
-                "completed": True,
-                "score": score,
-                "last_attempted": datetime.datetime.utcnow(),
-            },
-            "$inc": {"attempts": 1},
-        },
-        upsert=True
+        {"user_id": user_id, "lesson_id": lesson_id},
+        progress_update,
+        upsert=True,
     )
 
+    # Award lesson XP bonus
     lesson = await db.lessons.find_one({"id": lesson_id})
     bonus_xp = lesson.get("xp_reward", 10) if lesson else 10
     await db.users.update_one(
-        {"_id": ObjectId(str(current_user["_id"]))},
+        {"_id": ObjectId(user_id)},
         {"$inc": {"xp": bonus_xp}}
     )
 
-    return {"message": "Lesson completed!", "xp_earned": bonus_xp}
+    # ── Streak tracking (Gap 5) ─────────────────────────────────────────────
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    last_activity = user.get("last_activity_date")
+    current_streak = user.get("streak", 0)
+    today = now.date()
+
+    if last_activity is None:
+        new_streak = 1
+    else:
+        last_date = last_activity.date() if hasattr(last_activity, "date") else last_activity
+        delta = (today - last_date).days
+        if delta == 0:
+            new_streak = current_streak  # same day — no change
+        elif delta == 1:
+            new_streak = current_streak + 1  # consecutive day — increment
+        else:
+            new_streak = 1  # gap — reset
+
+    await db.users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {"streak": new_streak, "last_activity_date": now}},
+    )
+
+    return {"message": "Lesson completed!", "xp_earned": bonus_xp, "streak": new_streak}

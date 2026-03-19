@@ -131,3 +131,99 @@ async def delete_lesson(lesson_id: str, tutor=Depends(_active_tutor)):
     if not existing or existing.get("tutor_id") != tutor_id:
         raise HTTPException(403, "You do not own this lesson")
     await db.lessons.delete_one({"id": lesson_id})
+
+
+@router.delete("/me/units/{unit_id}", status_code=204)
+async def delete_unit(unit_id: str, tutor=Depends(_active_tutor)):
+    db = get_db()
+    tutor_id = str(tutor["_id"])
+    existing = await db.units.find_one({"id": unit_id})
+    if not existing or existing.get("tutor_id") != tutor_id:
+        raise HTTPException(403, "You do not own this unit")
+    await db.units.delete_one({"id": unit_id})
+
+
+# ── Review Queue (2E) ──────────────────────────────────────────────────────────
+
+@router.get("/me/review-queue")
+async def get_review_queue(tutor=Depends(_active_tutor)):
+    db = get_db()
+    languages_taught = tutor.get("languages_taught", [])
+    lessons = await db.lessons.find(
+        {"status": "pending_review", "language_id": {"$in": languages_taught}}
+    ).sort("language_id", 1).to_list(200)
+    grouped: dict = {}
+    for lesson in lessons:
+        lesson.pop("_id", None)
+        lang = lesson.get("language_id", "unknown")
+        grouped.setdefault(lang, []).append(lesson)
+    return grouped
+
+
+@router.get("/me/review-queue/count")
+async def get_review_queue_count(tutor=Depends(_active_tutor)):
+    db = get_db()
+    languages_taught = tutor.get("languages_taught", [])
+    count = await db.lessons.count_documents(
+        {"status": "pending_review", "language_id": {"$in": languages_taught}}
+    )
+    return {"count": count}
+
+
+@router.patch("/me/review/{lesson_id}/approve")
+async def tutor_approve_lesson(lesson_id: str, tutor=Depends(_active_tutor)):
+    db = get_db()
+    languages_taught = tutor.get("languages_taught", [])
+    lesson = await db.lessons.find_one({"id": lesson_id})
+    if not lesson:
+        raise HTTPException(404, "Lesson not found")
+    if lesson.get("language_id") not in languages_taught:
+        raise HTTPException(403, "This lesson is not in your languages")
+    await db.lessons.update_one({"id": lesson_id}, {"$set": {"status": "published"}})
+    lesson = await db.lessons.find_one({"id": lesson_id})
+    return _serialize_lesson(lesson)
+
+
+@router.patch("/me/review/{lesson_id}/reject")
+async def tutor_reject_lesson(lesson_id: str, tutor=Depends(_active_tutor)):
+    db = get_db()
+    languages_taught = tutor.get("languages_taught", [])
+    lesson = await db.lessons.find_one({"id": lesson_id})
+    if not lesson:
+        raise HTTPException(404, "Lesson not found")
+    if lesson.get("language_id") not in languages_taught:
+        raise HTTPException(403, "This lesson is not in your languages")
+    await db.lessons.update_one({"id": lesson_id}, {"$set": {"status": "rejected"}})
+    lesson = await db.lessons.find_one({"id": lesson_id})
+    return _serialize_lesson(lesson)
+
+
+# ── Cultural Notes (2C) ────────────────────────────────────────────────────────
+
+@router.post("/me/cultural-notes", status_code=201)
+async def create_cultural_note(body: dict, tutor=Depends(_active_tutor)):
+    db = get_db()
+    body.pop("_id", None)
+    body["tutor_id"] = str(tutor["_id"])
+    body.setdefault("source", "tutor")
+    result = await db.cultural_notes.insert_one(body)
+    body["_id"] = str(result.inserted_id)
+    return body
+
+
+@router.patch("/me/cultural-notes/{note_id}")
+async def update_cultural_note(note_id: str, body: dict, tutor=Depends(_active_tutor)):
+    db = get_db()
+    from bson import ObjectId as ObjId
+    tutor_id = str(tutor["_id"])
+    try:
+        existing = await db.cultural_notes.find_one({"_id": ObjId(note_id)})
+    except Exception:
+        raise HTTPException(400, "Invalid note ID")
+    if not existing or existing.get("tutor_id") != tutor_id:
+        raise HTTPException(403, "You do not own this cultural note")
+    body.pop("_id", None)
+    await db.cultural_notes.update_one({"_id": ObjId(note_id)}, {"$set": body})
+    note = await db.cultural_notes.find_one({"_id": ObjId(note_id)})
+    note["_id"] = str(note["_id"])
+    return note
