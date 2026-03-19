@@ -44,13 +44,22 @@ export const contentApi = {
   getLessons: (unitId) => api.get(`/units/${unitId}/lessons`),
   getLesson: (lessonId) => api.get(`/lessons/${lessonId}`),
   submitAnswer: (data) => api.post('/lessons/answer', data),
-  completeLesson: (lessonId, score) => api.post(`/lessons/${lessonId}/complete?score=${score}`),
+  // score + per-question results sent as JSON body (Gap 3)
+  completeLesson: (lessonId, score, questionsAttempted = []) =>
+    api.post(`/lessons/${lessonId}/complete`, { score, questions_attempted: questionsAttempted }),
+  getCulturalNotes: (languageId) => api.get(`/languages/${languageId}/cultural-notes`),
+  getLeaderboard: (languageId) => api.get(`/leaderboard/${languageId}`),
 }
 
 // ── Progress ───────────────────────────────────────────────────────────────────
 export const progressApi = {
   getMyProgress: () => api.get('/progress/me'),
   getLessonProgress: (lessonId) => api.get(`/progress/me/lesson/${lessonId}`),
+}
+
+// ── TTS (2B) ───────────────────────────────────────────────────────────────────
+export const ttsApi = {
+  generate: (text, languageCode) => api.post('/tts/generate', { text, language_code: languageCode }),
 }
 
 // ── Admin ──────────────────────────────────────────────────────────────────────
@@ -79,6 +88,11 @@ export const adminApi = {
   createLesson: (data) => api.post('/admin/lessons', data),
   updateLesson: (id, data) => api.patch(`/admin/lessons/${id}`, data),
   deleteLesson: (id) => api.delete(`/admin/lessons/${id}`),
+  // Review queue (2E)
+  getReviewQueue: () => api.get('/admin/review-queue'),
+  getReviewStats: () => api.get('/admin/review-queue/stats'),
+  approveLesson: (id) => api.patch(`/admin/lessons/${id}/approve`),
+  rejectLesson: (id) => api.patch(`/admin/lessons/${id}/reject`),
 }
 
 // ── Tutors ─────────────────────────────────────────────────────────────────────
@@ -90,9 +104,18 @@ export const tutorApi = {
   getMyContent: () => api.get('/tutors/me/content'),
   createUnit: (data) => api.post('/tutors/me/units', data),
   updateUnit: (id, data) => api.patch(`/tutors/me/units/${id}`, data),
+  deleteUnit: (id) => api.delete(`/tutors/me/units/${id}`),
   createLesson: (data) => api.post('/tutors/me/lessons', data),
   updateLesson: (id, data) => api.patch(`/tutors/me/lessons/${id}`, data),
   deleteLesson: (id) => api.delete(`/tutors/me/lessons/${id}`),
+  // Review queue (2E)
+  getReviewQueue: () => api.get('/tutors/me/review-queue'),
+  getReviewQueueCount: () => api.get('/tutors/me/review-queue/count'),
+  approveReview: (lessonId) => api.patch(`/tutors/me/review/${lessonId}/approve`),
+  rejectReview: (lessonId) => api.patch(`/tutors/me/review/${lessonId}/reject`),
+  // Cultural notes (2C)
+  createCulturalNote: (data) => api.post('/tutors/me/cultural-notes', data),
+  updateCulturalNote: (id, data) => api.patch(`/tutors/me/cultural-notes/${id}`, data),
 }
 
 // ── Upload ─────────────────────────────────────────────────────────────────────

@@ -11,12 +11,16 @@ export function useLesson(lessonId) {
   const loading          = ref(true)
   const finished         = ref(false)
   const error            = ref(null)
+  const languageCode     = ref(null)   // for TTS
   // Phase 2
   const audioIntroUrl       = ref(null)
   const culturalNote        = ref(null)
   const culturalNoteTitle   = ref(null)
   const pendingCulturalNote = ref(false)
+  // Gap 3 — per-question accuracy tracking
+  const questionResults = ref([])
 
+  const typedAnswer      = ref('')    // for translate questions where student types
   const currentQuestion = computed(() => questions.value[currentIndex.value] ?? null)
 
   const progressPercent = computed(() =>
@@ -38,7 +42,35 @@ export function useLesson(lessonId) {
     if (!feedback.value) selectedAnswer.value = optionId
   }
 
+  // For translate questions: find option ID whose text matches what was typed
+  function _resolveTypedAnswer() {
+    if (!typedAnswer.value.trim()) return null
+    const typed = typedAnswer.value.trim().toLowerCase()
+    const match = currentQuestion.value?.options?.find(
+      o => (o.text ?? '').toLowerCase() === typed
+    )
+    return match?.id ?? null
+  }
+
   async function checkAnswer() {
+    // For translate questions with typed input, resolve text → option ID
+    if (currentQuestion.value?.type === 'translate' && typedAnswer.value.trim()) {
+      const resolved = _resolveTypedAnswer()
+      // submit as the matched option ID, or use a sentinel that will be wrong
+      selectedAnswer.value = resolved ?? '__typed_wrong__'
+      if (!resolved) {
+        // no option matched — mark wrong immediately without API call
+        const correctId = currentQuestion.value.correct_answer_id
+        feedback.value = { correct: false, correct_answer_id: correctId }
+        questionResults.value.push({
+          question_id: currentQuestion.value.id,
+          correct: false,
+          answer_given: typedAnswer.value.trim(),
+          correct_answer: correctId,
+        })
+        return
+      }
+    }
     if (!selectedAnswer.value) return
     try {
       const { data } = await contentApi.submitAnswer({
@@ -51,6 +83,13 @@ export function useLesson(lessonId) {
         correctCount.value++
         xpEarned.value += data.xp_earned ?? 0
       }
+      // Track per-question result (Gap 3)
+      questionResults.value.push({
+        question_id: currentQuestion.value.id,
+        correct: data.correct,
+        answer_given: selectedAnswer.value,
+        correct_answer: data.correct_answer_id,
+      })
     } catch (err) {
       console.error('Answer submission failed:', err)
       error.value = 'Could not submit answer. Check your connection.'
@@ -61,6 +100,7 @@ export function useLesson(lessonId) {
     if (currentIndex.value < questions.value.length - 1) {
       currentIndex.value++
       selectedAnswer.value = null
+      typedAnswer.value = ''
       feedback.value = null
     } else {
       await _finishLesson()
@@ -72,7 +112,7 @@ export function useLesson(lessonId) {
       ? Math.round((correctCount.value / questions.value.length) * 100)
       : 0
     try {
-      await contentApi.completeLesson(lessonId, score)
+      await contentApi.completeLesson(lessonId, score, questionResults.value)
     } catch { /* non-blocking */ }
 
     if (culturalNote.value) {
@@ -108,6 +148,7 @@ export function useLesson(lessonId) {
       audioIntroUrl.value     = data?.audio_intro_url ?? null
       culturalNote.value      = data?.cultural_note ?? null
       culturalNoteTitle.value = data?.cultural_note_title ?? null
+      languageCode.value      = data?.language_code ?? null
     } catch (err) {
       error.value = 'Failed to load lesson.'
       console.error(err)
@@ -117,10 +158,11 @@ export function useLesson(lessonId) {
   }
 
   return {
-    questions, currentIndex, currentQuestion, selectedAnswer,
+    questions, currentIndex, currentQuestion, selectedAnswer, typedAnswer,
     feedback, correctCount, xpEarned, correctOptionText,
     loading, finished, error, progressPercent,
     audioIntroUrl, culturalNote, culturalNoteTitle, pendingCulturalNote,
+    languageCode, questionResults,
     selectAnswer, checkAnswer, nextQuestion, dismissCulturalNote, answerClass, load,
   }
 }
