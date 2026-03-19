@@ -116,7 +116,7 @@ async def generate_tts(body: TTSRequest, request: Request, current_user=Depends(
         if R2_ENABLED:
             url = f"{os.getenv('R2_PUBLIC_URL', '').rstrip('/')}/tts/{filename}"
         else:
-            url = _local_url(f"tts/{filename}", request)
+            url = _local_url(filename, request)
         return {"audio_url": url}
 
     # Generate — ElevenLabs first, gTTS fallback
@@ -131,6 +131,6 @@ async def generate_tts(body: TTSRequest, request: Request, current_user=Depends(
     if R2_ENABLED:
         url = await _upload_cache_to_r2(cache_path, filename)
     else:
-        url = _local_url(f"tts/{filename}", request)
+        url = _local_url(filename, request)
 
     return {"audio_url": url}

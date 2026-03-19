@@ -349,6 +349,7 @@
                   <option value="image_match">Image Match</option>
                 </select>
                 <input v-model="q.prompt" placeholder="Question / phrase to translate" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none" />
+                <SpecialCharKeyboard :language-code="adminLessonLanguageCode" :model-value="q.prompt" @update:model-value="q.prompt = $event" />
                 <input v-model="q.native_text" placeholder="Native text hint (optional)" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none" />
                 <!-- Audio upload -->
                 <div v-if="q.type === 'listen' || q.type === 'listen_comprehension' || q.type === 'translate'">
@@ -363,10 +364,13 @@
                   <FileUpload v-model="q.image_url" type="image" />
                 </div>
                 <div class="space-y-1.5">
-                  <div v-for="(opt, oi) in q.options" :key="oi" class="flex gap-2 items-center">
-                    <input v-model="opt.id" class="w-8 border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-center font-bold focus:outline-none" placeholder="a" />
-                    <input v-model="opt.text" class="flex-1 border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none" placeholder="Answer text" />
-                    <button type="button" @click="q.options.splice(oi, 1)" class="text-red-300 hover:text-red-500 shrink-0">
+                  <div v-for="(opt, oi) in q.options" :key="oi" class="flex gap-2 items-start">
+                    <input v-model="opt.id" class="w-8 mt-1.5 border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-center font-bold focus:outline-none" placeholder="a" />
+                    <div class="flex-1">
+                      <input v-model="opt.text" class="w-full border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none" placeholder="Answer text" />
+                      <SpecialCharKeyboard :language-code="adminLessonLanguageCode" :model-value="opt.text" @update:model-value="opt.text = $event" />
+                    </div>
+                    <button type="button" @click="q.options.splice(oi, 1)" class="text-red-300 hover:text-red-500 shrink-0 mt-1.5">
                       <span class="material-icons-outlined text-sm">remove</span>
                     </button>
                   </div>
@@ -396,15 +400,24 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAdminStore } from '@/stores/admin'
 import { useToastStore } from '@/stores/toast'
 import Modal from '@/components/Modal.vue'
 import FileUpload from '@/components/FileUpload.vue'
+import SpecialCharKeyboard from '@/components/SpecialCharKeyboard.vue'
 
 const adminStore = useAdminStore()
 const toast = useToastStore()
 const activeTab = ref('Languages')
+
+// Resolve lesson's language → ISO code for SpecialCharKeyboard
+const adminLessonLanguageCode = computed(() => {
+  const unit = adminStore.units.find(u => u.id === lessonForm.value.unit_id)
+  if (!unit) return ''
+  const lang = adminStore.languages.find(l => l.id === unit.language_id)
+  return lang?.code ?? ''
+})
 const selectedLangFilter = ref('')
 const selectedUnitFilter = ref('')
 const saving = ref(false)

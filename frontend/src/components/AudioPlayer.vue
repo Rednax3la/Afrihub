@@ -27,10 +27,19 @@ import { ref, onUnmounted, watch } from 'vue'
 const props = defineProps({
   src: { type: String, required: true },
   label: { type: String, default: 'Play Audio' },
+  autoplay: { type: Boolean, default: false },
 })
 
 const playing = ref(false)
 let audio = null
+
+function play() {
+  if (!props.src) return
+  if (!audio) audio = new Audio(props.src)
+  audio.play()
+  playing.value = true
+  audio.onended = () => { playing.value = false }
+}
 
 function toggle() {
   if (!props.src) return
@@ -40,15 +49,16 @@ function toggle() {
     audio.pause()
     playing.value = false
   } else {
-    audio.play()
-    playing.value = true
-    audio.onended = () => { playing.value = false }
+    play()
   }
 }
 
-watch(() => props.src, () => {
+watch(() => props.src, (newSrc) => {
   if (audio) { audio.pause(); audio = null }
   playing.value = false
+  if (newSrc && props.autoplay) {
+    setTimeout(play, 100)
+  }
 })
 
 onUnmounted(() => {
