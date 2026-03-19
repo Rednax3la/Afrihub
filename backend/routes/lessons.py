@@ -111,6 +111,17 @@ async def get_lesson(lesson_id: str, current_user=Depends(get_current_user)):
     lesson["_id"] = str(lesson["_id"])
     for q in lesson.get("questions", []):
         q.pop("correct_answer_id", None)
+    # Inject language_code (e.g. "yo") so the frontend TTS system has the right BCP-47 code.
+    # Lessons store unit_id, not language_id directly, so we walk unit → language.
+    if lesson.get("unit_id"):
+        unit = await db.units.find_one({"id": lesson["unit_id"]}, {"language_id": 1})
+        if unit:
+            lang = await db.languages.find_one(
+                {"id": unit["language_id"]}, {"code": 1, "id": 1}
+            )
+            if lang:
+                lesson["language_code"] = lang.get("code")
+                lesson["language_id"] = unit["language_id"]
     return lesson
 
 
