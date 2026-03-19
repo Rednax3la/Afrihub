@@ -263,7 +263,7 @@
 
     <!-- ── LESSON MODAL ────────────────────────────────────────────────────────── -->
     <Modal v-model="showLessonModal" :title="editingLesson?.id ? 'Edit Lesson' : 'Add Lesson'" size="lg">
-      <form @submit.prevent="saveLesson" class="space-y-4">
+      <form @submit.prevent="saveLesson" class="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">ID (slug)</label>
@@ -343,17 +343,22 @@
                   <option value="translate">Translate</option>
                   <option value="multiple_choice">Multiple Choice</option>
                   <option value="listen">Listen &amp; Choose</option>
+                  <option value="listen_comprehension">Listen Comprehension</option>
                   <option value="image">Image Question</option>
+                  <option value="image_translate">Image → Translate</option>
+                  <option value="image_match">Image Match</option>
                 </select>
                 <input v-model="q.prompt" placeholder="Question / phrase to translate" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none" />
                 <input v-model="q.native_text" placeholder="Native text hint (optional)" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none" />
-                <!-- Audio URL for listen/pronunciation questions -->
-                <div v-if="q.type === 'listen' || q.type === 'translate'">
-                  <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">{{ q.type === 'listen' ? 'Audio (required)' : 'Pronunciation Audio (optional)' }}</p>
+                <!-- Audio upload -->
+                <div v-if="q.type === 'listen' || q.type === 'listen_comprehension' || q.type === 'translate'">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">
+                    {{ q.type === 'translate' ? 'Pronunciation Audio (optional)' : 'Audio (required)' }}
+                  </p>
                   <FileUpload v-model="q.audio_url" type="audio" />
                 </div>
-                <!-- Image URL for image questions -->
-                <div v-if="q.type === 'image'">
+                <!-- Image upload -->
+                <div v-if="q.type === 'image' || q.type === 'image_translate'">
                   <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Image (required)</p>
                   <FileUpload v-model="q.image_url" type="image" />
                 </div>

@@ -8,6 +8,7 @@
           <h3 class="text-xl font-bold">Your Progress</h3>
         </div>
         <div class="flex items-center gap-3">
+          <!-- Streak (Gap 5) -->
           <div class="flex items-center bg-amber-50 px-3 py-1.5 rounded-full border border-amber-100">
             <span class="material-icons-outlined text-amber-600 text-sm">local_fire_department</span>
             <span class="text-amber-700 font-bold ml-1 text-sm">{{ auth.user?.streak ?? 0 }}</span>
@@ -37,9 +38,9 @@
         </button>
       </div>
 
-      <!-- Learning Path -->
+      <!-- Learning Path (Gap 4) -->
       <main class="p-6">
-        <div v-if="content.loading" class="flex justify-center py-20">
+        <div v-if="content.loading || progressStore.loading" class="flex justify-center py-20">
           <div class="w-10 h-10 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin"></div>
         </div>
 
@@ -48,18 +49,25 @@
             <!-- Unit Card -->
             <div class="bg-emerald-50 rounded-[2.5rem] p-6 mb-12 border border-emerald-100 shadow-sm">
               <div class="flex justify-between items-start mb-4">
-                <div>
+                <div class="flex-1 min-w-0 mr-4">
                   <span class="text-[10px] font-bold tracking-[0.2em] text-emerald-800 uppercase bg-emerald-200/50 px-3 py-1 rounded-full">Unit {{ uIdx + 1 }}</span>
                   <h4 class="text-2xl font-bold text-emerald-950 mt-2">{{ unit.title }}</h4>
                   <p class="text-emerald-800/70 text-sm">{{ unit.subtitle }}</p>
                 </div>
-                <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+                <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm shrink-0">
                   <span class="material-icons-outlined text-emerald-900">{{ unit.icon }}</span>
                 </div>
               </div>
+              <!-- Real unit progress bar -->
               <div class="w-full bg-white/50 h-2 rounded-full overflow-hidden">
-                <div class="bg-emerald-600 h-full w-1/3 transition-all duration-700"></div>
+                <div
+                  class="bg-emerald-600 h-full transition-all duration-700"
+                  :style="{ width: `${unitProgressPct(unit)}%` }"
+                ></div>
               </div>
+              <p class="text-xs text-emerald-700/70 mt-1.5">
+                {{ unitCompletedCount(unit) }} / {{ unit.lessons?.length ?? 0 }} lessons
+              </p>
             </div>
 
             <!-- Lesson Nodes -->
@@ -69,21 +77,22 @@
                 :key="lesson.id"
                 class="relative"
               >
+                <!-- Connector line -->
                 <div
                   v-if="lIdx < (unit.lessons?.length ?? 0) - 1"
                   class="absolute left-1/2 bottom-[-48px] w-0.5 h-10 bg-slate-200 -translate-x-1/2 z-[-1]"
                 ></div>
 
                 <!-- Completed -->
-                <RouterLink v-if="lIdx === 0" :to="`/lesson/${lesson.id}`" class="group flex flex-col items-center cursor-pointer">
+                <RouterLink v-if="progressStore.isCompleted(lesson.id)" :to="`/lesson/${lesson.id}`" class="group flex flex-col items-center cursor-pointer">
                   <div class="w-20 h-20 bg-emerald-600 rounded-3xl rotate-45 flex items-center justify-center shadow-xl shadow-emerald-600/20 group-active:scale-90 transition-transform">
                     <span class="material-icons-outlined text-white -rotate-45 text-3xl">check</span>
                   </div>
                   <p class="text-center mt-4 font-bold text-slate-800">{{ lesson.title }}</p>
                 </RouterLink>
 
-                <!-- Active -->
-                <RouterLink v-else-if="lIdx === 1" :to="`/lesson/${lesson.id}`" class="group flex flex-col items-center cursor-pointer">
+                <!-- Active / Current -->
+                <RouterLink v-else-if="lesson.id === currentLessonId" :to="`/lesson/${lesson.id}`" class="group flex flex-col items-center cursor-pointer">
                   <div class="relative w-24 h-24 bg-white border-4 border-emerald-600 rounded-[2rem] rotate-45 flex items-center justify-center shadow-xl shadow-slate-200 group-active:scale-90 transition-transform">
                     <div class="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center">
                       <span class="material-icons-outlined text-emerald-900 -rotate-45 text-3xl">chat_bubble</span>
@@ -121,17 +130,45 @@
 import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useContentStore } from '@/stores/content'
+import { useProgressStore } from '@/stores/progress'
 import BottomNav from '@/components/BottomNav.vue'
 
 const auth = useAuthStore()
 const content = useContentStore()
+const progressStore = useProgressStore()
 
 const firstName = computed(() => auth.user?.name?.split(' ')[0] || 'Learner')
 
+// Gap 4: first uncompleted lesson across all units
+const currentLessonId = computed(() => {
+  for (const unit of content.units) {
+    for (const lesson of unit.lessons ?? []) {
+      if (!progressStore.isCompleted(lesson.id)) return lesson.id
+    }
+  }
+  return null
+})
+
+// Gap 4: per-unit completion helpers
+function unitCompletedCount(unit) {
+  return (unit.lessons ?? []).filter(l => progressStore.isCompleted(l.id)).length
+}
+function unitProgressPct(unit) {
+  const lessons = unit.lessons ?? []
+  if (!lessons.length) return 0
+  return Math.round((unitCompletedCount(unit) / lessons.length) * 100)
+}
+
 onMounted(async () => {
   await content.fetchLanguages()
-  const firstLang = auth.user?.active_languages?.[0] ?? content.languages.value?.[0]?.id
-  if (firstLang) await content.selectLanguage(firstLang)
-  else if (content.languages.length) await content.selectLanguage(content.languages[0].id)
+  const firstLang = auth.user?.active_languages?.[0] ?? content.languages?.[0]?.id
+  if (firstLang) {
+    await Promise.all([
+      content.selectLanguage(firstLang),
+      progressStore.fetchMyProgress(),
+    ])
+  } else if (content.languages.length) {
+    await content.selectLanguage(content.languages[0].id)
+  }
 })
 </script>

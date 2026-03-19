@@ -30,11 +30,11 @@
             <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
               <span class="material-icons-outlined text-emerald-700 text-lg">{{ unit.icon || 'book' }}</span>
             </div>
-            <div class="flex-1">
+            <div class="flex-1 min-w-0">
               <p class="font-semibold text-slate-900">{{ unit.title }}</p>
               <p class="text-xs text-slate-400">{{ unit.subtitle }} · <span class="capitalize">{{ unit.language_id }}</span></p>
             </div>
-            <span class="text-xs text-slate-400">Order {{ unit.order }}</span>
+            <span class="text-xs text-slate-400 shrink-0">Order {{ unit.order }}</span>
             <button @click="openUnitModal(unit)" class="p-2 rounded-xl text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 transition-colors">
               <span class="material-icons-outlined text-base">edit</span>
             </button>
@@ -59,12 +59,18 @@
             <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
               <span class="material-icons-outlined text-blue-600 text-lg">quiz</span>
             </div>
-            <div class="flex-1">
-              <p class="font-semibold text-slate-900">{{ lesson.title }}</p>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <p class="font-semibold text-slate-900">{{ lesson.title }}</p>
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                  :class="lesson.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'">
+                  {{ lesson.status || 'published' }}
+                </span>
+              </div>
               <p class="text-xs text-slate-400">{{ lesson.questions?.length || 0 }} questions · Unit: {{ lesson.unit_id }}</p>
             </div>
-            <span class="text-xs bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-full">+{{ lesson.xp_reward }} XP</span>
-            <div class="flex gap-1">
+            <span class="text-xs bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-full shrink-0">+{{ lesson.xp_reward }} XP</span>
+            <div class="flex gap-1 shrink-0">
               <button @click="openLessonModal(lesson)" class="p-2 rounded-xl text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 transition-colors">
                 <span class="material-icons-outlined text-base">edit</span>
               </button>
@@ -117,7 +123,7 @@
       </form>
     </Modal>
 
-    <!-- Lesson modal -->
+    <!-- Lesson modal (Gap 1 + Gap 7 mobile fix) -->
     <Modal v-model="showLessonModal" :title="editingLesson?.id ? 'Edit Lesson' : 'New Lesson'" size="lg">
       <form @submit.prevent="saveLesson" class="space-y-4">
         <div class="grid grid-cols-2 gap-4">
@@ -147,6 +153,37 @@
             <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">XP Reward</label>
             <input v-model.number="lessonForm.xp_reward" type="number" min="1" class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400" />
           </div>
+          <!-- Status (Gap 1) -->
+          <div class="col-span-2 flex items-center gap-3 py-1">
+            <label class="text-xs font-bold text-slate-500 uppercase">Status</label>
+            <button type="button"
+              @click="lessonForm.status = lessonForm.status === 'published' ? 'draft' : 'published'"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors"
+              :class="lessonForm.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'"
+            >
+              <span class="material-icons-outlined text-sm">{{ lessonForm.status === 'published' ? 'visibility' : 'visibility_off' }}</span>
+              {{ lessonForm.status === 'published' ? 'Published' : 'Draft' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Intro Audio (Gap 1) -->
+        <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Intro Audio (optional)</label>
+          <FileUpload v-model="lessonForm.audio_intro_url" type="audio" />
+        </div>
+
+        <!-- Cultural Note (Gap 1 + 2C) -->
+        <div class="bg-amber-50 rounded-2xl p-4 border border-amber-100 space-y-3">
+          <p class="text-xs font-bold text-amber-700 uppercase tracking-wider">Cultural Note (shown after lesson)</p>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1 uppercase">Title</label>
+            <input v-model="lessonForm.cultural_note_title" placeholder="e.g. The Tonal Nature of Yoruba" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-amber-400 bg-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1 uppercase">Note Body</label>
+            <textarea v-model="lessonForm.cultural_note" rows="3" placeholder="Brief cultural context shown to learners after completing this lesson…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-amber-400 resize-none bg-white"></textarea>
+          </div>
         </div>
 
         <!-- Questions -->
@@ -166,31 +203,52 @@
                 </button>
               </div>
               <div class="space-y-2">
+                <!-- Question type dropdown with all 7 types -->
                 <select v-model="q.type" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none">
                   <option value="translate">Translate</option>
                   <option value="multiple_choice">Multiple Choice</option>
                   <option value="listen">Listen &amp; Choose</option>
+                  <option value="listen_comprehension">Listen Comprehension</option>
                   <option value="image">Image Question</option>
+                  <option value="image_translate">Image → Translate</option>
+                  <option value="image_match">Image Match</option>
                 </select>
                 <input v-model="q.prompt" placeholder="Question prompt" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none" />
+                <SpecialCharKeyboard :language-code="lessonLanguageCode" :model-value="q.prompt" @update:model-value="q.prompt = $event" />
                 <input v-model="q.native_text" placeholder="Native text hint (optional)" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none" />
-                <div v-if="q.type === 'listen' || q.type === 'translate'">
-                  <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">{{ q.type === 'listen' ? 'Audio (required)' : 'Pronunciation Audio (optional)' }}</p>
+                <!-- Audio upload for listen types -->
+                <div v-if="q.type === 'listen' || q.type === 'listen_comprehension' || q.type === 'translate'">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">
+                    {{ q.type === 'translate' ? 'Pronunciation Audio (optional)' : 'Audio (required)' }}
+                  </p>
                   <FileUpload v-model="q.audio_url" type="audio" />
                 </div>
-                <div v-if="q.type === 'image'">
+                <!-- Image upload for image types -->
+                <div v-if="q.type === 'image' || q.type === 'image_translate'">
                   <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Image (required)</p>
                   <FileUpload v-model="q.image_url" type="image" />
                 </div>
+                <!-- image_match: options have image_url -->
+                <div v-if="q.type === 'image_match'" class="text-[10px] text-amber-600 bg-amber-50 rounded-lg px-2 py-1.5">
+                  For Image Match, set each option's image URL using the field below.
+                </div>
+                <!-- Options -->
                 <div class="space-y-1.5">
-                  <div v-for="(opt, oi) in q.options" :key="oi" class="flex gap-2 items-center">
-                    <input v-model="opt.id" class="w-8 border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-center font-bold focus:outline-none" />
-                    <input v-model="opt.text" class="flex-1 border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none" placeholder="Answer text" />
-                    <button type="button" @click="q.options.splice(oi, 1)" class="text-red-300 hover:text-red-500">
+                  <div v-for="(opt, oi) in q.options" :key="oi" class="flex gap-2 items-start">
+                    <input v-model="opt.id" class="w-8 mt-1.5 border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-center font-bold focus:outline-none" />
+                    <div class="flex-1 space-y-1">
+                      <template v-if="q.type !== 'image_match'">
+                        <input v-model="opt.text" class="w-full border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none" placeholder="Answer text" />
+                        <SpecialCharKeyboard :language-code="lessonLanguageCode" :model-value="opt.text" @update:model-value="opt.text = $event" />
+                      </template>
+                      <input v-if="q.type === 'image_match'" v-model="opt.image_url" class="w-full border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none" placeholder="Image URL for this option" />
+                      <input v-if="q.type === 'image_match'" v-model="opt.text" class="w-full border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none" placeholder="Alt text (optional)" />
+                    </div>
+                    <button type="button" @click="q.options.splice(oi, 1)" class="text-red-300 hover:text-red-500 mt-1.5">
                       <span class="material-icons-outlined text-sm">remove</span>
                     </button>
                   </div>
-                  <button type="button" @click="q.options.push({ id: String.fromCharCode(97 + q.options.length), text: '' })" class="text-xs text-emerald-700 font-semibold flex items-center gap-1">
+                  <button type="button" @click="q.options.push({ id: String.fromCharCode(97 + q.options.length), text: '', image_url: '' })" class="text-xs text-emerald-700 font-semibold flex items-center gap-1">
                     <span class="material-icons-outlined text-sm">add</span> Add option
                   </button>
                 </div>
@@ -215,12 +273,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useTutorStore } from '@/stores/tutor'
 import { useToastStore } from '@/stores/toast'
 import Modal from '@/components/Modal.vue'
 import FileUpload from '@/components/FileUpload.vue'
+import SpecialCharKeyboard from '@/components/SpecialCharKeyboard.vue'
 
 const auth = useAuthStore()
 const tutorStore = useTutorStore()
@@ -234,6 +293,12 @@ const unitForm = ref({})
 const showLessonModal = ref(false)
 const editingLesson = ref(null)
 const lessonForm = ref({ questions: [] })
+
+// Derive language code from the selected unit (for SpecialCharKeyboard)
+const lessonLanguageCode = computed(() => {
+  const unit = tutorStore.units.find(u => u.id === lessonForm.value.unit_id)
+  return unit?.language_id || ''
+})
 
 onMounted(() => tutorStore.fetchContent())
 
@@ -264,8 +329,18 @@ async function saveUnit() {
 function openLessonModal(lesson = null) {
   editingLesson.value = lesson
   lessonForm.value = lesson
-    ? { ...lesson, questions: (lesson.questions || []).map(q => ({ ...q, options: [...(q.options || [])] })) }
-    : { id: '', unit_id: '', title: '', description: '', order: 1, xp_reward: 15, questions: [] }
+    ? {
+        ...lesson,
+        questions: (lesson.questions || []).map(q => ({ ...q, options: [...(q.options || [])] })),
+        status: lesson.status || 'published',
+        audio_intro_url: lesson.audio_intro_url || '',
+        cultural_note: lesson.cultural_note || '',
+        cultural_note_title: lesson.cultural_note_title || '',
+      }
+    : {
+        id: '', unit_id: '', title: '', description: '', order: 1, xp_reward: 15,
+        questions: [], status: 'published', audio_intro_url: '', cultural_note: '', cultural_note_title: '',
+      }
   showLessonModal.value = true
 }
 
@@ -275,7 +350,7 @@ function addQuestion() {
     type: 'translate',
     prompt: '',
     native_text: null,
-    options: [{ id: 'a', text: '' }, { id: 'b', text: '' }, { id: 'c', text: '' }],
+    options: [{ id: 'a', text: '', image_url: '' }, { id: 'b', text: '', image_url: '' }, { id: 'c', text: '', image_url: '' }],
     correct_answer_id: 'a',
   })
 }
