@@ -32,9 +32,19 @@
               <p class="text-xs text-slate-500 font-bold tracking-wider uppercase">Streak</p>
             </div>
             <div class="flex-1 text-center bg-slate-50 p-4 rounded-3xl">
-              <p class="text-2xl font-bold text-slate-900">{{ auth.user?.badges ?? 0 }}</p>
+              <p class="text-2xl font-bold text-slate-900">{{ earnedBadgeCount }}</p>
               <p class="text-xs text-slate-500 font-bold tracking-wider uppercase">Badges</p>
             </div>
+          </div>
+
+          <!-- Earned Badges Row -->
+          <div v-if="earnedBadgeIcons.length" class="flex gap-2 mt-4 flex-wrap justify-center">
+            <span
+              v-for="icon in earnedBadgeIcons"
+              :key="icon"
+              class="text-2xl w-11 h-11 flex items-center justify-center bg-slate-50 rounded-2xl border border-slate-100"
+              :title="icon"
+            >{{ icon }}</span>
           </div>
         </div>
       </div>
@@ -43,20 +53,20 @@
         <!-- Active Courses -->
         <h4 class="text-sm font-bold text-slate-400 mb-4 tracking-widest uppercase">My Courses</h4>
 
-        <div v-if="activeLangs.length" class="space-y-4 mb-8">
-          <div v-for="lang in activeLangs" :key="lang.id"
+        <div v-if="progressLangs.length" class="space-y-4 mb-8">
+          <div v-for="lang in progressLangs" :key="lang.language_id"
             class="bg-white p-5 rounded-3xl flex items-center gap-4 shadow-sm border border-slate-100"
           >
-            <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl"
-              :style="{ backgroundColor: `${colorMap[lang.color]}20` }"
-            >{{ lang.flag_emoji }}</div>
+            <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl bg-slate-50">
+              {{ lang.flag_emoji }}
+            </div>
             <div class="flex-1">
-              <h5 class="font-bold">{{ lang.name }}</h5>
+              <h5 class="font-bold">{{ lang.language_name }}</h5>
               <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div class="bg-emerald-600 h-full w-1/5"></div>
+                <div class="bg-emerald-600 h-full transition-all duration-700" :style="{ width: `${lang.percent_complete}%` }"></div>
               </div>
             </div>
-            <span class="text-sm font-bold text-emerald-700">20%</span>
+            <span class="text-sm font-bold text-emerald-700">{{ lang.percent_complete }}%</span>
           </div>
         </div>
 
@@ -111,33 +121,41 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useContentStore } from '@/stores/content'
+import { useProgressStore } from '@/stores/progress'
+import { contentApi } from '@/api'
 import BottomNav from '@/components/BottomNav.vue'
 
 const auth = useAuthStore()
-const content = useContentStore()
+const progressStore = useProgressStore()
 const router = useRouter()
 const reminders = ref(true)
-
-const colorMap = {
-  emerald: '#065F46',
-  blue: '#1E40AF',
-  amber: '#B45309',
-  red: '#B91C1C',
-}
+const allBadges = ref([])
 
 const avatarUrl = computed(() =>
   `https://ui-avatars.com/api/?name=${encodeURIComponent(auth.user?.name || 'U')}&background=065F46&color=fff&rounded=true&size=200`
 )
 
-const activeLangs = computed(() =>
-  content.languages.filter((l) => auth.user?.active_languages?.includes(l.id))
-)
+// Per-language progress from the progress store
+const progressLangs = computed(() => progressStore.summary?.languages ?? [])
+
+// Earned badges
+const earnedBadgeCount = computed(() => auth.user?.earned_badges?.length ?? 0)
+const earnedBadgeIcons = computed(() => {
+  const earned = new Set(auth.user?.earned_badges ?? [])
+  return allBadges.value
+    .filter(b => earned.has(b.id))
+    .map(b => b.icon)
+})
 
 function logout() {
   auth.logout()
   router.push('/')
 }
 
-onMounted(() => content.fetchLanguages())
+onMounted(async () => {
+  await Promise.all([
+    progressStore.fetchMyProgress(),
+    contentApi.getBadges().then(({ data }) => { allBadges.value = data }).catch(() => {}),
+  ])
+})
 </script>

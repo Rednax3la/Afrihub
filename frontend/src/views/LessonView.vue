@@ -32,6 +32,20 @@
         </button>
       </div>
 
+      <!-- Badge Celebration Overlay -->
+      <div v-else-if="lesson.finished && showBadgeCelebration" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
+        <div class="animate-badge-pop text-8xl mb-6">{{ lesson.newBadges[badgeIndex].icon }}</div>
+        <p class="text-xs font-bold tracking-widest text-emerald-700 uppercase mb-2">New Badge Unlocked!</p>
+        <h2 class="text-3xl font-bold text-slate-900 mb-3">{{ lesson.newBadges[badgeIndex].name }}</h2>
+        <p class="text-slate-500 mb-10">Keep up the great work!</p>
+        <button
+          @click="nextBadge"
+          class="w-full max-w-xs bg-emerald-900 text-white py-5 rounded-3xl font-bold text-lg shadow-lg shadow-emerald-900/20 active:scale-95 transition-transform"
+        >
+          Continue
+        </button>
+      </div>
+
       <!-- Finished Screen -->
       <div v-else-if="lesson.finished" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
         <div class="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mb-6">
@@ -41,8 +55,8 @@
         <p class="text-slate-500 mb-8">You answered {{ lesson.correctCount }} of {{ lesson.questions.length }} correctly.</p>
 
         <div class="flex gap-4 mb-10 w-full max-w-xs">
-          <div class="flex-1 bg-emerald-50 rounded-3xl p-4 text-center border border-emerald-100">
-            <p class="text-2xl font-bold text-emerald-700">+{{ lesson.xpEarned }}</p>
+          <div class="flex-1 bg-emerald-50 rounded-3xl p-4 text-center border border-emerald-100 relative overflow-hidden">
+            <p class="text-2xl font-bold text-emerald-700">+{{ animatedXP }}</p>
             <p class="text-xs text-emerald-600 font-bold uppercase tracking-wider">XP Earned</p>
           </div>
           <div class="flex-1 bg-amber-50 rounded-3xl p-4 text-center border border-amber-100">
@@ -50,6 +64,12 @@
               {{ lesson.questions.length ? Math.round((lesson.correctCount / lesson.questions.length) * 100) : 0 }}%
             </p>
             <p class="text-xs text-amber-600 font-bold uppercase tracking-wider">Accuracy</p>
+          </div>
+          <div class="flex-1 bg-orange-50 rounded-3xl p-4 text-center border border-orange-100">
+            <p class="text-2xl font-bold text-orange-600">
+              <span class="material-icons-outlined text-xl align-middle">local_fire_department</span>{{ lesson.completionStreak ?? 0 }}
+            </p>
+            <p class="text-xs text-orange-500 font-bold uppercase tracking-wider">Streak</p>
           </div>
         </div>
 
@@ -321,6 +341,37 @@ const lesson = useLesson(route.params.id)
 const ttsAudioUrl = ref(null)
 const ttsLoading = ref(false)
 
+// Badge celebration state
+const badgeIndex = ref(0)
+const badgesDismissed = ref(false)
+
+const showBadgeCelebration = computed(() =>
+  !badgesDismissed.value && lesson.newBadges.value.length > 0
+)
+
+function nextBadge() {
+  if (badgeIndex.value < lesson.newBadges.value.length - 1) {
+    badgeIndex.value++
+  } else {
+    badgesDismissed.value = true
+  }
+}
+
+// XP count-up animation
+const animatedXP = ref(0)
+watch(() => lesson.finished.value, (isFinished) => {
+  if (!isFinished) return
+  const target = lesson.xpEarned.value
+  if (!target) return
+  let current = 0
+  const step = Math.max(1, Math.ceil(target / 30))
+  const interval = setInterval(() => {
+    current = Math.min(current + step, target)
+    animatedXP.value = current
+    if (current >= target) clearInterval(interval)
+  }, 30)
+})
+
 // Clear TTS audio when question changes
 watch(() => lesson.currentIndex.value, () => { ttsAudioUrl.value = null })
 
@@ -367,3 +418,14 @@ function imageMatchClass(optionId) {
 
 onMounted(() => lesson.load())
 </script>
+
+<style scoped>
+@keyframes badge-pop {
+  0%   { transform: scale(0.3); opacity: 0; }
+  70%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.animate-badge-pop {
+  animation: badge-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+</style>

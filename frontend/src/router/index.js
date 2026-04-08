@@ -28,6 +28,12 @@ const routes = [
     meta: { requiresAuth: true, role: 'student' },
   },
   {
+    path: '/leaderboard',
+    name: 'leaderboard',
+    component: () => import('@/views/LeaderboardView.vue'),
+    meta: { requiresAuth: true, role: 'student' },
+  },
+  {
     path: '/subscription',
     name: 'subscription',
     component: () => import('@/views/SubscriptionView.vue'),

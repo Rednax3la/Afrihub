@@ -49,6 +49,7 @@ export const contentApi = {
     api.post(`/lessons/${lessonId}/complete`, { score, questions_attempted: questionsAttempted }),
   getCulturalNotes: (languageId) => api.get(`/languages/${languageId}/cultural-notes`),
   getLeaderboard: (languageId) => api.get(`/leaderboard/${languageId}`),
+  getBadges: () => api.get('/badges'),
 }
 
 // ── Progress ───────────────────────────────────────────────────────────────────

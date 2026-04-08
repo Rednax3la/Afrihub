@@ -16,6 +16,7 @@
 const navItems = [
   { to: '/dashboard', icon: 'home' },
   { to: '/courses', icon: 'map' },
+  { to: '/leaderboard', icon: 'emoji_events' },
   { to: '/subscription', icon: 'workspace_premium' },
   { to: '/profile', icon: 'person' },
 ]

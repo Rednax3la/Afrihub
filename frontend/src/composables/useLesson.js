@@ -19,6 +19,9 @@ export function useLesson(lessonId) {
   const pendingCulturalNote = ref(false)
   // Gap 3 — per-question accuracy tracking
   const questionResults = ref([])
+  // Phase 3 — completion response extras
+  const newBadges       = ref([])
+  const completionStreak = ref(null)
 
   const typedAnswer      = ref('')    // for translate questions where student types
   const currentQuestion = computed(() => questions.value[currentIndex.value] ?? null)
@@ -112,7 +115,9 @@ export function useLesson(lessonId) {
       ? Math.round((correctCount.value / questions.value.length) * 100)
       : 0
     try {
-      await contentApi.completeLesson(lessonId, score, questionResults.value)
+      const { data } = await contentApi.completeLesson(lessonId, score, questionResults.value)
+      newBadges.value = data.new_badges ?? []
+      completionStreak.value = data.streak ?? null
     } catch { /* non-blocking */ }
 
     if (culturalNote.value) {
@@ -163,6 +168,7 @@ export function useLesson(lessonId) {
     loading, finished, error, progressPercent,
     audioIntroUrl, culturalNote, culturalNoteTitle, pendingCulturalNote,
     languageCode, questionResults,
+    newBadges, completionStreak,
     selectAnswer, checkAnswer, nextQuestion, dismissCulturalNote, answerClass, load,
   }
 }

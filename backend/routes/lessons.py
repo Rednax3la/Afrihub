@@ -242,4 +242,55 @@ async def complete_lesson(
         {"$set": {"streak": new_streak, "last_activity_date": now}},
     )
 
-    return {"message": "Lesson completed!", "xp_earned": bonus_xp, "streak": new_streak}
+    # ── Badge award (Phase 3) ───────────────────────────────────────────────
+    # Re-fetch user to get up-to-date XP and existing badges after all updates
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    completed_count = await db.progress.count_documents({"user_id": user_id, "completed": True})
+    current_xp = user.get("xp", 0)
+    existing_badges = set(user.get("earned_badges", []))
+
+    all_badges = await db.badges.find().to_list(50)
+    new_badges = []
+    for badge in all_badges:
+        badge_id = badge.get("id") or str(badge["_id"])
+        if badge_id in existing_badges:
+            continue
+        criteria_type = badge.get("criteria_type", "")
+        criteria_value = badge.get("criteria_value", 0)
+
+        qualifies = False
+        if criteria_type == "lessons_completed" and completed_count >= criteria_value:
+            qualifies = True
+        elif criteria_type == "streak" and new_streak >= criteria_value:
+            qualifies = True
+        elif criteria_type == "xp" and current_xp >= criteria_value:
+            qualifies = True
+        elif criteria_type == "perfect_lesson" and body.score == 100:
+            qualifies = True
+
+        if qualifies:
+            await db.users.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$addToSet": {"earned_badges": badge_id}},
+            )
+            new_badges.append({"id": badge_id, "name": badge.get("name", "Badge"), "icon": badge.get("icon", "🏆")})
+
+    return {"message": "Lesson completed!", "xp_earned": bonus_xp, "streak": new_streak, "new_badges": new_badges}
+
+
+# ── Badges (public list) ────────────────────────────────────────────────────────
+
+@router.get("/badges")
+async def list_badges():
+    db = get_db()
+    badges = await db.badges.find().to_list(50)
+    return [
+        {
+            "id": b.get("id") or str(b["_id"]),
+            "name": b.get("name", ""),
+            "icon": b.get("icon", "🏆"),
+            "criteria_type": b.get("criteria_type", ""),
+            "criteria_value": b.get("criteria_value", 0),
+        }
+        for b in badges
+    ]
