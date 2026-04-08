@@ -15,7 +15,7 @@
           @click="selectLang(lang.id)"
           class="inline-flex items-center px-5 py-3 rounded-2xl gap-2 transition-all"
           :class="selectedLanguageId === lang.id
-            ? 'bg-emerald-900 text-white shadow-lg shadow-emerald-900/10'
+            ? 'bg-[#003B5C] text-white shadow-lg shadow-[#003B5C]/10'
             : 'bg-white border border-slate-200 text-slate-600'"
         >
           <span class="text-base">{{ lang.flag_emoji }}</span>
@@ -26,23 +26,22 @@
       <main class="px-4 pb-24">
         <!-- Loading -->
         <div v-if="loading" class="flex justify-center py-20">
-          <div class="w-10 h-10 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin"></div>
+          <div class="w-10 h-10 border-4 border-[#A7FFEB] border-t-[#00A3C1] rounded-full animate-spin"></div>
         </div>
 
         <!-- Empty -->
         <div v-else-if="!entries.length" class="text-center py-20">
           <span class="material-icons-outlined text-4xl text-slate-300 mb-3 block">leaderboard</span>
-          <p class="text-slate-400 font-medium">No learners yet for this language.</p>
+          <p class="text-slate-400 font-medium">No learners yet — be the first!</p>
         </div>
 
         <!-- List -->
         <div v-else class="space-y-3">
-          <!-- Top 3 podium-style -->
           <div v-for="(entry, idx) in entries" :key="entry.id"
             class="flex items-center gap-4 px-5 py-4 rounded-3xl border transition-all"
             :class="[
-              entry.id === auth.user?._id || entry.id === currentUserId
-                ? 'bg-emerald-50 border-emerald-200 shadow-sm'
+              entry.id === currentUserId
+                ? 'bg-[#A7FFEB]/30 border-[#00A3C1]/30 shadow-sm'
                 : 'bg-white border-slate-100',
               idx === 0 ? 'ring-2 ring-amber-300' : ''
             ]"
@@ -57,16 +56,16 @@
 
             <!-- Avatar -->
             <img
-              :src="entry.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.name)}&background=065F46&color=fff&rounded=true&size=80`"
+              :src="entry.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.name)}&background=003B5C&color=fff&rounded=true&size=80`"
               class="w-11 h-11 rounded-full object-cover shrink-0 border-2"
-              :class="entry.id === currentUserId ? 'border-emerald-500' : 'border-slate-100'"
+              :class="entry.id === currentUserId ? 'border-[#00A3C1]' : 'border-slate-100'"
             />
 
             <!-- Name -->
             <div class="flex-1 min-w-0">
               <p class="font-bold text-slate-900 truncate">
                 {{ entry.name }}
-                <span v-if="entry.id === currentUserId" class="text-xs text-emerald-700 font-bold ml-1">(you)</span>
+                <span v-if="entry.id === currentUserId" class="text-xs text-[#00A3C1] font-bold ml-1">(you)</span>
               </p>
               <div class="flex items-center gap-1 mt-0.5">
                 <span class="material-icons-outlined text-amber-500 text-xs">local_fire_department</span>
@@ -76,7 +75,7 @@
 
             <!-- XP -->
             <div class="text-right shrink-0">
-              <p class="font-bold text-emerald-700 text-base">{{ entry.xp.toLocaleString() }}</p>
+              <p class="font-bold text-[#00A3C1] text-base">{{ entry.xp.toLocaleString() }}</p>
               <p class="text-xs text-slate-400 font-bold uppercase tracking-wide">XP</p>
             </div>
           </div>
@@ -102,7 +101,6 @@ const selectedLanguageId = ref(null)
 const entries = ref([])
 const loading = ref(false)
 
-// Normalize user ID for comparison (MongoDB ObjectId can be nested)
 const currentUserId = computed(() => {
   const u = auth.user
   if (!u) return null

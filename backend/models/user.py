@@ -49,6 +49,7 @@ class UserPublic(BaseModel):
     xp: int = 0
     streak: int = 0
     badges: int = 0
+    earned_badges: List[str] = []
     avatar_url: Optional[str] = None
     is_premium: bool = False
     active_languages: List[str] = []

@@ -5,7 +5,7 @@
       :key="item.to"
       :to="item.to"
       class="flex flex-col items-center gap-1 text-slate-400 transition-colors"
-      :class="{ 'text-emerald-800 font-bold': $route.path === item.to }"
+      :class="{ 'text-[#003B5C] font-bold': $route.path === item.to }"
     >
       <span class="material-icons-outlined">{{ item.icon }}</span>
     </RouterLink>

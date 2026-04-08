@@ -3,15 +3,15 @@
     <div class="max-w-2xl mx-auto">
       <!-- Hero card -->
       <div class="bg-white p-8 pt-16 pb-12 md:pt-10 rounded-b-[3rem] shadow-sm relative overflow-hidden">
-        <div class="blob w-40 h-40 bg-emerald-100 rounded-full -top-10 -right-10"></div>
+        <div class="blob w-40 h-40 bg-[#A7FFEB] rounded-full -top-10 -right-10"></div>
 
         <div class="flex flex-col items-center">
           <div class="relative mb-4">
             <img
               :src="auth.user?.avatar_url || avatarUrl"
-              class="w-28 h-28 rounded-full object-cover border-4 border-emerald-50"
+              class="w-28 h-28 rounded-full object-cover border-4 border-[#A7FFEB]/50"
             />
-            <div class="absolute bottom-0 right-0 w-8 h-8 bg-emerald-600 rounded-full border-4 border-white flex items-center justify-center cursor-pointer">
+            <div class="absolute bottom-0 right-0 w-8 h-8 bg-[#00A3C1] rounded-full border-4 border-white flex items-center justify-center cursor-pointer">
               <span class="material-icons-outlined text-white text-[12px]">edit</span>
             </div>
           </div>
@@ -42,10 +42,10 @@
             <span
               v-for="icon in earnedBadgeIcons"
               :key="icon"
-              class="text-2xl w-11 h-11 flex items-center justify-center bg-slate-50 rounded-2xl border border-slate-100"
-              :title="icon"
+              class="text-2xl w-11 h-11 flex items-center justify-center bg-[#A7FFEB]/30 rounded-2xl border border-[#00A3C1]/20"
             >{{ icon }}</span>
           </div>
+          <p v-else class="text-xs text-slate-400 mt-4">Complete lessons to earn badges!</p>
         </div>
       </div>
 
@@ -63,17 +63,17 @@
             <div class="flex-1">
               <h5 class="font-bold">{{ lang.language_name }}</h5>
               <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div class="bg-emerald-600 h-full transition-all duration-700" :style="{ width: `${lang.percent_complete}%` }"></div>
+                <div class="bg-[#00A3C1] h-full transition-all duration-700" :style="{ width: `${lang.percent_complete}%` }"></div>
               </div>
             </div>
-            <span class="text-sm font-bold text-emerald-700">{{ lang.percent_complete }}%</span>
+            <span class="text-sm font-bold text-[#00A3C1]">{{ lang.percent_complete }}%</span>
           </div>
         </div>
 
         <div v-else class="bg-white rounded-3xl p-6 text-center border border-slate-100 shadow-sm mb-8">
           <span class="material-icons-outlined text-3xl text-slate-300 mb-2 block">language</span>
           <p class="text-slate-400 text-sm">No languages yet.</p>
-          <RouterLink to="/courses" class="text-emerald-700 font-semibold text-sm mt-1 block">Browse courses →</RouterLink>
+          <RouterLink to="/courses" class="text-[#00A3C1] font-semibold text-sm mt-1 block">Browse courses →</RouterLink>
         </div>
 
         <!-- Settings -->
@@ -87,7 +87,7 @@
             <div
               @click="reminders = !reminders"
               class="w-12 h-6 rounded-full p-1 relative cursor-pointer transition-colors"
-              :class="reminders ? 'bg-emerald-600' : 'bg-slate-200'"
+              :class="reminders ? 'bg-[#00A3C1]' : 'bg-slate-200'"
             >
               <div class="w-4 h-4 bg-white rounded-full absolute top-1 transition-all" :class="reminders ? 'right-1' : 'left-1'"></div>
             </div>
@@ -132,13 +132,11 @@ const reminders = ref(true)
 const allBadges = ref([])
 
 const avatarUrl = computed(() =>
-  `https://ui-avatars.com/api/?name=${encodeURIComponent(auth.user?.name || 'U')}&background=065F46&color=fff&rounded=true&size=200`
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(auth.user?.name || 'U')}&background=003B5C&color=fff&rounded=true&size=200`
 )
 
-// Per-language progress from the progress store
 const progressLangs = computed(() => progressStore.summary?.languages ?? [])
 
-// Earned badges
 const earnedBadgeCount = computed(() => auth.user?.earned_badges?.length ?? 0)
 const earnedBadgeIcons = computed(() => {
   const earned = new Set(auth.user?.earned_badges ?? [])

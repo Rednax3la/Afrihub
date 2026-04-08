@@ -1,6 +1,7 @@
 <template>
-  <section class="min-h-screen bg-emerald-950 text-white relative overflow-hidden md:pl-64">
-    <div class="absolute top-0 right-0 w-80 h-80 bg-emerald-800 rounded-full blur-[100px] opacity-40 -mr-40 -mt-40"></div>
+  <section class="min-h-screen bg-[#003B5C] text-white relative overflow-hidden md:pl-64">
+    <div class="absolute top-0 right-0 w-80 h-80 bg-[#00A3C1] rounded-full blur-[100px] opacity-20 -mr-40 -mt-40"></div>
+    <div class="absolute bottom-0 left-0 w-64 h-64 bg-[#00E5FF] rounded-full blur-[120px] opacity-10 -ml-20 -mb-20"></div>
 
     <div class="max-w-xl mx-auto">
       <header class="p-6 flex justify-between items-center">
@@ -16,26 +17,29 @@
           <span class="material-icons-outlined text-4xl">auto_awesome</span>
         </div>
         <h2 class="text-3xl font-bold serif mb-4">Master Your Heritage</h2>
-        <p class="text-emerald-100/70 text-lg mb-10">Unlock all 50+ African vernaculars with lessons from native tutors.</p>
+        <p class="text-white/60 text-lg mb-10">Unlock all 50+ African vernaculars with lessons from native tutors.</p>
       </div>
 
       <div class="px-6 space-y-4 mb-10">
+        <!-- Yearly -->
         <div
           @click="selectedPlan = 'yearly'"
           class="p-6 rounded-[2rem] flex justify-between items-center cursor-pointer relative overflow-hidden border-2 transition-all"
-          :class="selectedPlan === 'yearly' ? 'bg-white/15 border-amber-400' : 'bg-white/10 border-emerald-500/50'"
+          :class="selectedPlan === 'yearly' ? 'bg-white/15 border-amber-400' : 'bg-white/10 border-[#00A3C1]/50'"
         >
-          <div class="absolute top-0 right-0 bg-emerald-500 text-[10px] font-bold px-4 py-1 rounded-bl-xl">POPULAR</div>
+          <div class="absolute top-0 right-0 bg-[#00A3C1] text-[10px] font-bold px-4 py-1 rounded-bl-xl">POPULAR</div>
           <div>
             <h4 class="font-bold text-xl">Yearly Access</h4>
-            <p class="text-emerald-200/60 text-sm">Best for fluent mastery</p>
+            <p class="text-white/50 text-sm">Best for fluent mastery</p>
           </div>
           <div class="text-right">
-            <p class="text-2xl font-bold">$49.99</p>
-            <p class="text-xs text-emerald-200/60">/year</p>
+            <p class="text-2xl font-bold">KES 4,999</p>
+            <p class="text-xs text-white/50">/year</p>
+            <p class="text-xs text-white/40 mt-0.5">≈ $49.99 USD</p>
           </div>
         </div>
 
+        <!-- Monthly -->
         <div
           @click="selectedPlan = 'monthly'"
           class="p-6 rounded-[2rem] flex justify-between items-center cursor-pointer border-2 transition-all"
@@ -43,30 +47,31 @@
         >
           <div>
             <h4 class="font-bold text-xl">Monthly</h4>
-            <p class="text-emerald-200/60 text-sm">Flexible learning</p>
+            <p class="text-white/50 text-sm">Flexible learning</p>
           </div>
           <div class="text-right">
-            <p class="text-2xl font-bold">$5.99</p>
-            <p class="text-xs text-emerald-200/60">/month</p>
+            <p class="text-2xl font-bold">KES 599</p>
+            <p class="text-xs text-white/50">/month</p>
+            <p class="text-xs text-white/40 mt-0.5">≈ $5.99 USD</p>
           </div>
         </div>
       </div>
 
       <div class="px-8 space-y-4">
         <div v-for="perk in perks" :key="perk" class="flex items-center gap-3">
-          <span class="material-icons-outlined text-emerald-400">verified</span>
-          <span class="text-sm text-emerald-100/80">{{ perk }}</span>
+          <span class="material-icons-outlined text-[#00E5FF]">verified</span>
+          <span class="text-sm text-white/80">{{ perk }}</span>
         </div>
       </div>
 
       <div class="p-6 mt-10">
         <button
           @click="subscribe"
-          class="w-full bg-amber-500 text-emerald-950 py-5 rounded-3xl font-bold text-lg shadow-xl shadow-amber-500/20 active:scale-95 transition-transform"
+          class="w-full bg-amber-500 text-[#003B5C] py-5 rounded-3xl font-bold text-lg shadow-xl shadow-amber-500/20 active:scale-95 transition-transform"
         >
           Try 7 Days Free
         </button>
-        <p class="text-center text-xs text-emerald-100/40 mt-6">Cancel anytime. Terms and conditions apply.</p>
+        <p class="text-center text-xs text-white/30 mt-6">Cancel anytime. Terms and conditions apply.</p>
       </div>
     </div>
   </section>
@@ -74,7 +79,11 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useToastStore } from '@/stores/toast'
 
+const router = useRouter()
+const toast = useToastStore()
 const selectedPlan = ref('yearly')
 
 const perks = [
@@ -87,6 +96,7 @@ const perks = [
 ]
 
 function subscribe() {
-  alert(`Selected plan: ${selectedPlan.value} — payment integration coming soon!`)
+  toast.info('Payment integration launching soon! Join the waitlist to be first.')
+  router.push({ path: '/dashboard', query: { waitlist_plan: selectedPlan.value } })
 }
 </script>

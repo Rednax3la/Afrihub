@@ -1,22 +1,16 @@
 {
   "name": "Vernaculearn",
   "short_name": "VLearn",
-  "description": "Learn African languages with native speakers",
-  "start_url": "/",
+  "description": "Learn African vernacular languages with native speakers",
+  "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#FDFCFB",
-  "theme_color": "#14B8A6",
+  "theme_color": "#003B5C",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
+      "src": "/Vernaculearn logo.png",
+      "sizes": "any",
       "type": "image/png",
       "purpose": "any maskable"
     }

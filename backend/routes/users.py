@@ -4,8 +4,25 @@ from auth import get_current_user
 from routes.auth import serialize_user
 from models.user import UserUpdate
 from bson import ObjectId
+from pydantic import BaseModel, EmailStr
+import datetime
 
 router = APIRouter(prefix="/api/users", tags=["users"])
+
+
+class WaitlistEntry(BaseModel):
+    email: EmailStr
+
+
+@router.post("/waitlist", status_code=201)
+async def join_waitlist(body: WaitlistEntry):
+    db = get_db()
+    await db.waitlist.update_one(
+        {"email": body.email},
+        {"$set": {"email": body.email, "joined_at": datetime.datetime.utcnow()}},
+        upsert=True,
+    )
+    return {"message": "You're on the list!"}
 
 
 @router.get("/me")

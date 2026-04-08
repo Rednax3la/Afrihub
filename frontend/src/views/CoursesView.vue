@@ -28,7 +28,7 @@
           @click="activeRegion = region"
           class="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
           :class="activeRegion === region
-            ? 'bg-emerald-900 text-white'
+            ? 'bg-[#003B5C] text-white'
             : 'bg-white border border-slate-200 text-slate-600'"
         >
           {{ region }}
@@ -47,17 +47,17 @@
           >
             <div
               class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-bold text-white"
-              :style="{ backgroundColor: colorMap[lang.color] || '#065F46' }"
+              :style="{ backgroundColor: colorMap[lang.color] || '#003B5C' }"
             >
               {{ lang.flag_emoji }}
             </div>
             <div class="flex-1">
               <h5 class="font-bold text-slate-900">{{ lang.name }}</h5>
               <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div class="bg-emerald-500 h-full w-1/5"></div>
+                <div class="bg-[#00A3C1] h-full w-1/5"></div>
               </div>
             </div>
-            <span class="text-xs font-bold text-emerald-700">CONTINUE →</span>
+            <span class="text-xs font-bold text-[#00A3C1]">CONTINUE →</span>
           </RouterLink>
         </div>
       </div>
@@ -67,7 +67,7 @@
         <h4 class="text-sm font-bold text-slate-400 tracking-widest uppercase mb-4">All Languages</h4>
 
         <div v-if="content.loading" class="flex justify-center py-10">
-          <div class="w-8 h-8 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin"></div>
+          <div class="w-8 h-8 border-4 border-[#A7FFEB] border-t-[#00A3C1] rounded-full animate-spin"></div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -110,7 +110,7 @@
                 :disabled="!lang.is_free && !auth.user?.is_premium"
                 class="w-full py-3 rounded-2xl font-bold text-sm transition-all active:scale-95"
                 :class="lang.is_free || auth.user?.is_premium
-                  ? 'bg-emerald-900 text-white shadow-md shadow-emerald-900/10'
+                  ? 'bg-[#003B5C] text-white shadow-md shadow-[#003B5C]/10'
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed'"
               >
                 {{ lang.is_free || auth.user?.is_premium ? '+ Start Learning' : '🔒 Premium Only' }}
@@ -118,7 +118,7 @@
               <RouterLink
                 v-else
                 to="/dashboard"
-                class="block w-full py-3 rounded-2xl font-bold text-sm text-center bg-emerald-50 text-emerald-800 border border-emerald-200"
+                class="block w-full py-3 rounded-2xl font-bold text-sm text-center bg-[#A7FFEB]/30 text-[#003B5C] border border-[#00A3C1]/30"
               >
                 Continue Learning →
               </RouterLink>
@@ -135,7 +135,7 @@
             class="bg-white border border-slate-100 rounded-3xl p-4 flex items-center gap-4 shadow-sm"
           >
             <img
-              :src="tutor.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=065F46&color=fff&rounded=true&size=128`"
+              :src="tutor.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=003B5C&color=fff&rounded=true&size=128`"
               class="w-14 h-14 rounded-2xl object-cover shrink-0"
             />
             <div class="flex-1 min-w-0">
@@ -145,7 +145,7 @@
               <h5 class="font-bold text-slate-900">{{ tutor.name }}</h5>
               <p v-if="tutor.bio" class="text-xs text-slate-500 truncate">{{ tutor.bio }}</p>
             </div>
-            <span class="material-icons-outlined text-emerald-500 shrink-0">verified</span>
+            <span class="material-icons-outlined text-[#00A3C1] shrink-0">verified</span>
           </div>
         </div>
       </div>
@@ -171,7 +171,7 @@ const tutors = ref([])
 const regions = ['All', 'West Africa', 'East Africa', 'Southern Africa', 'North Africa']
 
 const colorMap = {
-  emerald: '#065F46',
+  emerald: '#003B5C',
   blue: '#1E40AF',
   amber: '#B45309',
   red: '#B91C1C',

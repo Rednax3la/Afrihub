@@ -10,7 +10,7 @@ export const KEYBOARDS = {
   am: {
     label: 'Amharic',
     chars: [], // Ge'ez script — defer to system keyboard
-    note: 'Amharic uses Ge'ez script. Switch to Amharic keyboard on your device for best results.',
+    note: "Amharic uses Ge'ez script. Switch to Amharic keyboard on your device for best results.",
   },
   zu: {
     label: 'Zulu',

@@ -2,20 +2,17 @@
   <section class="min-h-screen bg-[#FDFCFB] flex flex-col relative overflow-hidden">
 
     <!-- Decorative blobs -->
-    <div class="pointer-events-none select-none absolute -top-32 -right-32 w-[500px] h-[500px] bg-emerald-100 rounded-full blur-[100px] opacity-60"></div>
-    <div class="pointer-events-none select-none absolute -bottom-40 -left-32 w-[420px] h-[420px] bg-amber-100 rounded-full blur-[100px] opacity-50"></div>
+    <div class="pointer-events-none select-none absolute -top-32 -right-32 w-[500px] h-[500px] bg-[#A7FFEB] rounded-full blur-[100px] opacity-50"></div>
+    <div class="pointer-events-none select-none absolute -bottom-40 -left-32 w-[420px] h-[420px] bg-[#00E5FF] rounded-full blur-[100px] opacity-20"></div>
 
     <!-- Nav -->
     <nav class="relative z-10 flex items-center justify-between px-6 md:px-16 pt-8">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-emerald-900 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-900/20">
-          <span class="material-icons-outlined text-white text-xl">menu_book</span>
-        </div>
-        <span class="text-xl font-bold tracking-tight text-slate-900">Vernaculearn</span>
+        <img src="/Vernaculearn logo.png" alt="Vernaculearn" class="h-9 w-auto" />
       </div>
       <RouterLink
         to="/login"
-        class="text-base font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+        class="text-base font-semibold text-slate-500 hover:text-[#003B5C] transition-colors"
       >Sign in</RouterLink>
     </nav>
 
@@ -23,15 +20,15 @@
     <div class="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6 py-12 md:py-20">
 
       <!-- Badge -->
-      <div class="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full px-4 py-1.5 mb-8">
+      <div class="inline-flex items-center gap-2 bg-[#A7FFEB]/50 border border-[#00A3C1]/30 rounded-full px-4 py-1.5 mb-8">
         <span class="text-base">🌍</span>
-        <span class="text-base font-semibold text-emerald-800">Authentic lessons from native tutors</span>
+        <span class="text-base font-semibold text-[#003B5C]">Authentic lessons from native tutors</span>
       </div>
 
       <!-- Headline -->
       <h1 class="text-6xl md:text-8xl font-bold text-slate-900 leading-[1.05] mb-8 max-w-4xl">
         Learn the pulse<br />of
-        <span class="text-emerald-700 italic">Africa.</span>
+        <span class="text-[#00A3C1] italic">Africa.</span>
       </h1>
 
       <!-- Sub -->
@@ -43,28 +40,53 @@
       <div class="flex flex-col sm:flex-row gap-4 w-full max-w-xs sm:max-w-none sm:justify-center">
         <RouterLink
           to="/register"
-          class="bg-emerald-900 text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-xl shadow-emerald-900/20 hover:bg-emerald-800 active:scale-95 transition-all"
+          class="bg-[#003B5C] text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-xl shadow-[#003B5C]/20 hover:bg-[#00A3C1] active:scale-95 transition-all"
         >
           Start Learning
         </RouterLink>
         <RouterLink
           to="/login"
-          class="bg-white border border-slate-200 text-slate-800 px-10 py-5 rounded-2xl font-bold text-lg hover:border-slate-300 active:scale-95 transition-all"
+          class="bg-white border border-slate-200 text-slate-800 px-10 py-5 rounded-2xl font-bold text-lg hover:border-[#00A3C1] active:scale-95 transition-all"
         >
           I have an account
         </RouterLink>
       </div>
 
+      <!-- Waitlist email capture -->
+      <div class="mt-12 w-full max-w-md">
+        <p class="text-sm text-slate-400 mb-3">Works on 2G · Offline capable · Launching soon in your region</p>
+        <div v-if="!waitlistSuccess" class="flex gap-2">
+          <input
+            v-model="waitlistEmail"
+            type="email"
+            placeholder="your@email.com"
+            @keydown.enter="joinWaitlist"
+            class="flex-1 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#00A3C1] transition-colors bg-white"
+          />
+          <button
+            @click="joinWaitlist"
+            :disabled="waitlistLoading"
+            class="bg-[#003B5C] text-white px-5 py-3 rounded-xl font-bold text-sm active:scale-95 transition-all disabled:opacity-50"
+          >
+            {{ waitlistLoading ? '…' : 'Notify me' }}
+          </button>
+        </div>
+        <div v-else class="flex items-center gap-2 justify-center text-[#003B5C] font-semibold text-sm">
+          <span class="material-icons-outlined text-[#00A3C1]">check_circle</span>
+          You're in! We'll notify you at launch.
+        </div>
+      </div>
+
       <!-- Feature pills -->
       <div class="flex flex-wrap gap-3 justify-center mt-14 max-w-2xl">
         <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-full px-5 py-3 text-base text-slate-600 font-medium shadow-sm">
-          <span class="material-icons-outlined text-emerald-600">verified</span> Native speaker tutors
+          <span class="material-icons-outlined text-[#00A3C1]">verified</span> Native speaker tutors
         </div>
         <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-full px-5 py-3 text-base text-slate-600 font-medium shadow-sm">
           <span class="material-icons-outlined text-amber-500">local_fire_department</span> Daily streaks
         </div>
         <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-full px-5 py-3 text-base text-slate-600 font-medium shadow-sm">
-          <span class="material-icons-outlined text-emerald-600">headphones</span> Audio-first lessons
+          <span class="material-icons-outlined text-[#00A3C1]">headphones</span> Audio-first lessons
         </div>
         <div class="flex items-center gap-2 bg-white border border-slate-100 rounded-full px-5 py-3 text-base text-slate-600 font-medium shadow-sm">
           <span class="material-icons-outlined text-purple-500">language</span> 50+ languages
@@ -84,7 +106,7 @@
     <div class="relative z-10 pb-8 flex flex-col items-center gap-3">
       <RouterLink
         to="/register/tutor"
-        class="text-sm text-slate-400 hover:text-emerald-700 font-semibold transition-colors"
+        class="text-sm text-slate-400 hover:text-[#00A3C1] font-semibold transition-colors"
       >
         Are you a native speaker? Apply as a Tutor →
       </RouterLink>
@@ -95,6 +117,34 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
+import { waitlistApi } from '@/api'
+
+const waitlistEmail = ref('')
+const waitlistLoading = ref(false)
+const waitlistSuccess = ref(false)
+
+onMounted(() => {
+  waitlistSuccess.value = !!localStorage.getItem('vl_waitlist')
+})
+
+async function joinWaitlist() {
+  const email = waitlistEmail.value.trim()
+  if (!email || waitlistLoading.value) return
+  waitlistLoading.value = true
+  try {
+    await waitlistApi.join(email)
+    waitlistSuccess.value = true
+    localStorage.setItem('vl_waitlist', email)
+  } catch {
+    // silent — still show success to avoid friction
+    waitlistSuccess.value = true
+    localStorage.setItem('vl_waitlist', email)
+  } finally {
+    waitlistLoading.value = false
+  }
+}
+
 const languages = [
   { name: 'Kikuyu', flag: '🇰🇪' },
   { name: 'Yoruba', flag: '🇳🇬' },

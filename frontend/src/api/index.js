@@ -133,4 +133,9 @@ export const uploadApi = {
   },
 }
 
+// ── Waitlist ───────────────────────────────────────────────────────────────────
+export const waitlistApi = {
+  join: (email) => api.post('/users/waitlist', { email }),
+}
+
 export default api

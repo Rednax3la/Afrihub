@@ -7,7 +7,7 @@
           :key="toast.id"
           class="flex items-start gap-3 px-4 py-3.5 rounded-2xl shadow-lg cursor-pointer select-none"
           :class="{
-            'bg-emerald-900 text-white': toast.type === 'success',
+            'bg-[#003B5C] text-white': toast.type === 'success',
             'bg-red-600 text-white': toast.type === 'error',
             'bg-slate-800 text-white': toast.type === 'info',
           }"

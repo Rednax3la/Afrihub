@@ -18,6 +18,7 @@ def serialize_user(user: dict) -> UserPublic:
         xp=user.get("xp", 0),
         streak=user.get("streak", 0),
         badges=user.get("badges", 0),
+        earned_badges=user.get("earned_badges", []),
         avatar_url=user.get("avatar_url"),
         is_premium=user.get("is_premium", False),
         active_languages=user.get("active_languages", []),

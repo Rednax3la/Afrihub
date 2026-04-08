@@ -19,9 +19,10 @@ export function useLesson(lessonId) {
   const pendingCulturalNote = ref(false)
   // Gap 3 — per-question accuracy tracking
   const questionResults = ref([])
-  // Phase 3 — completion response extras
-  const newBadges       = ref([])
-  const completionStreak = ref(null)
+  // Phase 3 — completion response
+  const completionBadges  = ref([])
+  const completionStreak  = ref(null)
+  const completionXp      = ref(0)
 
   const typedAnswer      = ref('')    // for translate questions where student types
   const currentQuestion = computed(() => questions.value[currentIndex.value] ?? null)
@@ -59,10 +60,8 @@ export function useLesson(lessonId) {
     // For translate questions with typed input, resolve text → option ID
     if (currentQuestion.value?.type === 'translate' && typedAnswer.value.trim()) {
       const resolved = _resolveTypedAnswer()
-      // submit as the matched option ID, or use a sentinel that will be wrong
       selectedAnswer.value = resolved ?? '__typed_wrong__'
       if (!resolved) {
-        // no option matched — mark wrong immediately without API call
         const correctId = currentQuestion.value.correct_answer_id
         feedback.value = { correct: false, correct_answer_id: correctId }
         questionResults.value.push({
@@ -86,7 +85,6 @@ export function useLesson(lessonId) {
         correctCount.value++
         xpEarned.value += data.xp_earned ?? 0
       }
-      // Track per-question result (Gap 3)
       questionResults.value.push({
         question_id: currentQuestion.value.id,
         correct: data.correct,
@@ -116,8 +114,12 @@ export function useLesson(lessonId) {
       : 0
     try {
       const { data } = await contentApi.completeLesson(lessonId, score, questionResults.value)
-      newBadges.value = data.new_badges ?? []
-      completionStreak.value = data.streak ?? null
+      completionXp.value     = data.xp_earned ?? 0
+      completionStreak.value = data.streak ?? 0
+      completionBadges.value = data.new_badges ?? []
+      // Refresh user so dashboard/profile show updated XP + streak
+      const { useAuthStore } = await import('@/stores/auth')
+      await useAuthStore().fetchMe()
     } catch { /* non-blocking */ }
 
     if (culturalNote.value) {
@@ -135,11 +137,11 @@ export function useLesson(lessonId) {
   function answerClass(optionId) {
     if (!feedback.value) {
       return selectedAnswer.value === optionId
-        ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
-        : 'border-slate-100 text-slate-700 hover:border-emerald-200 hover:bg-emerald-50'
+        ? 'border-[#00A3C1] bg-[#A7FFEB]/30 text-[#003B5C]'
+        : 'border-slate-100 text-slate-700 hover:border-[#00A3C1] hover:bg-[#A7FFEB]/20'
     }
     if (optionId === feedback.value.correct_answer_id)
-      return 'border-emerald-500 bg-emerald-50 text-emerald-800'
+      return 'border-[#00A3C1] bg-[#A7FFEB]/30 text-[#003B5C]'
     if (optionId === selectedAnswer.value && !feedback.value.correct)
       return 'border-red-400 bg-red-50 text-red-700'
     return 'border-slate-100 text-slate-400'
@@ -168,7 +170,7 @@ export function useLesson(lessonId) {
     loading, finished, error, progressPercent,
     audioIntroUrl, culturalNote, culturalNoteTitle, pendingCulturalNote,
     languageCode, questionResults,
-    newBadges, completionStreak,
+    completionBadges, completionStreak, completionXp,
     selectAnswer, checkAnswer, nextQuestion, dismissCulturalNote, answerClass, load,
   }
 }
