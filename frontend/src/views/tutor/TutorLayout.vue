@@ -124,6 +124,7 @@ const navItems = [
   { to: '/tutor/dashboard', icon: 'dashboard', label: 'Dashboard' },
   { to: '/tutor/content', icon: 'edit_note', label: 'My Content' },
   { to: '/tutor/review', icon: 'rate_review', label: 'Review Queue' },
+  { to: '/tutor/recordings', icon: 'mic', label: 'Recording Queue' },
   { to: '/tutor/profile', icon: 'person', label: 'My Profile' },
 ]
 

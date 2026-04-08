@@ -117,6 +117,10 @@ export const tutorApi = {
   // Cultural notes (2C)
   createCulturalNote: (data) => api.post('/tutors/me/cultural-notes', data),
   updateCulturalNote: (id, data) => api.patch(`/tutors/me/cultural-notes/${id}`, data),
+  // Recording queue
+  getRecordingQueue: () => api.get('/tutors/me/recording-queue'),
+  submitRecording: (lessonId, questionId, audioUrl) =>
+    api.patch(`/tutors/me/recording/${lessonId}/${questionId}`, { audio_url: audioUrl }),
 }
 
 // ── Upload ─────────────────────────────────────────────────────────────────────
@@ -130,6 +134,11 @@ export const uploadApi = {
     const form = new FormData()
     form.append('file', file)
     return api.post('/upload/image', form, { headers: { 'Content-Type': 'multipart/form-data' } })
+  },
+  video: (file) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post('/upload/video', form, { headers: { 'Content-Type': 'multipart/form-data' } })
   },
 }
 

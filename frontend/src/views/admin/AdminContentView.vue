@@ -347,6 +347,7 @@
                   <option value="image">Image Question</option>
                   <option value="image_translate">Image → Translate</option>
                   <option value="image_match">Image Match</option>
+                  <option value="video">Video Lesson</option>
                 </select>
                 <input v-model="q.prompt" placeholder="Question / phrase to translate" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none" />
                 <SpecialCharKeyboard :language-code="adminLessonLanguageCode" :model-value="q.prompt" @update:model-value="q.prompt = $event" />
@@ -362,6 +363,11 @@
                 <div v-if="q.type === 'image' || q.type === 'image_translate'">
                   <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Image (required)</p>
                   <FileUpload v-model="q.image_url" type="image" />
+                </div>
+                <!-- Video upload -->
+                <div v-if="q.type === 'video'">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Video (required)</p>
+                  <FileUpload v-model="q.video_url" type="video" />
                 </div>
                 <div class="space-y-1.5">
                   <div v-for="(opt, oi) in q.options" :key="oi" class="flex gap-2 items-start">

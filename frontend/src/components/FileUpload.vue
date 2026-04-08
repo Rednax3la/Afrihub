@@ -2,7 +2,7 @@
   <div>
     <!-- Existing URL display -->
     <div v-if="modelValue" class="flex items-center gap-2 mb-2 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5">
-      <span class="material-icons-outlined text-emerald-600 text-lg">{{ type === 'audio' ? 'audiotrack' : 'image' }}</span>
+      <span class="material-icons-outlined text-emerald-600 text-lg">{{ type === 'audio' ? 'audiotrack' : type === 'video' ? 'videocam' : 'image' }}</span>
       <span class="text-xs text-slate-600 flex-1 truncate font-mono">{{ modelValue }}</span>
       <button type="button" @click="$emit('update:modelValue', '')" class="text-slate-400 hover:text-red-500 transition-colors">
         <span class="material-icons-outlined text-base">close</span>
@@ -26,11 +26,11 @@
         <span class="text-sm font-semibold">Uploading…</span>
       </div>
       <template v-else>
-        <span class="material-icons-outlined text-2xl text-slate-400">{{ type === 'audio' ? 'upload_file' : 'add_photo_alternate' }}</span>
+        <span class="material-icons-outlined text-2xl text-slate-400">{{ type === 'audio' ? 'upload_file' : type === 'video' ? 'videocam' : 'add_photo_alternate' }}</span>
         <span class="text-xs text-slate-500 text-center">
           {{ modelValue ? 'Replace file' : `Upload ${type}` }} · drag & drop or click
         </span>
-        <span class="text-xs text-slate-400">{{ type === 'audio' ? 'MP3, WAV, OGG, M4A · max 15 MB' : 'JPG, PNG, WebP · max 15 MB' }}</span>
+        <span class="text-xs text-slate-400">{{ type === 'audio' ? 'MP3, WAV, OGG, M4A · max 15 MB' : type === 'video' ? 'MP4, WebM, MOV · max 100 MB' : 'JPG, PNG, WebP · max 15 MB' }}</span>
       </template>
     </label>
 
@@ -43,7 +43,7 @@
     <input
       :value="modelValue"
       @input="$emit('update:modelValue', $event.target.value)"
-      :placeholder="`https://example.com/file.${type === 'audio' ? 'mp3' : 'jpg'}`"
+      :placeholder="`https://example.com/file.${type === 'audio' ? 'mp3' : type === 'video' ? 'mp4' : 'jpg'}`"
       class="mt-2 w-full border border-slate-200 rounded-2xl px-4 py-2.5 text-xs focus:outline-none focus:border-emerald-400 font-mono"
     />
 
@@ -58,7 +58,7 @@ import { useToastStore } from '@/stores/toast'
 
 const props = defineProps({
   modelValue: { type: String, default: '' },
-  type: { type: String, default: 'image' }, // 'audio' | 'image'
+  type: { type: String, default: 'image' }, // 'audio' | 'image' | 'video'
 })
 const emit = defineEmits(['update:modelValue'])
 
@@ -68,7 +68,7 @@ const uploading = ref(false)
 const error = ref('')
 
 const accept = computed(() =>
-  props.type === 'audio' ? 'audio/*' : 'image/*'
+  props.type === 'audio' ? 'audio/*' : props.type === 'video' ? 'video/*' : 'image/*'
 )
 
 async function upload(file) {
@@ -76,7 +76,7 @@ async function upload(file) {
   uploading.value = true
   error.value = ''
   try {
-    const fn = props.type === 'audio' ? uploadApi.audio : uploadApi.image
+    const fn = props.type === 'audio' ? uploadApi.audio : props.type === 'video' ? uploadApi.video : uploadApi.image
     const { data } = await fn(file)
     emit('update:modelValue', data.url)
     toast.success('File uploaded')

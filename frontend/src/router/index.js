@@ -72,6 +72,7 @@ const routes = [
       { path: 'content', name: 'tutor-content', component: () => import('@/views/tutor/TutorContentView.vue') },
       { path: 'profile', name: 'tutor-profile', component: () => import('@/views/tutor/TutorProfileView.vue') },
       { path: 'review', name: 'tutor-review', component: () => import('@/views/tutor/TutorReviewView.vue') },
+      { path: 'recordings', name: 'tutor-recordings', component: () => import('@/views/tutor/TutorRecordingView.vue') },
     ],
   },
 

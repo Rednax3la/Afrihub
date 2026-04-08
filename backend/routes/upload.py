@@ -10,7 +10,9 @@ router = APIRouter(prefix="/api/upload", tags=["upload"])
 UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "uploads")
 ALLOWED_AUDIO = {".mp3", ".wav", ".ogg", ".m4a", ".webm"}
 ALLOWED_IMAGE = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+ALLOWED_VIDEO = {".mp4", ".webm", ".mov"}
 MAX_SIZE = 15 * 1024 * 1024  # 15 MB
+MAX_VIDEO_SIZE = 100 * 1024 * 1024  # 100 MB
 
 R2_ENABLED = os.getenv("R2_ENABLED", "false").lower() == "true"
 
@@ -71,6 +73,29 @@ async def upload_audio(
         url = await _upload_to_r2(content, f"audio/{filename}", file.content_type or "audio/mpeg")
     else:
         url = await _upload_local(content, "audio", filename, request)
+
+    return {"url": url, "filename": filename}
+
+
+@router.post("/video")
+async def upload_video(
+    request: Request,
+    file: UploadFile = File(...),
+    current_user=Depends(get_current_user),
+):
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in ALLOWED_VIDEO:
+        raise HTTPException(400, f"Unsupported format. Allowed: {', '.join(ALLOWED_VIDEO)}")
+
+    content = await file.read()
+    if len(content) > MAX_VIDEO_SIZE:
+        raise HTTPException(400, "File too large (max 100 MB)")
+
+    filename = f"{uuid.uuid4()}{ext}"
+    if R2_ENABLED:
+        url = await _upload_to_r2(content, f"video/{filename}", file.content_type or "video/mp4")
+    else:
+        url = await _upload_local(content, "video", filename, request)
 
     return {"url": url, "filename": filename}
 

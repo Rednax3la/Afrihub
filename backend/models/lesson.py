@@ -19,6 +19,7 @@ class Question(BaseModel):
     correct_answer_id: str
     audio_url: Optional[str] = None   # For listen / listen_comprehension / pronunciation aid
     image_url: Optional[str] = None   # For image / image_translate questions
+    video_url: Optional[str] = None   # For video lessons/questions
 
 
 class Lesson(BaseModel):

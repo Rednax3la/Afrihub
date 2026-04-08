@@ -70,6 +70,20 @@
       </div>
     </div>
 
+    <!-- Recording Queue card -->
+    <div v-if="recordingCount > 0" class="bg-rose-50 border border-rose-200 rounded-3xl p-5 mb-6 flex items-center gap-4">
+      <div class="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center shrink-0">
+        <span class="material-icons-outlined text-rose-600 text-2xl">mic</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="font-bold text-rose-900">{{ recordingCount }} phrase{{ recordingCount === 1 ? '' : 's' }} need your voice</p>
+        <p class="text-rose-700 text-sm">Record audio so learners can hear the correct pronunciation.</p>
+      </div>
+      <RouterLink to="/tutor/recordings" class="px-4 py-2 rounded-2xl bg-rose-500 text-white font-bold text-sm shrink-0 hover:bg-rose-600">
+        Record
+      </RouterLink>
+    </div>
+
     <!-- Review Queue card (2E) -->
     <div v-if="reviewCount > 0" class="bg-amber-50 border border-amber-200 rounded-3xl p-5 mb-6 flex items-center gap-4">
       <div class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center shrink-0">
@@ -117,6 +131,7 @@ import { tutorApi } from '@/api'
 const auth = useAuthStore()
 const tutorStore = useTutorStore()
 const reviewCount = ref(0)
+const recordingCount = ref(0)
 
 const firstName = computed(() => auth.user?.name?.split(' ')[0] || 'Tutor')
 const totalQuestions = computed(() =>
@@ -129,6 +144,10 @@ onMounted(async () => {
     try {
       const { data } = await tutorApi.getReviewQueueCount()
       reviewCount.value = data.count ?? 0
+    } catch { /* non-critical */ }
+    try {
+      const { data } = await tutorApi.getRecordingQueue()
+      recordingCount.value = data.total_pending ?? 0
     } catch { /* non-critical */ }
   }
 })

@@ -267,6 +267,19 @@ LESSONS = [
                 ],
                 "correct_answer_id": "c",
             },
+            {
+                "id": "q4",
+                "type": "video",
+                "prompt": "Watch the greeting demonstration, then answer: What gesture accompanies 'Shikamoo' when greeting an elder?",
+                "native_text": None,
+                "video_url": None,  # placeholder — tutor will upload
+                "options": [
+                    {"id": "a", "text": "A handshake with both hands"},
+                    {"id": "b", "text": "Bowing the head slightly"},
+                    {"id": "c", "text": "Waving from a distance"},
+                ],
+                "correct_answer_id": "b",
+            },
         ],
     },
 ]

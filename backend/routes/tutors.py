@@ -227,3 +227,85 @@ async def update_cultural_note(note_id: str, body: dict, tutor=Depends(_active_t
     note = await db.cultural_notes.find_one({"_id": ObjId(note_id)})
     note["_id"] = str(note["_id"])
     return note
+
+
+# ── Recording Queue ────────────────────────────────────────────────────────────
+
+@router.get("/me/recording-queue")
+async def get_recording_queue(tutor=Depends(_active_tutor)):
+    """
+    Returns published lessons for the tutor's languages where at least one
+    question has audio_url == null. Groups by lesson, shows only the
+    questions that need recording.
+    """
+    db = get_db()
+    languages_taught = tutor.get("languages_taught", [])
+
+    lessons = await db.lessons.find({
+        "language_id": {"$in": languages_taught},
+        "status": {"$nin": ["draft", "rejected", "pending_review"]},
+    }).sort("language_id", 1).to_list(500)
+
+    queue = []
+    for lesson in lessons:
+        needs_audio = [
+            q for q in lesson.get("questions", [])
+            if q.get("audio_url") is None
+            and q.get("type") in ("translate", "multiple_choice", "listen", "listen_comprehension")
+        ]
+        if needs_audio:
+            queue.append({
+                "lesson_id": lesson["id"],
+                "lesson_title": lesson.get("title", ""),
+                "language_id": lesson.get("language_id", ""),
+                "unit_id": lesson.get("unit_id", ""),
+                "total_questions": len(lesson.get("questions", [])),
+                "needs_recording": len(needs_audio),
+                "questions": [
+                    {
+                        "question_id": q["id"],
+                        "type": q["type"],
+                        "prompt": q.get("prompt", ""),
+                        "native_text": q.get("native_text", ""),
+                    }
+                    for q in needs_audio
+                ],
+            })
+
+    return {
+        "total_pending": sum(item["needs_recording"] for item in queue),
+        "lessons": queue,
+    }
+
+
+@router.patch("/me/recording/{lesson_id}/{question_id}")
+async def submit_recording(
+    lesson_id: str,
+    question_id: str,
+    body: dict,
+    tutor=Depends(_active_tutor),
+):
+    """
+    Tutor submits an audio_url for a specific question.
+    Body: { "audio_url": "https://..." }
+    """
+    db = get_db()
+    audio_url = body.get("audio_url")
+    if not audio_url:
+        raise HTTPException(400, "audio_url is required")
+
+    languages_taught = tutor.get("languages_taught", [])
+    lesson = await db.lessons.find_one({"id": lesson_id})
+    if not lesson:
+        raise HTTPException(404, "Lesson not found")
+    if lesson.get("language_id") not in languages_taught:
+        raise HTTPException(403, "This lesson is not in your languages")
+
+    result = await db.lessons.update_one(
+        {"id": lesson_id, "questions.id": question_id},
+        {"$set": {"questions.$.audio_url": audio_url}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(404, "Question not found in this lesson")
+
+    return {"message": "Recording submitted", "lesson_id": lesson_id, "question_id": question_id}

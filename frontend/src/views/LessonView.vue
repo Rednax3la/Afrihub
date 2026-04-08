@@ -158,6 +158,26 @@
             </div>
           </template>
 
+          <!-- ── VIDEO: watch-gated video lesson ────────────────────────────── -->
+          <template v-else-if="lesson.currentQuestion.type === 'video'">
+            <div class="bg-slate-900 rounded-[2rem] overflow-hidden mb-4 shadow-lg">
+              <VideoPlayer
+                :src="lesson.currentQuestion.video_url"
+                :required-progress="0.75"
+                :lesson-id="route.params.id"
+                :question-id="lesson.currentQuestion.id"
+                @progress-met="videoProgressMet = true"
+              />
+            </div>
+            <div class="bg-slate-50 border border-slate-100 rounded-[2rem] p-5 text-center">
+              <p class="text-lg font-bold text-slate-800">{{ lesson.currentQuestion.prompt }}</p>
+              <p v-if="!videoProgressMet" class="text-sm text-amber-600 mt-2 font-medium">
+                <span class="material-icons-outlined text-sm align-middle">schedule</span>
+                Watch at least 75% of the video to continue
+              </p>
+            </div>
+          </template>
+
           <!-- ── IMAGE MATCH ─────────────────────────────────────────────────── -->
           <template v-else-if="lesson.currentQuestion.type === 'image_match'">
             <div class="bg-[#A7FFEB]/30 border border-[#00A3C1]/20 rounded-[2rem] p-5 mb-4 text-center shadow-sm">
@@ -237,8 +257,8 @@
             </div>
           </template>
 
-          <!-- Answer options (shared, hidden for image_match) -->
-          <template v-if="lesson.currentQuestion.type !== 'image_match'">
+          <!-- Answer options (shared, hidden for image_match and pure video) -->
+          <template v-if="lesson.currentQuestion.type !== 'image_match' && lesson.currentQuestion.type !== 'video'">
             <div v-if="lesson.currentQuestion.type === 'translate' && !lesson.feedback" class="flex-1 space-y-2">
               <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Type your answer</label>
               <input
@@ -294,26 +314,87 @@
           </template>
         </main>
 
+        <!-- Video answer options (shown after progress met) -->
+        <template v-if="lesson.currentQuestion.type === 'video' && lesson.currentQuestion.options?.length && videoProgressMet">
+          <div class="px-6 space-y-3 mt-4">
+            <button
+              v-for="option in lesson.currentQuestion.options"
+              :key="option.id"
+              @click="lesson.selectAnswer(option.id)"
+              :disabled="!!lesson.feedback"
+              class="w-full p-4 rounded-2xl border-2 font-semibold text-left transition-all"
+              :class="lesson.answerClass(option.id)"
+            >
+              {{ option.text }}
+            </button>
+          </div>
+          <div
+            v-if="lesson.feedback"
+            class="mx-6 mt-4 p-4 rounded-2xl flex items-start gap-3"
+            :class="lesson.feedback.correct ? 'bg-[#A7FFEB]/30 border border-[#00A3C1]/30' : 'bg-red-50 border border-red-200'"
+          >
+            <span class="material-icons-outlined text-xl mt-0.5" :class="lesson.feedback.correct ? 'text-[#00A3C1]' : 'text-red-500'">
+              {{ lesson.feedback.correct ? 'check_circle' : 'cancel' }}
+            </span>
+            <div>
+              <p class="font-bold" :class="lesson.feedback.correct ? 'text-[#003B5C]' : 'text-red-600'">
+                {{ lesson.feedback.correct ? 'Correct!' : 'Not quite' }}
+              </p>
+              <p v-if="!lesson.feedback.correct" class="text-sm text-slate-500 mt-0.5">
+                Correct answer: <span class="font-semibold">{{ lesson.correctOptionText }}</span>
+              </p>
+            </div>
+          </div>
+        </template>
+
         <!-- Footer -->
         <footer v-if="lesson.currentQuestion.type !== 'image_match'" class="px-6 pb-8 pt-2">
-          <button
-            v-if="!lesson.feedback"
-            @click="lesson.checkAnswer()"
-            :disabled="!lesson.selectedAnswer && !lesson.typedAnswer.trim()"
-            class="w-full py-5 rounded-3xl font-bold text-lg transition-all"
-            :class="(lesson.selectedAnswer || lesson.typedAnswer.trim())
-              ? 'bg-[#003B5C] text-white shadow-lg shadow-[#003B5C]/20 active:scale-95'
-              : 'bg-slate-100 text-slate-400 cursor-not-allowed'"
-          >
-            Check
-          </button>
-          <button
-            v-else
-            @click="lesson.nextQuestion()"
-            class="w-full py-5 rounded-3xl font-bold text-lg bg-[#003B5C] text-white shadow-lg shadow-[#003B5C]/20 active:scale-95 transition-transform"
-          >
-            {{ lesson.currentIndex < lesson.questions.length - 1 ? 'Next' : 'Finish' }}
-          </button>
+          <!-- Video question footer -->
+          <template v-if="lesson.currentQuestion.type === 'video'">
+            <button
+              v-if="lesson.currentQuestion.options?.length"
+              :disabled="!videoProgressMet || (!lesson.selectedAnswer && !lesson.feedback)"
+              @click="lesson.feedback ? lesson.nextQuestion() : lesson.checkAnswer()"
+              class="w-full py-5 rounded-3xl font-bold text-lg transition-all"
+              :class="(videoProgressMet && (lesson.selectedAnswer || lesson.feedback))
+                ? 'bg-[#003B5C] text-white shadow-lg shadow-[#003B5C]/20 active:scale-95'
+                : 'bg-slate-100 text-slate-400 cursor-not-allowed'"
+            >
+              {{ lesson.feedback ? (lesson.currentIndex < lesson.questions.length - 1 ? 'Next' : 'Finish') : 'Check' }}
+            </button>
+            <button
+              v-else
+              :disabled="!videoProgressMet"
+              @click="lesson.nextQuestion()"
+              class="w-full py-5 rounded-3xl font-bold text-lg transition-all"
+              :class="videoProgressMet
+                ? 'bg-[#003B5C] text-white shadow-lg shadow-[#003B5C]/20 active:scale-95'
+                : 'bg-slate-100 text-slate-400 cursor-not-allowed'"
+            >
+              {{ lesson.currentIndex < lesson.questions.length - 1 ? 'Continue' : 'Finish' }}
+            </button>
+          </template>
+          <!-- Standard footer -->
+          <template v-else>
+            <button
+              v-if="!lesson.feedback"
+              @click="lesson.checkAnswer()"
+              :disabled="!lesson.selectedAnswer && !lesson.typedAnswer.trim()"
+              class="w-full py-5 rounded-3xl font-bold text-lg transition-all"
+              :class="(lesson.selectedAnswer || lesson.typedAnswer.trim())
+                ? 'bg-[#003B5C] text-white shadow-lg shadow-[#003B5C]/20 active:scale-95'
+                : 'bg-slate-100 text-slate-400 cursor-not-allowed'"
+            >
+              Check
+            </button>
+            <button
+              v-else
+              @click="lesson.nextQuestion()"
+              class="w-full py-5 rounded-3xl font-bold text-lg bg-[#003B5C] text-white shadow-lg shadow-[#003B5C]/20 active:scale-95 transition-transform"
+            >
+              {{ lesson.currentIndex < lesson.questions.length - 1 ? 'Next' : 'Finish' }}
+            </button>
+          </template>
         </footer>
       </template>
 
@@ -327,6 +408,7 @@ import { useRoute } from 'vue-router'
 import { useLesson } from '@/composables/useLesson'
 import { ttsApi } from '@/api'
 import AudioPlayer from '@/components/AudioPlayer.vue'
+import VideoPlayer from '@/components/VideoPlayer.vue'
 import SpecialCharKeyboard from '@/components/SpecialCharKeyboard.vue'
 
 const route = useRoute()
@@ -335,6 +417,9 @@ const lesson = useLesson(route.params.id)
 // TTS state
 const ttsAudioUrl = ref(null)
 const ttsLoading = ref(false)
+
+// Video progress gate
+const videoProgressMet = ref(false)
 
 // Badge celebration state
 const badgeIndex = ref(0)
@@ -367,8 +452,11 @@ watch(() => lesson.finished.value, (isFinished) => {
   }, 30)
 })
 
-// Clear TTS audio when question changes
-watch(() => lesson.currentIndex.value, () => { ttsAudioUrl.value = null })
+// Clear TTS audio and video gate when question changes
+watch(() => lesson.currentIndex.value, () => {
+  ttsAudioUrl.value = null
+  videoProgressMet.value = false
+})
 
 async function fetchTTS(text) {
   if (!text || ttsLoading.value) return
@@ -396,6 +484,7 @@ const questionTypeLabel = computed(() => {
   if (type === 'image_translate') return 'Name what you see'
   if (type === 'image_match') return 'Match the image'
   if (type === 'multiple_choice') return 'Choose the correct answer'
+  if (type === 'video') return 'Watch & learn'
   return 'Translate this phrase'
 })
 
