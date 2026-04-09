@@ -81,8 +81,30 @@ async def run_seed(key: str):
         from fastapi import HTTPException
         raise HTTPException(status_code=403, detail="Forbidden")
     try:
-        from seed import seed as do_seed
-        await do_seed()
+        from database import get_db
+        from auth import hash_password
+        from seed import LANGUAGES, UNITS, LESSONS, USERS, BADGES, CULTURAL_NOTES
+        from datetime import datetime
+        db = get_db()
+        await db.languages.drop()
+        await db.units.drop()
+        await db.lessons.drop()
+        await db.badges.drop()
+        await db.cultural_notes.drop()
+        await db.languages.insert_many(LANGUAGES)
+        await db.units.insert_many(UNITS)
+        await db.lessons.insert_many(LESSONS)
+        await db.badges.insert_many(BADGES)
+        await db.cultural_notes.insert_many(CULTURAL_NOTES)
+        for u in USERS:
+            u["created_at"] = datetime.utcnow()
+            if u["name"] == "Admin":
+                u["password_hash"] = hash_password("Admin1234!")
+            else:
+                u["password_hash"] = hash_password("Tutor1234!")
+            await db.users.update_one({"email": u["email"]}, {"$set": u}, upsert=True)
+        await db.users.create_index("email", unique=True)
+        await db.progress.create_index([("user_id", 1), ("lesson_id", 1)], unique=True)
         return {"message": "Database seeded successfully"}
     except Exception as e:
         return {"error": str(e), "trace": traceback.format_exc()}
