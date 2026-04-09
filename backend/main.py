@@ -70,7 +70,11 @@ app.include_router(tts.router)
 
 @app.get("/")
 async def root():
-    return {"message": "🌍 Vernaculearn API is running", "docs": "/docs"}
+    return {
+        "message": "🌍 Vernaculearn API is running",
+        "docs": "/docs",
+        "mongodb_uri": os.getenv("MONGODB_URI", "NOT SET"),
+    }
 
 
 @app.get("/api/admin/seed")
