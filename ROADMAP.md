@@ -111,7 +111,7 @@ Instead of partnering with schools, Vernaculearn works with **individual vetted 
 - Level system: Bronze → Silver → Gold → Platinum
 - Hearts/lives system
 - Push notifications (PWA + email)
-- An online sourced Translator/Dictionary between English and Kenyan vernacular languages
+- A Translator/Dictionary function between English and other vernacular languages
 
 ### 🔵 Phase 4 — Mobile App & Offline Mode *(PLANNED · Month 5–7)*
 - Progressive Web App (PWA) — installable, works offline
