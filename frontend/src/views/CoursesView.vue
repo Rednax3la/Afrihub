@@ -76,12 +76,6 @@
             :key="lang.id"
             class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm overflow-hidden relative"
           >
-            <!-- Premium badge -->
-            <div v-if="!lang.is_free && !auth.user?.is_premium"
-              class="absolute top-0 right-0 bg-amber-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-2xl"
-            >
-              PREMIUM
-            </div>
 
             <div class="flex items-start gap-4">
               <div
@@ -107,13 +101,9 @@
               <button
                 v-if="!isEnrolled(lang.id)"
                 @click="enroll(lang)"
-                :disabled="!lang.is_free && !auth.user?.is_premium"
-                class="w-full py-3 rounded-2xl font-bold text-sm transition-all active:scale-95"
-                :class="lang.is_free || auth.user?.is_premium
-                  ? 'bg-[#003B5C] text-white shadow-md shadow-[#003B5C]/10'
-                  : 'bg-slate-100 text-slate-400 cursor-not-allowed'"
+                class="w-full py-3 rounded-2xl font-bold text-sm transition-all active:scale-95 bg-[#003B5C] text-white shadow-md shadow-[#003B5C]/10"
               >
-                {{ lang.is_free || auth.user?.is_premium ? '+ Start Learning' : '🔒 Premium Only' }}
+                + Start Learning
               </button>
               <RouterLink
                 v-else

@@ -11,15 +11,33 @@
               :src="auth.user?.avatar_url || avatarUrl"
               class="w-28 h-28 rounded-full object-cover border-4 border-[#A7FFEB]/50"
             />
-            <div class="absolute bottom-0 right-0 w-8 h-8 bg-[#00A3C1] rounded-full border-4 border-white flex items-center justify-center cursor-pointer">
-              <span class="material-icons-outlined text-white text-[12px]">edit</span>
+            <label class="absolute bottom-0 right-0 w-8 h-8 bg-[#00A3C1] rounded-full border-4 border-white flex items-center justify-center cursor-pointer" :class="avatarUploading ? 'opacity-60' : ''">
+              <span class="material-icons-outlined text-white text-[12px]">{{ avatarUploading ? 'hourglass_empty' : 'edit' }}</span>
+              <input type="file" accept="image/*" class="hidden" @change="uploadAvatar" :disabled="avatarUploading" />
+            </label>
+          </div>
+
+          <!-- Editable name/location -->
+          <div v-if="editing" class="w-full space-y-3 mt-2 mb-4">
+            <input v-model="editName" class="w-full border-2 border-[#00A3C1]/40 rounded-2xl px-4 py-3 font-semibold text-slate-900 focus:outline-none focus:border-[#00A3C1]" placeholder="Your name" />
+            <input v-model="editLocation" class="w-full border-2 border-slate-200 rounded-2xl px-4 py-3 text-slate-700 focus:outline-none focus:border-[#00A3C1]" placeholder="Your location" />
+            <div class="flex gap-2">
+              <button @click="saveProfile" :disabled="savingProfile" class="flex-1 py-3 bg-[#003B5C] text-white rounded-2xl font-bold text-sm active:scale-95 transition-transform">
+                {{ savingProfile ? 'Saving…' : 'Save' }}
+              </button>
+              <button @click="editing = false" class="flex-1 py-3 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm">Cancel</button>
             </div>
           </div>
-          <h2 class="text-2xl font-bold text-slate-900">{{ auth.user?.name }}</h2>
-          <p class="text-slate-500 font-medium flex items-center gap-1 mt-1">
-            <span class="material-icons-outlined text-sm">location_on</span>
-            {{ auth.user?.location || 'Somewhere in Africa 🌍' }}
-          </p>
+          <template v-else>
+            <h2 class="text-2xl font-bold text-slate-900">{{ auth.user?.name }}</h2>
+            <p class="text-slate-500 font-medium flex items-center gap-1 mt-1">
+              <span class="material-icons-outlined text-sm">location_on</span>
+              {{ auth.user?.location || 'Somewhere in Africa 🌍' }}
+            </p>
+            <button @click="startEdit" class="mt-3 text-xs font-bold text-[#00A3C1] flex items-center gap-1">
+              <span class="material-icons-outlined text-sm">edit</span> Edit profile
+            </button>
+          </template>
 
           <!-- Stats -->
           <div class="flex gap-4 mt-8 w-full">
@@ -122,7 +140,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProgressStore } from '@/stores/progress'
-import { contentApi } from '@/api'
+import { contentApi, uploadApi, userApi } from '@/api'
 import BottomNav from '@/components/BottomNav.vue'
 
 const auth = useAuthStore()
@@ -130,6 +148,42 @@ const progressStore = useProgressStore()
 const router = useRouter()
 const reminders = ref(true)
 const allBadges = ref([])
+const avatarUploading = ref(false)
+const editing = ref(false)
+const editName = ref('')
+const editLocation = ref('')
+const savingProfile = ref(false)
+
+function startEdit() {
+  editName.value = auth.user?.name || ''
+  editLocation.value = auth.user?.location || ''
+  editing.value = true
+}
+
+async function uploadAvatar(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+  avatarUploading.value = true
+  try {
+    const { data } = await uploadApi.image(file)
+    await userApi.updateProfile({ avatar_url: data.url })
+    await auth.fetchMe()
+  } catch { /* silent */ } finally {
+    avatarUploading.value = false
+    e.target.value = ''
+  }
+}
+
+async function saveProfile() {
+  savingProfile.value = true
+  try {
+    await userApi.updateProfile({ name: editName.value, location: editLocation.value })
+    await auth.fetchMe()
+    editing.value = false
+  } catch { /* silent */ } finally {
+    savingProfile.value = false
+  }
+}
 
 const avatarUrl = computed(() =>
   `https://ui-avatars.com/api/?name=${encodeURIComponent(auth.user?.name || 'U')}&background=003B5C&color=fff&rounded=true&size=200`

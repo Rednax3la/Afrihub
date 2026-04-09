@@ -6,6 +6,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const token = ref(localStorage.getItem('token') || null)
   const loading = ref(false)
+  const initialized = ref(false)
 
   const isLoggedIn = computed(() => !!token.value && !!user.value)
   const role = computed(() => user.value?.role || 'student')
@@ -59,12 +60,14 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchMe() {
-    if (!token.value) return
+    if (!token.value) { initialized.value = true; return }
     try {
       const { data } = await userApi.getMe()
       user.value = data
     } catch {
       logout()
+    } finally {
+      initialized.value = true
     }
   }
 
@@ -78,5 +81,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('token')
   }
 
-  return { user, token, loading, isLoggedIn, role, isAdmin, isTutor, isStudent, register, registerTutor, login, fetchMe, refreshUser, logout }
+  return { user, token, loading, initialized, isLoggedIn, role, isAdmin, isTutor, isStudent, register, registerTutor, login, fetchMe, refreshUser, logout }
 })

@@ -102,13 +102,13 @@
                   <p class="text-center mt-6 font-bold text-slate-800">{{ lesson.title }}</p>
                 </RouterLink>
 
-                <!-- Locked -->
-                <div v-else class="flex flex-col items-center opacity-40">
-                  <div class="w-20 h-20 bg-slate-200 rounded-3xl rotate-45 flex items-center justify-center">
+                <!-- Locked (still accessible) -->
+                <RouterLink v-else :to="`/lesson/${lesson.id}`" class="group flex flex-col items-center opacity-50">
+                  <div class="w-20 h-20 bg-slate-200 rounded-3xl rotate-45 flex items-center justify-center group-active:scale-90 transition-transform">
                     <span class="material-icons-outlined text-slate-500 -rotate-45 text-2xl">lock</span>
                   </div>
                   <p class="text-center mt-4 font-medium text-slate-500">{{ lesson.title }}</p>
-                </div>
+                </RouterLink>
               </div>
             </div>
           </div>

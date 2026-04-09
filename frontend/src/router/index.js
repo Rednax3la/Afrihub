@@ -89,6 +89,9 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
 
+  // Wait for auth to hydrate from localStorage on first load
+  if (!auth.initialized) await auth.fetchMe()
+
   // Redirect away from splash if already logged in
   if (to.name === 'splash' && auth.isLoggedIn) {
     if (auth.isAdmin) return { path: '/admin/dashboard' }

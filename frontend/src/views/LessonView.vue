@@ -403,7 +403,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useLesson } from '@/composables/useLesson'
 import { ttsApi } from '@/api'
@@ -499,7 +499,24 @@ function imageMatchClass(optionId) {
   return 'border-slate-100 opacity-50'
 }
 
-onMounted(() => lesson.load())
+function handleKey(e) {
+  if (lesson.finished.value || showCulturalNote.value) return
+  const q = lesson.currentQuestion.value
+  if (!q || q.type === 'translate' || q.type === 'video') return
+
+  if (['1', '2', '3'].includes(e.key) && !lesson.feedback.value) {
+    const option = q.options?.[parseInt(e.key) - 1]
+    if (option) lesson.selectAnswer(option.id)
+  }
+  if ((e.key === 'Enter' || e.key === ' ') && q.type !== 'image_match') {
+    e.preventDefault()
+    if (lesson.feedback.value) lesson.nextQuestion()
+    else if (lesson.selectedAnswer.value) lesson.checkAnswer()
+  }
+}
+
+onMounted(() => { lesson.load(); window.addEventListener('keydown', handleKey) })
+onUnmounted(() => window.removeEventListener('keydown', handleKey))
 </script>
 
 <style scoped>
