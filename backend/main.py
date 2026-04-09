@@ -75,10 +75,14 @@ async def root():
 
 @app.get("/api/admin/seed")
 async def run_seed(key: str):
+    import traceback
     seed_key = os.getenv("SEED_KEY", "")
     if not seed_key or key != seed_key:
         from fastapi import HTTPException
         raise HTTPException(status_code=403, detail="Forbidden")
-    from seed import seed as do_seed
-    await do_seed()
-    return {"message": "Database seeded successfully"}
+    try:
+        from seed import seed as do_seed
+        await do_seed()
+        return {"message": "Database seeded successfully"}
+    except Exception as e:
+        return {"error": str(e), "trace": traceback.format_exc()}
