@@ -73,7 +73,7 @@ async def root():
     return {"message": "🌍 Vernaculearn API is running", "docs": "/docs"}
 
 
-@app.post("/api/admin/seed")
+@app.get("/api/admin/seed")
 async def run_seed(key: str):
     seed_key = os.getenv("SEED_KEY", "")
     if not seed_key or key != seed_key:
