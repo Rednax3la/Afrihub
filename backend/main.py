@@ -107,8 +107,6 @@ async def run_seed(key: str):
             else:
                 u["password_hash"] = hash_password("Tutor1234!")
             await db.users.update_one({"email": u["email"]}, {"$set": u}, upsert=True)
-        await db.users.create_index("email", unique=True)
-        await db.progress.create_index([("user_id", 1), ("lesson_id", 1)], unique=True)
         return {"message": "Database seeded successfully"}
     except Exception as e:
         return {"error": str(e), "trace": traceback.format_exc()}
