@@ -71,3 +71,14 @@ app.include_router(tts.router)
 @app.get("/")
 async def root():
     return {"message": "🌍 Vernaculearn API is running", "docs": "/docs"}
+
+
+@app.post("/api/admin/seed")
+async def run_seed(key: str):
+    seed_key = os.getenv("SEED_KEY", "")
+    if not seed_key or key != seed_key:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="Forbidden")
+    from seed import seed as do_seed
+    await do_seed()
+    return {"message": "Database seeded successfully"}
