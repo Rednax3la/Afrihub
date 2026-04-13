@@ -1,4 +1,4 @@
-# 🌍 Afrihub — African Language Learning App
+# 🌍 Vernaculearn — African Language Learning App
 
 > Duolingo, but for African vernacular languages. Built with Vue 3, FastAPI, and MongoDB.
 
