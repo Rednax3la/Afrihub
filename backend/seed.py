@@ -9,10 +9,11 @@ from datetime import datetime
 import os
 
 load_dotenv()
+print("MONGODB_URI = ", os.getenv("MONGODB_URI"))  # a check on whether the env is properly loaded.
 
 from auth import hash_password
 
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
+MONGODB_URI = os.getenv("MONGODB_URI")
 DB_NAME = os.getenv("DB_NAME", "vernaculearn")
 
 LANGUAGES = [
@@ -59,6 +60,72 @@ LANGUAGES = [
         "speaker_count": "32 million",
         "description": "A Semitic language and the official language of Ethiopia, written in Ge'ez script.",
         "is_free": False,
+    },
+    {
+        "id": "kikuyu",
+        "name": "Kikuyu",
+        "code": "ki",
+        "country": "Kenya",
+        "flag_emoji": "🇰🇪",
+        "color": "purple",
+        "speaker_count": "8 million",
+        "description": "The language of the Agĩkũyũ people, spoken mainly in central Kenya around Mount Kenya.",
+        "is_free": True,
+    },
+    {
+        "id": "luo",
+        "name": "Luo",
+        "code": "luo",
+        "country": "Kenya",
+        "flag_emoji": "🇰🇪",
+        "color": "pink",
+        "speaker_count": "6 million",
+        "description": "A Nilotic language spoken by the Luo people around Lake Victoria in western Kenya.",
+        "is_free": True,
+    },
+    {
+        "id": "kalenjin",
+        "name": "Kalenjin",
+        "code": "kln",
+        "country": "Kenya",
+        "flag_emoji": "🇰🇪",
+        "color": "orange",
+        "speaker_count": "5 million",
+        "description": "A group of related dialects spoken by the Kalenjin people in Kenya's Rift Valley Province.",
+        "is_free": True,
+    },
+    {
+        "id": "kamba",
+        "name": "Kamba",
+        "code": "kam",
+        "country": "Kenya",
+        "flag_emoji": "🇰🇪",
+        "color": "teal",
+        "speaker_count": "4 million",
+        "description": "A Bantu language spoken by the Akamba people in eastern Kenya, especially Machakos and Kitui.",
+        "is_free": True,
+    },
+    {
+        "id": "meru",
+        "name": "Meru",
+        "code": "mer",
+        "country": "Kenya",
+        "flag_emoji": "🇰🇪",
+        "color": "cyan",
+        "speaker_count": "2 million",
+        "description": "A Bantu language of the Ameru people living on the northeastern slopes of Mount Kenya.",
+        "is_free": True,
+    },
+    {
+        "id": "luhya",
+        "name": "Luhya",
+        "code": "luy",
+        "country": "Kenya",
+        "flag_emoji": "🇰🇪",
+        "color": "indigo",
+        "speaker_count": "7 million",
+        "description": "A cluster of Bantu languages spoken by the Luhya people in western Kenya.",
+        "is_free": True,
     },
 ]
 
