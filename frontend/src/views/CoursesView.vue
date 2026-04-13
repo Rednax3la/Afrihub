@@ -165,12 +165,20 @@ const colorMap = {
   blue: '#1E40AF',
   amber: '#B45309',
   red: '#B91C1C',
+  purple: '#7C3AED',
+  pink: '#BE185D',
+  orange: '#C2410C',
+  teal: '#0F766E',
+  cyan: '#0E7490',
+  indigo: '#4338CA',
 }
 
 const filteredLanguages = computed(() => {
-  return content.languages.filter((l) =>
-    l.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
+  return content.languages.filter((l) => {
+    const matchesSearch = l.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    const matchesRegion = activeRegion.value === 'All' || l.region === activeRegion.value
+    return matchesSearch && matchesRegion
+  })
 })
 
 const activeLangs = computed(() =>

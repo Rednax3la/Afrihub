@@ -403,7 +403,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, reactive } from 'vue'
 import { useRoute } from 'vue-router'
 import { useLesson } from '@/composables/useLesson'
 import { ttsApi } from '@/api'
@@ -412,7 +412,8 @@ import VideoPlayer from '@/components/VideoPlayer.vue'
 import SpecialCharKeyboard from '@/components/SpecialCharKeyboard.vue'
 
 const route = useRoute()
-const lesson = useLesson(route.params.id)
+// reactive() wraps the composable so nested refs are auto-unwrapped in the template
+const lesson = reactive(useLesson(route.params.id))
 
 // TTS state
 const ttsAudioUrl = ref(null)
@@ -426,11 +427,11 @@ const badgeIndex = ref(0)
 const badgesDismissed = ref(false)
 
 const showBadgeCelebration = computed(() =>
-  !badgesDismissed.value && lesson.completionBadges.value.length > 0
+  !badgesDismissed.value && lesson.completionBadges.length > 0
 )
 
 function nextBadge() {
-  if (badgeIndex.value < lesson.completionBadges.value.length - 1) {
+  if (badgeIndex.value < lesson.completionBadges.length - 1) {
     badgeIndex.value++
   } else {
     badgesDismissed.value = true
@@ -439,9 +440,9 @@ function nextBadge() {
 
 // XP count-up animation using completionXp from the API response
 const animatedXP = ref(0)
-watch(() => lesson.finished.value, (isFinished) => {
+watch(() => lesson.finished, (isFinished) => {
   if (!isFinished) return
-  const target = lesson.completionXp.value
+  const target = lesson.completionXp
   if (!target) return
   let current = 0
   const step = Math.max(1, Math.ceil(target / 30))
@@ -453,7 +454,7 @@ watch(() => lesson.finished.value, (isFinished) => {
 })
 
 // Clear TTS audio and video gate when question changes
-watch(() => lesson.currentIndex.value, () => {
+watch(() => lesson.currentIndex, () => {
   ttsAudioUrl.value = null
   videoProgressMet.value = false
 })
@@ -462,7 +463,7 @@ async function fetchTTS(text) {
   if (!text || ttsLoading.value) return
   ttsLoading.value = true
   try {
-    const langCode = lesson.languageCode.value || 'yo'
+    const langCode = lesson.languageCode || 'yo'
     const { data } = await ttsApi.generate(text, langCode)
     ttsAudioUrl.value = data.audio_url
   } catch {
@@ -473,11 +474,11 @@ async function fetchTTS(text) {
 }
 
 const showCulturalNote = computed(() =>
-  lesson.pendingCulturalNote.value && !lesson.finished.value
+  lesson.pendingCulturalNote && !lesson.finished
 )
 
 const questionTypeLabel = computed(() => {
-  const type = lesson.currentQuestion.value?.type
+  const type = lesson.currentQuestion?.type
   if (type === 'listen') return 'Listen & choose'
   if (type === 'listen_comprehension') return 'Listen & understand'
   if (type === 'image') return 'What does this show?'
@@ -489,29 +490,29 @@ const questionTypeLabel = computed(() => {
 })
 
 function imageMatchClass(optionId) {
-  if (!lesson.feedback.value) {
-    return lesson.selectedAnswer.value === optionId
+  if (!lesson.feedback) {
+    return lesson.selectedAnswer === optionId
       ? 'border-[#00A3C1] ring-2 ring-[#00E5FF]/40'
       : 'border-slate-200 hover:border-[#00A3C1]'
   }
-  if (optionId === lesson.feedback.value.correct_answer_id) return 'border-[#00A3C1] ring-2 ring-[#00E5FF]/40'
-  if (optionId === lesson.selectedAnswer.value && !lesson.feedback.value.correct) return 'border-red-400 ring-2 ring-red-200'
+  if (optionId === lesson.feedback.correct_answer_id) return 'border-[#00A3C1] ring-2 ring-[#00E5FF]/40'
+  if (optionId === lesson.selectedAnswer && !lesson.feedback.correct) return 'border-red-400 ring-2 ring-red-200'
   return 'border-slate-100 opacity-50'
 }
 
 function handleKey(e) {
-  if (lesson.finished.value || showCulturalNote.value) return
-  const q = lesson.currentQuestion.value
+  if (lesson.finished || showCulturalNote.value) return
+  const q = lesson.currentQuestion
   if (!q || q.type === 'translate' || q.type === 'video') return
 
-  if (['1', '2', '3'].includes(e.key) && !lesson.feedback.value) {
+  if (['1', '2', '3'].includes(e.key) && !lesson.feedback) {
     const option = q.options?.[parseInt(e.key) - 1]
     if (option) lesson.selectAnswer(option.id)
   }
   if ((e.key === 'Enter' || e.key === ' ') && q.type !== 'image_match') {
     e.preventDefault()
-    if (lesson.feedback.value) lesson.nextQuestion()
-    else if (lesson.selectedAnswer.value) lesson.checkAnswer()
+    if (lesson.feedback) lesson.nextQuestion()
+    else if (lesson.selectedAnswer) lesson.checkAnswer()
   }
 }
 

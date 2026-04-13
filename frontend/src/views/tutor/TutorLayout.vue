@@ -5,8 +5,8 @@
       <!-- Logo -->
       <div class="px-6 py-5 border-b border-slate-100">
         <div class="flex items-center gap-3">
-          <div class="w-9 h-9 bg-emerald-800 rounded-xl flex items-center justify-center shrink-0">
-            <span class="material-icons-outlined text-white text-lg">menu_book</span>
+          <div class="shrink-0">
+            <img src="/Vernaculearn logo.png" alt="Vernaculearn" class="h-7 w-auto" />
           </div>
           <div>
             <p class="text-slate-900 font-bold text-sm leading-tight">Vernaculearn</p>

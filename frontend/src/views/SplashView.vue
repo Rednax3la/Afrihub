@@ -7,8 +7,9 @@
 
     <!-- Nav -->
     <nav class="relative z-10 flex items-center justify-between px-6 md:px-16 pt-8">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2">
         <img src="/Vernaculearn logo.png" alt="Vernaculearn" class="h-9 w-auto" />
+        <span class="text-xl font-bold tracking-tight text-[#003B5C] hidden sm:inline">Vernaculearn</span>
       </div>
       <RouterLink
         to="/login"

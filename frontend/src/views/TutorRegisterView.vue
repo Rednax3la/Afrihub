@@ -70,6 +70,19 @@
         </div>
 
         <div>
+          <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Primary Region</label>
+          <select v-model="form.region" class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition-colors">
+            <option value="">Select the region your language(s) belong to</option>
+            <option value="West Africa">West Africa</option>
+            <option value="East Africa">East Africa</option>
+            <option value="Southern Africa">Southern Africa</option>
+            <option value="North Africa">North Africa</option>
+            <option value="Central Africa">Central Africa</option>
+          </select>
+          <p class="text-xs text-slate-400 mt-1.5">Helps learners discover your language via the region filter.</p>
+        </div>
+
+        <div>
           <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Voice Character Name <span class="text-slate-300">(Optional)</span></label>
           <input v-model="form.voice_character" class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition-colors" placeholder="e.g. Amara, Juma…" />
           <p class="text-xs text-slate-400 mt-1.5">This is the in-app character name learners will see in your lessons.</p>
@@ -117,6 +130,7 @@ const form = ref({
   email: '',
   password: '',
   location: '',
+  region: '',
   languages_taught: [],
   voice_character: '',
   bio: '',

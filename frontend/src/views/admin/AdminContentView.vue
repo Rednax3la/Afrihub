@@ -201,6 +201,22 @@
               <option value="amber">Amber</option>
               <option value="red">Red</option>
               <option value="purple">Purple</option>
+              <option value="pink">Pink</option>
+              <option value="orange">Orange</option>
+              <option value="teal">Teal</option>
+              <option value="cyan">Cyan</option>
+              <option value="indigo">Indigo</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Region</label>
+            <select v-model="langForm.region" class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400">
+              <option value="">Select region</option>
+              <option value="West Africa">West Africa</option>
+              <option value="East Africa">East Africa</option>
+              <option value="Southern Africa">Southern Africa</option>
+              <option value="North Africa">North Africa</option>
+              <option value="Central Africa">Central Africa</option>
             </select>
           </div>
         </div>
@@ -243,9 +259,26 @@
             <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Subtitle</label>
             <input v-model="unitForm.subtitle" class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400" />
           </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Icon (Material)</label>
-            <input v-model="unitForm.icon" class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400" placeholder="waving_hand" />
+          <div class="col-span-2">
+            <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Icon</label>
+            <div class="border border-slate-200 rounded-2xl p-3 max-h-36 overflow-y-auto">
+              <div class="grid grid-cols-8 gap-1.5">
+                <button
+                  v-for="icon in UNIT_ICONS"
+                  :key="icon"
+                  type="button"
+                  @click="unitForm.icon = icon"
+                  :title="icon"
+                  class="w-full aspect-square flex items-center justify-center rounded-xl transition-all"
+                  :class="unitForm.icon === icon
+                    ? 'bg-emerald-100 text-emerald-800 ring-2 ring-emerald-400'
+                    : 'hover:bg-slate-100 text-slate-600'"
+                >
+                  <span class="material-icons-outlined text-base">{{ icon }}</span>
+                </button>
+              </div>
+            </div>
+            <p class="text-[10px] text-slate-400 mt-1">Selected: <span class="font-bold">{{ unitForm.icon || 'waving_hand' }}</span></p>
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Order</label>
@@ -417,6 +450,17 @@ const adminStore = useAdminStore()
 const toast = useToastStore()
 const activeTab = ref('Languages')
 
+const UNIT_ICONS = [
+  'waving_hand', 'translate', 'restaurant', 'family_restroom', 'pets',
+  'forest', 'home', 'school', 'shopping_cart', 'music_note',
+  'sports_soccer', 'directions_walk', 'local_fire_department', 'emoji_emotions', 'star',
+  'favorite', 'lightbulb', 'book', 'headphones', 'mic',
+  'videocam', 'map', 'flag', 'public', 'history_edu',
+  'psychology', 'diversity_3', 'groups', 'agriculture', 'nature',
+  'water_drop', 'celebration', 'travel_explore', 'palette', 'kitchen',
+  'sports', 'fitness_center', 'self_improvement', 'temple_buddhist', 'mosque',
+]
+
 // Resolve lesson's language → ISO code for SpecialCharKeyboard
 const adminLessonLanguageCode = computed(() => {
   const unit = adminStore.units.find(u => u.id === lessonForm.value.unit_id)
@@ -452,7 +496,7 @@ onMounted(async () => {
 // Language
 function openLanguageModal(lang = null) {
   editingLang.value = lang
-  langForm.value = lang ? { ...lang } : { id: '', name: '', flag_emoji: '', country: '', speaker_count: '', color: 'emerald', description: '', is_free: true }
+  langForm.value = lang ? { ...lang } : { id: '', name: '', flag_emoji: '', country: '', region: '', speaker_count: '', color: 'emerald', description: '', is_free: true }
   showLanguageModal.value = true
 }
 async function saveLanguage() {

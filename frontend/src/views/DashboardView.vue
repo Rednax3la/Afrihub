@@ -3,9 +3,9 @@
     <div class="max-w-2xl mx-auto">
       <!-- Header -->
       <header class="px-6 pt-6 pb-2 flex justify-between items-center sticky top-0 bg-[#FDFCFB]/80 backdrop-blur-md z-20">
-        <div>
-          <p class="text-slate-500 font-medium">Moni, {{ firstName }} 👋</p>
-          <h3 class="text-xl font-bold">Your Progress</h3>
+        <div class="flex items-center gap-2">
+          <img src="/Vernaculearn logo.png" alt="Vernaculearn" class="h-7 w-auto" />
+          <span class="text-lg font-bold tracking-tight text-[#003B5C]">Vernaculearn</span>
         </div>
         <div class="flex items-center gap-3">
           <!-- Streak -->
