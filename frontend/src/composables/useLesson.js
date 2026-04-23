@@ -12,6 +12,10 @@ export function useLesson(lessonId) {
   const finished         = ref(false)
   const error            = ref(null)
   const languageCode     = ref(null)   // for TTS
+  // Lesson type + reading content
+  const lessonType     = ref('quiz')   // "quiz" | "reading"
+  const lessonTitle    = ref('')
+  const readingContent = ref(null)
   // Phase 2
   const audioIntroUrl       = ref(null)
   const culturalNote        = ref(null)
@@ -147,6 +151,22 @@ export function useLesson(lessonId) {
     return 'border-slate-100 text-slate-400'
   }
 
+  async function completeReading() {
+    try {
+      const { data } = await contentApi.completeLesson(lessonId, 100, [])
+      completionXp.value     = data.xp_earned ?? 0
+      completionStreak.value = data.streak ?? 0
+      completionBadges.value = data.new_badges ?? []
+      const { useAuthStore } = await import('@/stores/auth')
+      await useAuthStore().fetchMe()
+    } catch { /* non-blocking */ }
+    if (culturalNote.value) {
+      pendingCulturalNote.value = true
+    } else {
+      finished.value = true
+    }
+  }
+
   async function load() {
     loading.value = true
     try {
@@ -156,6 +176,9 @@ export function useLesson(lessonId) {
       culturalNote.value      = data?.cultural_note ?? null
       culturalNoteTitle.value = data?.cultural_note_title ?? null
       languageCode.value      = data?.language_code ?? null
+      lessonType.value        = data?.lesson_type ?? 'quiz'
+      lessonTitle.value       = data?.title ?? ''
+      readingContent.value    = data?.reading_content ?? null
     } catch (err) {
       error.value = 'Failed to load lesson.'
       console.error(err)
@@ -171,6 +194,8 @@ export function useLesson(lessonId) {
     audioIntroUrl, culturalNote, culturalNoteTitle, pendingCulturalNote,
     languageCode, questionResults,
     completionBadges, completionStreak, completionXp,
-    selectAnswer, checkAnswer, nextQuestion, dismissCulturalNote, answerClass, load,
+    lessonType, lessonTitle, readingContent,
+    selectAnswer, checkAnswer, nextQuestion, dismissCulturalNote, answerClass,
+    completeReading, load,
   }
 }

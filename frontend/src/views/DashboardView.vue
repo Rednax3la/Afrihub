@@ -89,15 +89,22 @@
                     <span class="material-icons-outlined text-white -rotate-45 text-3xl">check</span>
                   </div>
                   <p class="text-center mt-4 font-bold text-slate-800">{{ lesson.title }}</p>
+                  <span class="mt-1 text-[10px] font-bold text-[#00A3C1] uppercase tracking-wider">Redo</span>
                 </RouterLink>
 
                 <!-- Active / Current -->
                 <RouterLink v-else-if="lesson.id === currentLessonId" :to="`/lesson/${lesson.id}`" class="group flex flex-col items-center cursor-pointer">
                   <div class="relative w-24 h-24 bg-white border-4 border-[#003B5C] rounded-[2rem] rotate-45 flex items-center justify-center shadow-xl shadow-slate-200 group-active:scale-90 transition-transform">
-                    <div class="w-16 h-16 bg-[#A7FFEB]/50 rounded-2xl flex items-center justify-center">
-                      <span class="material-icons-outlined text-[#003B5C] -rotate-45 text-3xl">chat_bubble</span>
+                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center"
+                      :class="lesson.lesson_type === 'reading' ? 'bg-teal-50' : 'bg-[#A7FFEB]/50'"
+                    >
+                      <span class="material-icons-outlined -rotate-45 text-3xl"
+                        :class="lesson.lesson_type === 'reading' ? 'text-teal-600' : 'text-[#003B5C]'"
+                      >{{ lesson.lesson_type === 'reading' ? 'menu_book' : 'chat_bubble' }}</span>
                     </div>
-                    <div class="absolute -top-2 -right-2 bg-amber-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg -rotate-45 shadow-md">NOW</div>
+                    <div class="absolute -top-2 -right-2 text-white text-[10px] font-bold px-2 py-1 rounded-lg -rotate-45 shadow-md"
+                      :class="lesson.lesson_type === 'reading' ? 'bg-teal-500' : 'bg-amber-500'"
+                    >{{ lesson.lesson_type === 'reading' ? 'READ' : 'NOW' }}</div>
                   </div>
                   <p class="text-center mt-6 font-bold text-slate-800">{{ lesson.title }}</p>
                 </RouterLink>
@@ -105,7 +112,9 @@
                 <!-- Locked (still accessible) -->
                 <RouterLink v-else :to="`/lesson/${lesson.id}`" class="group flex flex-col items-center opacity-50">
                   <div class="w-20 h-20 bg-slate-200 rounded-3xl rotate-45 flex items-center justify-center group-active:scale-90 transition-transform">
-                    <span class="material-icons-outlined text-slate-500 -rotate-45 text-2xl">lock</span>
+                    <span class="material-icons-outlined text-slate-500 -rotate-45 text-2xl">
+                      {{ lesson.lesson_type === 'reading' ? 'menu_book' : 'lock' }}
+                    </span>
                   </div>
                   <p class="text-center mt-4 font-medium text-slate-500">{{ lesson.title }}</p>
                 </RouterLink>

@@ -14,6 +14,64 @@
         <RouterLink to="/dashboard" class="bg-[#003B5C] text-white px-6 py-3 rounded-2xl font-bold">Back to Dashboard</RouterLink>
       </div>
 
+      <!-- ── READING CARD SCREEN ──────────────────────────────────────── -->
+      <div v-else-if="lesson.lessonType === 'reading' && !lesson.finished" class="flex-1 flex flex-col">
+        <!-- Header with close + progress -->
+        <header class="px-6 pt-6 pb-4 flex items-center gap-4">
+          <RouterLink to="/dashboard" class="w-10 h-10 flex items-center justify-center text-slate-400 shrink-0">
+            <span class="material-icons-outlined">close</span>
+          </RouterLink>
+          <div class="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-full bg-[#00A3C1] rounded-full w-full transition-all duration-500"></div>
+          </div>
+          <div class="flex items-center gap-1 shrink-0 bg-amber-50 px-3 py-1.5 rounded-full">
+            <span class="material-icons-outlined text-amber-500 text-sm">bolt</span>
+            <span class="font-bold text-amber-700 text-sm">+{{ lesson.xpEarned || 10 }}</span>
+          </div>
+        </header>
+
+        <main class="flex-1 px-6 py-4 overflow-y-auto">
+          <p class="text-xs font-bold tracking-widest text-[#0D9488] uppercase mb-4">Read &amp; Learn</p>
+
+          <!-- Reading card -->
+          <div class="bg-white border border-slate-100 rounded-[2rem] shadow-sm p-6 mb-6">
+            <h2 class="text-2xl font-bold text-[#003B5C] mb-4">{{ lesson.lessonTitle }}</h2>
+            <p class="text-slate-700 leading-relaxed text-base whitespace-pre-line">{{ lesson.readingContent }}</p>
+          </div>
+
+          <!-- Vocabulary highlights — questions used as vocab cards -->
+          <div v-if="lesson.questions.length" class="space-y-3">
+            <p class="text-xs font-bold tracking-widest text-slate-400 uppercase mb-3">Key Vocabulary</p>
+            <div
+              v-for="q in lesson.questions"
+              :key="q.id"
+              class="bg-[#A7FFEB]/20 border border-[#00A3C1]/20 rounded-2xl p-4 flex items-center gap-4"
+            >
+              <div class="flex-1">
+                <p class="font-bold text-[#003B5C] text-lg">{{ q.prompt }}</p>
+                <p class="text-slate-500 text-sm mt-0.5">{{ q.native_text }}</p>
+              </div>
+              <button
+                v-if="lesson.languageCode"
+                @click="fetchTTS(q.prompt)"
+                class="w-10 h-10 bg-white border border-[#00A3C1]/30 rounded-xl flex items-center justify-center text-[#00A3C1] shrink-0"
+              >
+                <span class="material-icons-outlined text-xl">volume_up</span>
+              </button>
+            </div>
+          </div>
+        </main>
+
+        <footer class="px-6 pb-8 pt-2">
+          <button
+            @click="lesson.completeReading()"
+            class="w-full py-5 rounded-3xl font-bold text-lg bg-[#003B5C] text-white shadow-lg shadow-[#003B5C]/20 active:scale-95 transition-transform"
+          >
+            Got it — Continue
+          </button>
+        </footer>
+      </div>
+
       <!-- Cultural Note screen -->
       <div v-else-if="showCulturalNote" class="flex-1 flex flex-col p-6 justify-center">
         <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mb-5">

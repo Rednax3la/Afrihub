@@ -30,9 +30,11 @@ class Lesson(BaseModel):
     description: Optional[str] = None
     order: int = 1
     xp_reward: int = 10
+    lesson_type: str = "quiz"                   # "quiz" | "reading" | "flashcard"
+    reading_content: Optional[str] = None       # For reading lessons — the text to display
     questions: List[Question] = []
     status: str = "published"                   # "draft" | "published" | "pending_review" | "rejected"
-    source: Optional[str] = None               # "tutor" | "scraped"
+    source: Optional[str] = None               # "tutor" | "scraped" | "generated"
     audio_intro_url: Optional[str] = None
     cultural_note: Optional[str] = None
     cultural_note_title: Optional[str] = None
