@@ -189,9 +189,11 @@ Return ONLY valid JSON in this exact structure:
 
 Ensure all {lang_info['name']} text uses correct orthography including diacritics. Be accurate — this content will be taught to real learners."""
 
+    # Use higher token budget for large-vocab units (Numbers/Verbs have 25-30 items)
+    max_tok = 6000 if unit.get("vocab_count", 0) >= 25 else 4000
     response = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=4000,
+        max_tokens=max_tok,
         messages=[{"role": "user", "content": prompt}],
     )
 
@@ -322,13 +324,13 @@ def seed_language(language_id: str, db):
             print(f"  [skip] Unit {unit_order}: {unit_data['title']} ({existing_lesson_count} lessons already exist)")
             continue
 
-        print(f"  📡 Unit {unit_order}: {unit_data['title']}...", end=" ", flush=True)
+        print(f"  [api] Unit {unit_order}: {unit_data['title']}...", end=" ", flush=True)
         try:
             content = generate_unit_content(language_id, lang_info, unit_data)
-            print("✓")
+            print("ok")
         except Exception as e:
             err_str = str(e)
-            print(f"✗ ({err_str[:120]})")
+            print(f"FAIL ({err_str[:120]})")
             # Abort immediately on credit exhaustion — no point retrying the rest
             if "credit balance is too low" in err_str or "credit balance" in err_str.lower():
                 print("  [credit] Credit exhausted -- stopping. Top up and re-run to resume.")
