@@ -3,19 +3,22 @@ Vernaculearn Content Generator
 Generates structured lesson content for all 14 languages using Claude API.
 
 Usage:
-    python generate_content.py --language kikuyu
-    python generate_content.py --priority      (Kikuyu + Swahili only)
-    python generate_content.py --all           (all 14 languages)
+    python generate_content.py --language kikuyu     (single language)
+    python generate_content.py --priority            (Kikuyu + Swahili only)
+    python generate_content.py --all                 (all 14 languages)
+
+Resume behaviour: already-complete units are automatically skipped.
+If a unit was partially written or failed, it is regenerated from scratch.
 """
 
 import anthropic
-import asyncio
 import json
+import re
 import os
 import time
 import argparse
 import random
-from motor.motor_asyncio import AsyncIOMotorClient
+import pymongo
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -187,7 +190,7 @@ Return ONLY valid JSON in this exact structure:
 Ensure all {lang_info['name']} text uses correct orthography including diacritics. Be accurate — this content will be taught to real learners."""
 
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-6",
         max_tokens=4000,
         messages=[{"role": "user", "content": prompt}],
     )
@@ -200,8 +203,15 @@ Ensure all {lang_info['name']} text uses correct orthography including diacritic
             text = text[4:]
     if text.endswith("```"):
         text = text[:-3]
+    text = text.strip()
 
-    return json.loads(text.strip())
+    # First try clean parse; if it fails, repair trailing commas (common LLM output issue)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        # Remove trailing commas before ] or } — the most common Claude JSON mistake
+        fixed = re.sub(r",\s*([}\]])", r"\1", text)
+        return json.loads(fixed)
 
 
 def build_quiz_questions(vocab: list, lesson_index: int) -> list:
@@ -265,20 +275,64 @@ def build_vocab_flashcard_questions(vocab: list) -> list:
     ]
 
 
-async def seed_language(language_id: str, db):
+def seed_language(language_id: str, db):
+    """Generate and store all units/lessons for a single language (synchronous).
+
+    Already-complete units are skipped automatically (resume-safe).
+    Returns False if a credit error is detected so the caller can abort.
+    """
     lang_info = LANGUAGES[language_id]
-    print(f"\n🌍 Generating content for {lang_info['name']}...")
+    print(f"\n[gen] Generating content for {lang_info['name']}...")
+
+    # ── Upsert language document (ensures kikuyu etc. appear in languages table) ──
+    lang_doc = {
+        "id": language_id,
+        "name": lang_info["name"],
+        "code": lang_info["code"],
+        "country": lang_info["country"],
+        "region": lang_info["region"],
+    }
+    # Only set fields that are missing — don't overwrite flag/color/description
+    # seeded by seed.py
+    existing = db.languages.find_one({"id": language_id})
+    if existing:
+        db.languages.update_one({"id": language_id}, {"$set": {"region": lang_info["region"]}})
+    else:
+        # Language not in DB yet — insert a minimal entry so it shows on courses page
+        lang_doc.update({
+            "flag_emoji": "🌍",
+            "color": "emerald",
+            "speaker_count": "",
+            "description": f"{lang_info['name']} language course",
+            "is_free": True,
+        })
+        db.languages.insert_one(lang_doc)
+    print(f"  [ok] Language entry ensured in DB")
 
     for unit_data in UNITS:
         unit_order = unit_data["order"]
         unit_id = f"{language_id}-unit-{unit_order}"
+        expected_lessons = len(unit_data["lesson_type_mix"])
+
+        # ── Skip if unit is already fully generated ─────────────────────────────
+        existing_lesson_count = db.lessons.count_documents({
+            "unit_id": unit_id, "source": "generated"
+        })
+        if existing_lesson_count >= expected_lessons:
+            print(f"  [skip] Unit {unit_order}: {unit_data['title']} ({existing_lesson_count} lessons already exist)")
+            continue
 
         print(f"  📡 Unit {unit_order}: {unit_data['title']}...", end=" ", flush=True)
         try:
             content = generate_unit_content(language_id, lang_info, unit_data)
             print("✓")
         except Exception as e:
-            print(f"✗ ({e})")
+            err_str = str(e)
+            print(f"✗ ({err_str[:120]})")
+            # Abort immediately on credit exhaustion — no point retrying the rest
+            if "credit balance is too low" in err_str or "credit balance" in err_str.lower():
+                print("  [credit] Credit exhausted -- stopping. Top up and re-run to resume.")
+                return False
             continue
 
         time.sleep(0.5)  # Rate limit
@@ -299,7 +353,7 @@ async def seed_language(language_id: str, db):
             "source": "generated",
             "status": "published",
         }
-        await db.units.update_one({"id": unit_id}, {"$set": unit_doc}, upsert=True)
+        db.units.update_one({"id": unit_id}, {"$set": unit_doc}, upsert=True)
 
         # Build lessons from lesson_type_mix
         last_lesson_idx = len(unit_data["lesson_type_mix"]) - 1
@@ -343,7 +397,7 @@ async def seed_language(language_id: str, db):
                     "cultural_note_title": cultural_note_title if is_last else None,
                 }
 
-            await db.lessons.update_one({"id": lesson_id}, {"$set": lesson_doc}, upsert=True)
+            db.lessons.update_one({"id": lesson_id}, {"$set": lesson_doc}, upsert=True)
 
         # Insert cultural note into cultural_notes collection
         if cultural_note_body:
@@ -357,21 +411,44 @@ async def seed_language(language_id: str, db):
                 "source": "generated",
                 "status": "published",
             }
-            await db.cultural_notes.update_one(
+            db.cultural_notes.update_one(
                 {"id": note_doc["id"]}, {"$set": note_doc}, upsert=True
             )
 
     total_lessons = sum(len(u["lesson_type_mix"]) for u in UNITS)
-    print(f"  ✅ {lang_info['name']} complete — {len(UNITS)} units, {total_lessons} lessons")
+    print(f"  [done] {lang_info['name']} complete -- {len(UNITS)} units, {total_lessons} lessons")
 
 
-async def main(args):
-    if not ANTHROPIC_API_KEY:
+def patch_all_language_regions(db):
+    """Ensure every language in LANGUAGES has its region field in the DB."""
+    updated = 0
+    for language_id, info in LANGUAGES.items():
+        result = db.languages.update_one(
+            {"id": language_id},
+            {"$set": {"region": info["region"]}},
+        )
+        if result.modified_count:
+            updated += 1
+    if updated:
+        print(f"[region] Patched region field on {updated} existing language document(s)")
+
+
+def main(args):
+    if not ANTHROPIC_API_KEY and not args.update_regions:
         print("❌ ANTHROPIC_API_KEY not set in backend/.env")
         return
 
-    mongo = AsyncIOMotorClient(MONGODB_URI)
-    db = mongo[DB_NAME]
+    # Use synchronous pymongo client
+    mongo_client = pymongo.MongoClient(MONGODB_URI)
+    db = mongo_client[DB_NAME]
+
+    # Always patch region fields on existing languages first
+    patch_all_language_regions(db)
+
+    if args.update_regions:
+        print("[ok] Region fields patched. Run without --update-regions to generate content.")
+        mongo_client.close()
+        return
 
     if args.all:
         targets = list(LANGUAGES.keys())
@@ -380,19 +457,23 @@ async def main(args):
     elif args.language:
         if args.language not in LANGUAGES:
             print(f"Unknown language: {args.language}. Available: {', '.join(LANGUAGES.keys())}")
+            mongo_client.close()
             return
         targets = [args.language]
     else:
         targets = ["kikuyu", "swahili"]
 
-    print(f"🚀 Generating content for: {', '.join(targets)}")
+    print(f"[start] Generating content for: {', '.join(targets)}")
     for lang in targets:
-        await seed_language(lang, db)
+        result = seed_language(lang, db)
+        if result is False:
+            print("\n[stop] Generation stopped due to credit error. Re-run after topping up.")
+            break
 
-    units = await db.units.count_documents({"source": "generated"})
-    lessons = await db.lessons.count_documents({"source": "generated"})
-    print(f"\n✅ Done! {units} generated units and {lessons} generated lessons in database.")
-    mongo.close()
+    units = db.units.count_documents({"source": "generated"})
+    lessons = db.lessons.count_documents({"source": "generated"})
+    print(f"\n[done] {units} generated units and {lessons} generated lessons in database.")
+    mongo_client.close()
 
 
 if __name__ == "__main__":
@@ -400,4 +481,5 @@ if __name__ == "__main__":
     parser.add_argument("--language", "-l", help="Single language to generate (e.g. kikuyu)")
     parser.add_argument("--priority", action="store_true", help="Generate Kikuyu + Swahili only")
     parser.add_argument("--all", action="store_true", help="Generate all 14 languages")
-    asyncio.run(main(parser.parse_args()))
+    parser.add_argument("--update-regions", action="store_true", help="Only patch region fields on existing language documents — no generation")
+    main(parser.parse_args())
