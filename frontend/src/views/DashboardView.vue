@@ -49,7 +49,7 @@
                     :style="{ width: `${lang.percent_complete}%` }"
                   ></div>
                 </div>
-                <p class="text-xs text-slate-400 mt-1">{{ lang.completed_lessons }} / {{ lang.total_lessons }} lessons</p>
+                <p class="text-xs text-slate-400 mt-1">{{ lang.percent_complete }}% complete</p>
               </div>
               <span class="text-xs font-bold text-[#00A3C1] shrink-0">CONTINUE →</span>
             </button>
@@ -237,8 +237,10 @@ function langMeta(langId) {
 
 const activeLangName = computed(() => langMap.value[activeLangId.value]?.name ?? '')
 
-// Languages the user is actively learning (with progress data)
-const learningLangs = computed(() => progressStore.summary?.languages ?? [])
+// Only show a language as "currently learning" once the first lesson is done
+const learningLangs = computed(() =>
+  (progressStore.summary?.languages ?? []).filter(l => l.completed_lessons > 0)
+)
 
 // Languages available to pick (all languages — already-learning ones still shown but styled differently)
 const pickerLangs = computed(() =>
