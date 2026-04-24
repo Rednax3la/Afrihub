@@ -1,6 +1,7 @@
 <template>
   <section class="min-h-screen bg-[#FDFCFB] safe-bottom md:pl-64">
     <div class="max-w-2xl mx-auto">
+
       <!-- Header -->
       <header class="px-6 pt-6 pb-2 flex justify-between items-center sticky top-0 bg-[#FDFCFB]/80 backdrop-blur-md z-20">
         <div class="flex items-center gap-2">
@@ -8,10 +9,9 @@
           <span class="text-lg font-bold tracking-tight text-[#003B5C]">Vernaculearn</span>
         </div>
         <div class="flex items-center gap-3">
-          <!-- Streak -->
           <div class="flex items-center bg-amber-50 px-3 py-1.5 rounded-full border border-amber-100">
             <span class="material-icons-outlined text-amber-600 text-sm">local_fire_department</span>
-            <span class="text-amber-700 font-bold ml-1 text-sm">{{ auth.user?.streak ?? 0 }}</span>
+            <span class="text-amber-700 font-bold ml-1 text-sm">{{ progressStore.summary?.streak ?? auth.user?.streak ?? 0 }}</span>
           </div>
           <RouterLink to="/profile" class="w-10 h-10 rounded-full border-2 border-[#A7FFEB] p-0.5">
             <img
@@ -22,30 +22,92 @@
         </div>
       </header>
 
-      <!-- Language Selector -->
-      <div class="px-6 py-4 overflow-x-auto whitespace-nowrap flex gap-4 no-scrollbar">
-        <button
-          v-for="lang in content.languages"
-          :key="lang.id"
-          @click="content.selectLanguage(lang.id)"
-          class="inline-flex items-center px-5 py-3 rounded-2xl gap-2 transition-all"
-          :class="content.activeLanguageId === lang.id
-            ? 'bg-[#003B5C] text-white shadow-lg shadow-[#003B5C]/10'
-            : 'bg-white border border-slate-200 text-slate-600'"
-        >
-          <span class="text-base">{{ lang.flag_emoji }}</span>
-          <span class="text-sm font-bold tracking-widest uppercase">{{ lang.name }}</span>
-        </button>
-      </div>
+      <!-- ── LANDING VIEW (no language selected) ───────────────────────── -->
+      <template v-if="!activeLangId">
 
-      <!-- Learning Path -->
-      <main class="p-6">
+        <!-- Currently Learning -->
+        <div v-if="learningLangs.length" class="px-6 pt-6">
+          <p class="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase mb-4">Currently Learning</p>
+          <div class="space-y-3">
+            <button
+              v-for="lang in learningLangs"
+              :key="lang.language_id"
+              @click="openLearningPath(lang.language_id)"
+              class="w-full flex items-center gap-4 bg-white border border-slate-100 rounded-3xl p-4 shadow-sm active:scale-[0.98] transition-transform text-left"
+            >
+              <div
+                class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0"
+                :style="{ backgroundColor: `${colorMap[langMeta(lang.language_id).color]}18` }"
+              >
+                {{ langMeta(lang.language_id).flag_emoji }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <h5 class="font-bold text-slate-900">{{ lang.language_name }}</h5>
+                <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                  <div
+                    class="bg-[#00A3C1] h-full transition-all duration-700"
+                    :style="{ width: `${lang.percent_complete}%` }"
+                  ></div>
+                </div>
+                <p class="text-xs text-slate-400 mt-1">{{ lang.completed_lessons }} / {{ lang.total_lessons }} lessons</p>
+              </div>
+              <span class="text-xs font-bold text-[#00A3C1] shrink-0">CONTINUE →</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Language Picker -->
+        <div class="px-6 pt-8 pb-8">
+          <p class="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase mb-4">
+            {{ learningLangs.length ? 'Pick Another Language' : 'Pick a Language' }}
+          </p>
+
+          <div v-if="content.loading" class="flex justify-center py-10">
+            <div class="w-8 h-8 border-4 border-[#A7FFEB] border-t-[#00A3C1] rounded-full animate-spin"></div>
+          </div>
+
+          <div v-else class="grid grid-cols-2 gap-3">
+            <button
+              v-for="lang in pickerLangs"
+              :key="lang.id"
+              @click="startLang(lang)"
+              class="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-4 py-4 shadow-sm active:scale-95 transition-transform text-left"
+            >
+              <span class="text-2xl shrink-0">{{ lang.flag_emoji }}</span>
+              <span class="font-bold text-sm text-slate-800 leading-tight truncate">{{ lang.name }}</span>
+            </button>
+          </div>
+        </div>
+
+      </template>
+
+      <!-- ── LEARNING PATH VIEW (language selected) ─────────────────────── -->
+      <template v-else>
+
+        <!-- Back + Language Header -->
+        <div class="px-6 pt-4 pb-2 flex items-center gap-3">
+          <button
+            @click="activeLangId = null"
+            class="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0 active:scale-90 transition-transform"
+          >
+            <span class="material-icons-outlined text-slate-700 text-xl">arrow_back</span>
+          </button>
+          <div>
+            <p class="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">Learning Path</p>
+            <h3 class="text-lg font-bold text-[#003B5C] leading-tight">{{ activeLangName }}</h3>
+          </div>
+          <div class="ml-auto text-2xl">{{ langMeta(activeLangId).flag_emoji }}</div>
+        </div>
+
+        <!-- Loading -->
         <div v-if="content.loading || progressStore.loading" class="flex justify-center py-20">
           <div class="w-10 h-10 border-4 border-[#A7FFEB] border-t-[#00A3C1] rounded-full animate-spin"></div>
         </div>
 
-        <template v-else-if="content.units.length">
+        <!-- Units + Lessons -->
+        <main v-else-if="content.units.length" class="p-6">
           <div v-for="(unit, uIdx) in content.units" :key="unit.id" class="mb-12">
+
             <!-- Unit Card -->
             <div class="bg-[#A7FFEB]/30 rounded-[2.5rem] p-6 mb-12 border border-[#00A3C1]/20 shadow-sm">
               <div class="flex justify-between items-start mb-4">
@@ -58,7 +120,6 @@
                   <span class="material-icons-outlined text-[#003B5C]">{{ unit.icon }}</span>
                 </div>
               </div>
-              <!-- Real unit progress bar -->
               <div class="w-full bg-white/50 h-2 rounded-full overflow-hidden">
                 <div
                   class="bg-[#00A3C1] h-full transition-all duration-700"
@@ -109,7 +170,7 @@
                   <p class="text-center mt-6 font-bold text-slate-800">{{ lesson.title }}</p>
                 </RouterLink>
 
-                <!-- Locked (still accessible) -->
+                <!-- Locked -->
                 <RouterLink v-else :to="`/lesson/${lesson.id}`" class="group flex flex-col items-center opacity-50">
                   <div class="w-20 h-20 bg-slate-200 rounded-3xl rotate-45 flex items-center justify-center group-active:scale-90 transition-transform">
                     <span class="material-icons-outlined text-slate-500 -rotate-45 text-2xl">
@@ -120,15 +181,16 @@
                 </RouterLink>
               </div>
             </div>
-          </div>
-        </template>
 
-        <div v-else class="text-center py-20">
+          </div>
+        </main>
+
+        <div v-else class="text-center py-20 px-6">
           <span class="material-icons-outlined text-4xl text-slate-300 mb-3 block">language</span>
-          <p class="text-slate-400 font-medium">Select a language to see your path</p>
-          <RouterLink to="/courses" class="mt-3 inline-block text-[#00A3C1] font-semibold text-sm">Browse courses →</RouterLink>
+          <p class="text-slate-400 font-medium">No lessons available yet for this language.</p>
         </div>
-      </main>
+
+      </template>
     </div>
 
     <BottomNav />
@@ -136,7 +198,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useContentStore } from '@/stores/content'
 import { useProgressStore } from '@/stores/progress'
@@ -146,7 +208,42 @@ const auth = useAuthStore()
 const content = useContentStore()
 const progressStore = useProgressStore()
 
-const firstName = computed(() => auth.user?.name?.split(' ')[0] || 'Learner')
+// Which language's path is open (null = landing page)
+const activeLangId = ref(null)
+
+const colorMap = {
+  emerald: '#003B5C',
+  blue: '#1E40AF',
+  amber: '#B45309',
+  red: '#B91C1C',
+  purple: '#7C3AED',
+  pink: '#BE185D',
+  orange: '#C2410C',
+  teal: '#0F766E',
+  cyan: '#0E7490',
+  indigo: '#4338CA',
+}
+
+// Quick lookup: language id → full language object
+const langMap = computed(() => {
+  const m = {}
+  for (const l of content.languages) m[l.id] = l
+  return m
+})
+
+function langMeta(langId) {
+  return langMap.value[langId] ?? { flag_emoji: '🌍', color: 'emerald' }
+}
+
+const activeLangName = computed(() => langMap.value[activeLangId.value]?.name ?? '')
+
+// Languages the user is actively learning (with progress data)
+const learningLangs = computed(() => progressStore.summary?.languages ?? [])
+
+// Languages available to pick (all languages — already-learning ones still shown but styled differently)
+const pickerLangs = computed(() =>
+  content.languages.filter(l => !auth.user?.active_languages?.includes(l.id))
+)
 
 const currentLessonId = computed(() => {
   for (const unit of content.units) {
@@ -160,22 +257,30 @@ const currentLessonId = computed(() => {
 function unitCompletedCount(unit) {
   return (unit.lessons ?? []).filter(l => progressStore.isCompleted(l.id)).length
 }
+
 function unitProgressPct(unit) {
   const lessons = unit.lessons ?? []
   if (!lessons.length) return 0
   return Math.round((unitCompletedCount(unit) / lessons.length) * 100)
 }
 
+async function openLearningPath(langId) {
+  activeLangId.value = langId
+  await content.selectLanguage(langId)
+}
+
+async function startLang(lang) {
+  // Enroll if not already enrolled
+  if (!auth.user?.active_languages?.includes(lang.id)) {
+    await content.enrollInLanguage(lang.id)
+    await auth.fetchMe()
+    await progressStore.fetchMyProgress()
+  }
+  await openLearningPath(lang.id)
+}
+
 onMounted(async () => {
   await content.fetchLanguages()
-  const firstLang = auth.user?.active_languages?.[0] ?? content.languages?.[0]?.id
-  if (firstLang) {
-    await Promise.all([
-      content.selectLanguage(firstLang),
-      progressStore.fetchMyProgress(),
-    ])
-  } else if (content.languages.length) {
-    await content.selectLanguage(content.languages[0].id)
-  }
+  await progressStore.fetchMyProgress()
 })
 </script>
