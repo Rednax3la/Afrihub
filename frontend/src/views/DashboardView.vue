@@ -242,9 +242,10 @@ const learningLangs = computed(() =>
   (progressStore.summary?.languages ?? []).filter(l => l.completed_lessons > 0)
 )
 
-// Languages available to pick (all languages — already-learning ones still shown but styled differently)
+// Show all languages except those where at least one lesson is completed
+const startedIds = computed(() => new Set(learningLangs.value.map(l => l.language_id)))
 const pickerLangs = computed(() =>
-  content.languages.filter(l => !auth.user?.active_languages?.includes(l.id))
+  content.languages.filter(l => !startedIds.value.has(l.id))
 )
 
 const currentLessonId = computed(() => {

@@ -189,7 +189,9 @@ const avatarUrl = computed(() =>
   `https://ui-avatars.com/api/?name=${encodeURIComponent(auth.user?.name || 'U')}&background=003B5C&color=fff&rounded=true&size=200`
 )
 
-const progressLangs = computed(() => progressStore.summary?.languages ?? [])
+const progressLangs = computed(() =>
+  (progressStore.summary?.languages ?? []).filter(l => l.completed_lessons > 0)
+)
 
 const earnedBadgeCount = computed(() => auth.user?.earned_badges?.length ?? 0)
 const earnedBadgeIcons = computed(() => {
