@@ -27,7 +27,7 @@
 
         <!-- Currently Learning -->
         <div v-if="learningLangs.length" class="px-6 pt-6">
-          <p class="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase mb-4">Currently Learning</p>
+          <h4 class="text-sm font-bold text-slate-400 tracking-widest uppercase mb-4">Currently Learning</h4>
           <div class="space-y-3">
             <button
               v-for="lang in learningLangs"
@@ -37,7 +37,7 @@
             >
               <div
                 class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0"
-                :style="{ backgroundColor: `${colorMap[langMeta(lang.language_id).color]}18` }"
+                :style="{ backgroundColor: colorMap[langMeta(lang.language_id).color] || '#003B5C' }"
               >
                 {{ langMeta(lang.language_id).flag_emoji }}
               </div>
@@ -58,9 +58,9 @@
 
         <!-- Language Picker -->
         <div class="px-6 pt-8 pb-8">
-          <p class="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase mb-4">
+          <h4 class="text-sm font-bold text-slate-400 tracking-widest uppercase mb-4">
             {{ learningLangs.length ? 'Pick Another Language' : 'Pick a Language' }}
-          </p>
+          </h4>
 
           <div v-if="content.loading" class="flex justify-center py-10">
             <div class="w-8 h-8 border-4 border-[#A7FFEB] border-t-[#00A3C1] rounded-full animate-spin"></div>

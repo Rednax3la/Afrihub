@@ -35,36 +35,9 @@
         </button>
       </div>
 
-      <!-- Currently Learning -->
-      <div v-if="auth.user?.active_languages?.length" class="px-6 mt-4 mb-2">
-        <h4 class="text-sm font-bold text-slate-400 tracking-widest uppercase mb-4">Currently Learning</h4>
-        <div class="space-y-3">
-          <RouterLink
-            v-for="lang in activeLangs"
-            :key="lang.id"
-            to="/dashboard"
-            class="flex items-center gap-4 bg-white border border-slate-100 rounded-3xl p-4 shadow-sm"
-          >
-            <div
-              class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-bold text-white"
-              :style="{ backgroundColor: colorMap[lang.color] || '#003B5C' }"
-            >
-              {{ lang.flag_emoji }}
-            </div>
-            <div class="flex-1">
-              <h5 class="font-bold text-slate-900">{{ lang.name }}</h5>
-              <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div class="bg-[#00A3C1] h-full w-1/5"></div>
-              </div>
-            </div>
-            <span class="text-xs font-bold text-[#00A3C1]">CONTINUE →</span>
-          </RouterLink>
-        </div>
-      </div>
-
-      <!-- All Languages -->
+      <!-- Languages -->
       <div class="px-6 mt-6">
-        <h4 class="text-sm font-bold text-slate-400 tracking-widest uppercase mb-4">All Languages</h4>
+        <h4 class="text-sm font-bold text-slate-400 tracking-widest uppercase mb-4">Languages</h4>
 
         <div v-if="content.loading" class="flex justify-center py-10">
           <div class="w-8 h-8 border-4 border-[#A7FFEB] border-t-[#00A3C1] rounded-full animate-spin"></div>
@@ -180,10 +153,6 @@ const filteredLanguages = computed(() => {
     return matchesSearch && matchesRegion
   })
 })
-
-const activeLangs = computed(() =>
-  content.languages.filter((l) => auth.user?.active_languages?.includes(l.id))
-)
 
 function isEnrolled(langId) {
   return auth.user?.active_languages?.includes(langId)
