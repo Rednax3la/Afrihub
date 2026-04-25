@@ -50,12 +50,20 @@ export function useLesson(lessonId) {
     if (!feedback.value) selectedAnswer.value = optionId
   }
 
-  // For translate questions: find option ID whose text matches what was typed
+  // Normalize for comparison: lowercase, trim, collapse whitespace, strip
+  // punctuation that isn't meaningful within a word (keeps apostrophes + hyphens)
+  function _norm(str) {
+    return str.trim().toLowerCase().replace(/[.,!?;:"""]/g, '').replace(/\s+/g, ' ')
+  }
+
+  // For translate questions: find option whose text matches what was typed.
+  // Option text may contain slash-separated alternatives ("Happy/Feeling good");
+  // any one alternative matching the typed input is accepted.
   function _resolveTypedAnswer() {
     if (!typedAnswer.value.trim()) return null
-    const typed = typedAnswer.value.trim().toLowerCase()
-    const match = currentQuestion.value?.options?.find(
-      o => (o.text ?? '').toLowerCase() === typed
+    const typed = _norm(typedAnswer.value)
+    const match = currentQuestion.value?.options?.find(o =>
+      (o.text ?? '').split('/').map(_norm).some(alt => alt === typed)
     )
     return match?.id ?? null
   }
