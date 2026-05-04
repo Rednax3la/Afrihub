@@ -23,6 +23,7 @@ def serialize_user(user: dict) -> UserPublic:
         is_premium=user.get("is_premium", False),
         active_languages=user.get("active_languages", []),
         created_at=user.get("created_at", datetime.utcnow()),
+        language_xp=user.get("language_xp", {}),
         bio=user.get("bio"),
         languages_taught=user.get("languages_taught", []),
         tutor_status=user.get("tutor_status"),

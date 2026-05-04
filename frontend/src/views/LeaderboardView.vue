@@ -76,7 +76,7 @@
             <!-- XP -->
             <div class="text-right shrink-0">
               <p class="font-bold text-[#00A3C1] text-base">{{ entry.xp.toLocaleString() }}</p>
-              <p class="text-xs text-slate-400 font-bold uppercase tracking-wide">XP</p>
+              <p class="text-xs text-slate-400 font-bold uppercase tracking-wide">{{ selectedLanguage?.name ?? '' }} XP</p>
             </div>
           </div>
         </div>
@@ -106,6 +106,10 @@ const currentUserId = computed(() => {
   if (!u) return null
   return u._id?.$oid ?? u._id ?? u.id ?? null
 })
+
+const selectedLanguage = computed(() =>
+  content.languages.find(l => l.id === selectedLanguageId.value)
+)
 
 async function fetchLeaderboard(langId) {
   if (!langId) return

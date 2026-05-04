@@ -54,6 +54,7 @@ class UserPublic(BaseModel):
     is_premium: bool = False
     active_languages: List[str] = []
     created_at: datetime
+    language_xp: dict = {}
     # Tutor-specific fields (None for students)
     bio: Optional[str] = None
     languages_taught: List[str] = []

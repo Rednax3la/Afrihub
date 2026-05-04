@@ -44,6 +44,16 @@
             <div class="flex-1 text-center bg-slate-50 p-4 rounded-3xl">
               <p class="text-2xl font-bold text-slate-900">{{ auth.user?.xp ?? 0 }}</p>
               <p class="text-xs text-slate-500 font-bold tracking-wider uppercase">XP</p>
+              <!-- Per-language XP breakdown -->
+              <div v-if="languageXpPills.length" class="flex flex-wrap gap-1.5 justify-center mt-2 overflow-x-auto">
+                <span
+                  v-for="pill in languageXpPills"
+                  :key="pill.id"
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#A7FFEB]/40 text-[#003B5C] text-[10px] font-bold whitespace-nowrap"
+                >
+                  {{ pill.flag }} {{ pill.xp }} XP
+                </span>
+              </div>
             </div>
             <div class="flex-1 text-center bg-slate-50 p-4 rounded-3xl">
               <p class="text-2xl font-bold text-slate-900">{{ auth.user?.streak ?? 0 }}</p>
@@ -192,6 +202,15 @@ const avatarUrl = computed(() =>
 const progressLangs = computed(() =>
   (progressStore.summary?.languages ?? []).filter(l => l.completed_lessons > 0)
 )
+
+const languageXpPills = computed(() => {
+  const langXp = auth.user?.language_xp ?? {}
+  const langMeta = progressStore.summary?.languages ?? []
+  const metaMap = Object.fromEntries(langMeta.map(l => [l.language_id, l]))
+  return Object.entries(langXp)
+    .filter(([, xp]) => xp > 0)
+    .map(([id, xp]) => ({ id, xp, flag: metaMap[id]?.flag_emoji ?? '🌍' }))
+})
 
 const earnedBadgeCount = computed(() => auth.user?.earned_badges?.length ?? 0)
 const earnedBadgeIcons = computed(() => {

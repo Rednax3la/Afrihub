@@ -61,12 +61,18 @@ async def get_my_progress(current_user=Depends(get_current_user)):
             "percent_complete": pct,
         })
 
+    language_progress = {
+        lang["language_id"]: lang["completed_lessons"]
+        for lang in languages_summary
+    }
+
     return {
         "user_id": user_id,
         "total_xp": current_user.get("xp", 0),
         "streak": current_user.get("streak", 0),
         "languages": languages_summary,
         "lesson_progress": progress_map,
+        "language_progress": language_progress,
     }
 
 

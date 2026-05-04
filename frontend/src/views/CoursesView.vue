@@ -79,11 +79,18 @@
                 + Start Learning
               </button>
               <RouterLink
-                v-else
+                v-else-if="hasProgress(lang.id)"
                 to="/dashboard"
                 class="block w-full py-3 rounded-2xl font-bold text-sm text-center bg-[#A7FFEB]/30 text-[#003B5C] border border-[#00A3C1]/30"
               >
                 Continue Learning →
+              </RouterLink>
+              <RouterLink
+                v-else
+                to="/dashboard"
+                class="block w-full py-3 rounded-2xl font-bold text-sm text-center bg-[#A7FFEB]/30 text-[#003B5C] border border-[#00A3C1]/30"
+              >
+                Start Learning
               </RouterLink>
             </div>
           </div>
@@ -122,11 +129,13 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useContentStore } from '@/stores/content'
+import { useProgressStore } from '@/stores/progress'
 import { tutorApi } from '@/api'
 import BottomNav from '@/components/BottomNav.vue'
 
 const auth = useAuthStore()
 const content = useContentStore()
+const progress = useProgressStore()
 const searchQuery = ref('')
 const activeRegion = ref('All')
 const tutors = ref([])
@@ -158,6 +167,10 @@ function isEnrolled(langId) {
   return auth.user?.active_languages?.includes(langId)
 }
 
+function hasProgress(langId) {
+  return (progress.languageProgress[langId] ?? 0) > 0
+}
+
 async function enroll(lang) {
   await content.enrollInLanguage(lang.id)
   await auth.fetchMe()
@@ -165,7 +178,10 @@ async function enroll(lang) {
 }
 
 onMounted(async () => {
-  await content.fetchLanguages()
+  await Promise.all([
+    content.fetchLanguages(),
+    progress.fetchMyProgress(),
+  ])
   try {
     const { data } = await tutorApi.listActiveTutors()
     tutors.value = data

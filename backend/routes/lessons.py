@@ -48,18 +48,24 @@ async def list_cultural_notes(language_id: str):
 
 @router.get("/leaderboard/{language_id}")
 async def get_leaderboard(language_id: str):
-    """Phase 3 scaffold: top 20 users by XP (language-specific XP tracking is a future enhancement)."""
+    """Top 20 users sorted by language-specific XP."""
     db = get_db()
-    # Only users who have this language active
+    lang_xp_field = f"language_xp.{language_id}"
     users = await db.users.find(
-        {"active_languages": language_id, "role": {"$nin": ["admin", "tutor"]}},
-        {"name": 1, "xp": 1, "streak": 1, "avatar_url": 1}
-    ).sort("xp", -1).to_list(20)
+        {
+            "$and": [
+                {lang_xp_field: {"$exists": True}},
+                {lang_xp_field: {"$gt": 0}},
+                {"role": {"$nin": ["admin", "tutor"]}},
+            ]
+        },
+        {"name": 1, "language_xp": 1, "streak": 1, "avatar_url": 1}
+    ).sort(lang_xp_field, -1).to_list(20)
     return [
         {
             "id": str(u["_id"]),
             "name": u.get("name", "Learner"),
-            "xp": u.get("xp", 0),
+            "xp": u.get("language_xp", {}).get(language_id, 0),
             "streak": u.get("streak", 0),
             "avatar_url": u.get("avatar_url"),
         }
@@ -143,9 +149,18 @@ async def submit_answer(body: AnswerSubmit, current_user=Depends(get_current_use
     xp_earned = lesson.get("xp_reward", 10) if correct else 0
 
     if correct:
+        # Resolve language_id via unit for per-language XP tracking
+        language_id = None
+        if lesson.get("unit_id"):
+            unit = await db.units.find_one({"id": lesson["unit_id"]}, {"language_id": 1})
+            if unit:
+                language_id = unit.get("language_id")
+        inc_payload = {"xp": xp_earned}
+        if language_id:
+            inc_payload[f"language_xp.{language_id}"] = xp_earned
         await db.users.update_one(
             {"_id": ObjectId(str(current_user["_id"]))},
-            {"$inc": {"xp": xp_earned}}
+            {"$inc": inc_payload}
         )
 
     await db.progress.update_one(
@@ -214,21 +229,35 @@ async def complete_lesson(
     # Award lesson XP bonus
     lesson = await db.lessons.find_one({"id": lesson_id})
     bonus_xp = lesson.get("xp_reward", 10) if lesson else 10
+
+    # Resolve language_id via unit for per-language XP tracking
+    language_id = None
+    if lesson and lesson.get("unit_id"):
+        unit = await db.units.find_one({"id": lesson["unit_id"]}, {"language_id": 1})
+        if unit:
+            language_id = unit.get("language_id")
+    inc_payload = {"xp": bonus_xp}
+    if language_id:
+        inc_payload[f"language_xp.{language_id}"] = bonus_xp
+
     await db.users.update_one(
         {"_id": ObjectId(user_id)},
-        {"$inc": {"xp": bonus_xp}}
+        {"$inc": inc_payload}
     )
 
     # ── Streak tracking (Gap 5) ─────────────────────────────────────────────
+    # Compare dates in East Africa Time (UTC+3) so that 11:59 PM and 12:01 AM
+    # local time count as consecutive days, not the same UTC day.
+    _EAT_OFFSET = datetime.timedelta(hours=3)
     user = await db.users.find_one({"_id": ObjectId(user_id)})
     last_activity = user.get("last_activity_date")
     current_streak = user.get("streak", 0)
-    today = now.date()
+    today = (now + _EAT_OFFSET).date()
 
     if last_activity is None:
         new_streak = 1
     else:
-        last_date = last_activity.date() if hasattr(last_activity, "date") else last_activity
+        last_date = (last_activity + _EAT_OFFSET).date() if hasattr(last_activity, "date") else last_activity
         delta = (today - last_date).days
         if delta == 0:
             new_streak = current_streak  # same day — no change

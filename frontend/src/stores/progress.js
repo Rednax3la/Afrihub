@@ -3,8 +3,9 @@ import { ref } from 'vue'
 import api from '@/api'
 
 export const useProgressStore = defineStore('progress', () => {
-  const summary = ref(null)       // full /progress/me response
-  const lessonCache = ref({})     // { [lesson_id]: { completed, score, attempts } }
+  const summary = ref(null)           // full /progress/me response
+  const lessonCache = ref({})         // { [lesson_id]: { completed, score, attempts } }
+  const languageProgress = ref({})    // { [language_id]: completed_lesson_count }
   const loading = ref(false)
 
   async function fetchMyProgress() {
@@ -13,6 +14,7 @@ export const useProgressStore = defineStore('progress', () => {
       const { data } = await api.get('/progress/me')
       summary.value = data
       lessonCache.value = data.lesson_progress ?? {}
+      languageProgress.value = data.language_progress ?? {}
     } finally {
       loading.value = false
     }
@@ -29,5 +31,5 @@ export const useProgressStore = defineStore('progress', () => {
     return lessonCache.value[lessonId]?.completed ?? false
   }
 
-  return { summary, lessonCache, loading, fetchMyProgress, fetchLessonProgress, isCompleted }
+  return { summary, lessonCache, languageProgress, loading, fetchMyProgress, fetchLessonProgress, isCompleted }
 })
