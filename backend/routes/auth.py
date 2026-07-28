@@ -1,9 +1,12 @@
+import logging
 from fastapi import APIRouter, HTTPException, status
 from datetime import datetime
 from bson import ObjectId
 from database import get_db
 from models.user import UserRegister, TutorRegister, UserLogin, UserPublic, TokenResponse
 from auth import hash_password, verify_password, create_access_token
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -94,8 +97,40 @@ async def register_tutor(body: TutorRegister):
 @router.post("/login", response_model=TokenResponse)
 async def login(body: UserLogin):
     db = get_db()
+    logger.info("Login attempt for email=%s", body.email)
+
     user = await db.users.find_one({"email": body.email})
-    if not user or not verify_password(body.password, user["password_hash"]):
+    logger.info("Login lookup for email=%s found_user=%s", body.email, bool(user))
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    password_hash = user.get("password_hash")
+    logger.debug(
+        "Login for email=%s password_hash_prefix=%s",
+        body.email,
+        password_hash[:20] if password_hash else None,
+    )
+    logger.debug(
+        "Login for email=%s plaintext_password_length=%s",
+        body.email,
+        len(body.password) if body.password else 0,
+    )
+
+    if not password_hash:
+        logger.info("Login failed for email=%s: no password_hash stored", body.email)
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    verify_result = verify_password(body.password, password_hash)
+    logger.info("Login verify_password result for email=%s: %s", body.email, verify_result)
+
+    if not verify_result:
+        logger.info(
+            "Password verification failed for email=%s plaintext_length=%s hash_length=%s",
+            body.email,
+            len(body.password) if body.password else 0,
+            len(password_hash) if password_hash else 0,
+        )
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     token = create_access_token({"sub": str(user["_id"])})
