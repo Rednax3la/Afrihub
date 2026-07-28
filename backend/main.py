@@ -1,3 +1,4 @@
+import logging
 import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,6 +8,11 @@ from contextlib import asynccontextmanager
 from database import connect_db, close_db, get_connection_status, _mask_uri
 from routes import auth, users, lessons, progress
 from routes import admin, tutors, upload, tts
+
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "DEBUG").upper(),
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 
 
 @asynccontextmanager
