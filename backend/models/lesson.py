@@ -15,6 +15,7 @@ class Question(BaseModel):
     type: str
     prompt: str
     native_text: Optional[str] = None
+    pronunciation: Optional[str] = None
     options: List[AnswerOption] = []
     correct_answer_id: str
     audio_url: Optional[str] = None   # For listen / listen_comprehension / pronunciation aid

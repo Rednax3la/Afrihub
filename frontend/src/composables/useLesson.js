@@ -188,7 +188,7 @@ export function useLesson(lessonId) {
       lessonTitle.value       = data?.title ?? ''
       readingContent.value    = data?.reading_content ?? null
     } catch (err) {
-      error.value = 'Failed to load lesson.'
+      error.value = err.response?.status === 403 ? 'This unit requires Premium. Upgrade from your dashboard to continue.' : 'Failed to load lesson. Check your connection.'
       console.error(err)
     } finally {
       loading.value = false

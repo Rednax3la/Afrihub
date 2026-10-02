@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from database import get_db
 from auth import get_current_user
 from models.lesson import AnswerSubmit, AnswerResult
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from services.reviews import sm2, today_eat
+from services.subscriptions import has_active_subscription, require_lesson_access
 from typing import List, Optional
 from bson import ObjectId
 import datetime
@@ -76,29 +78,34 @@ async def get_leaderboard(language_id: str):
 # ── Units (with embedded lessons for dashboard) ────────────────────────────────
 
 @router.get("/languages/{language_id}/units")
-async def list_units(language_id: str):
+async def list_units(language_id: str, current_user=Depends(get_current_user)):
     db = get_db()
     units = await db.units.find({"language_id": language_id}).sort("order", 1).to_list(50)
     result = []
     for unit in units:
         unit["_id"] = str(unit["_id"])
+        unit['locked'] = unit.get('order', 0) > 3 and not has_active_subscription(current_user)
+        if unit['locked']:
+            unit['lessons'] = []
+            result.append(unit)
+            continue
         lessons = await db.lessons.find(
             {"unit_id": unit["id"], "status": _PUBLISHED_FILTER},
             {"questions": 0}
         ).sort("order", 1).to_list(50)
         for lesson in lessons:
             lesson.pop("_id", None)
-        if lessons:  # only include units that have at least one published lesson
-            unit["lessons"] = lessons
-            result.append(unit)
+        unit["lessons"] = lessons
+        result.append(unit)
     return result
 
 
 # ── Lessons ────────────────────────────────────────────────────────────────────
 
 @router.get("/units/{unit_id}/lessons")
-async def list_lessons(unit_id: str):
+async def list_lessons(unit_id: str, current_user=Depends(get_current_user)):
     db = get_db()
+    await require_lesson_access(db, {'unit_id': unit_id}, current_user)
     lessons = await db.lessons.find(
         {"unit_id": unit_id, "status": _PUBLISHED_FILTER},
         {"questions": 0}
@@ -112,6 +119,7 @@ async def list_lessons(unit_id: str):
 async def get_lesson(lesson_id: str, current_user=Depends(get_current_user)):
     db = get_db()
     lesson = await db.lessons.find_one({"id": lesson_id})
+    await require_lesson_access(db, lesson, current_user)
     if not lesson or lesson.get("status") in ("draft", "rejected", "pending_review"):
         raise HTTPException(status_code=404, detail="Lesson not found")
     lesson["_id"] = str(lesson["_id"])
@@ -138,6 +146,7 @@ async def submit_answer(body: AnswerSubmit, current_user=Depends(get_current_use
     db = get_db()
 
     lesson = await db.lessons.find_one({"id": body.lesson_id})
+    await require_lesson_access(db, lesson, current_user)
     if not lesson:
         raise HTTPException(status_code=404, detail="Lesson not found")
 
@@ -190,7 +199,7 @@ class QuestionResult(BaseModel):
 
 
 class LessonCompleteBody(BaseModel):
-    score: int
+    score: int = Field(ge=0, le=100)
     questions_attempted: List[QuestionResult] = []
 
 
@@ -203,8 +212,13 @@ async def complete_lesson(
     db = get_db()
     user_id = str(current_user["_id"])
     now = datetime.datetime.utcnow()
+    lesson = await db.lessons.find_one({'id': lesson_id})
+    await require_lesson_access(db, lesson, current_user)
+    previous = await db.progress.find_one({'user_id': user_id, 'lesson_id': lesson_id}) or {}
+    schedule = previous.get('review_schedule') or {}
+    ease_factor, interval = sm2(schedule.get('ease_factor', 2.5), schedule.get('interval_days', 0), body.score)
 
-    # Per-question accuracy + spaced repetition scaffold (Phase 3)
+    # Store the next review as an ISO calendar date in East Africa Time.
     progress_update = {
         "$set": {
             "completed": True,
@@ -212,9 +226,9 @@ async def complete_lesson(
             "last_attempted": now,
             "questions_attempted": [q.model_dump() for q in body.questions_attempted],
             "review_schedule": {
-                "next_review_date": None,
-                "interval_days": 1,
-                "ease_factor": 2.5,
+                "next_review_date": (today_eat() + datetime.timedelta(days=interval)).isoformat(),
+                "interval_days": interval,
+                "ease_factor": ease_factor,
             },
         },
         "$inc": {"attempts": 1},
@@ -227,8 +241,7 @@ async def complete_lesson(
     )
 
     # Award lesson XP bonus
-    lesson = await db.lessons.find_one({"id": lesson_id})
-    bonus_xp = lesson.get("xp_reward", 10) if lesson else 10
+    bonus_xp = lesson.get("xp_reward", 10)
 
     # Resolve language_id via unit for per-language XP tracking
     language_id = None
@@ -272,6 +285,10 @@ async def complete_lesson(
     )
 
     # ── Badge award (Phase 3) ───────────────────────────────────────────────
+    if new_streak > 0 and new_streak % 7 == 0 and new_streak != current_streak and user.get('push_subscription'):
+        from services.notifications import send_push
+        await send_push(db, user, f'\U0001f525 {new_streak} day streak! Keep it going.')
+
     # Re-fetch user to get up-to-date XP and existing badges after all updates
     user = await db.users.find_one({"_id": ObjectId(user_id)})
     completed_count = await db.progress.count_documents({"user_id": user_id, "completed": True})

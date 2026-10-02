@@ -107,18 +107,14 @@
         <!-- Settings -->
         <h4 class="text-sm font-bold text-slate-400 mb-4 tracking-widest uppercase">Settings</h4>
         <div class="bg-white rounded-[2rem] overflow-hidden shadow-sm border border-slate-100">
-          <div class="p-5 flex justify-between items-center border-b border-slate-50">
-            <div class="flex items-center gap-4">
-              <span class="material-icons-outlined text-slate-400">notifications</span>
+          <div class="p-5 border-b border-slate-50">
+            <h5 class="font-bold text-slate-800 mb-3">Notifications</h5>
+            <label class="flex justify-between items-center gap-4">
               <span class="font-medium">Learning Reminders</span>
-            </div>
-            <div
-              @click="reminders = !reminders"
-              class="w-12 h-6 rounded-full p-1 relative cursor-pointer transition-colors"
-              :class="reminders ? 'bg-[#00A3C1]' : 'bg-slate-200'"
-            >
-              <div class="w-4 h-4 bg-white rounded-full absolute top-1 transition-all" :class="reminders ? 'right-1' : 'left-1'"></div>
-            </div>
+              <input type="checkbox" role="switch" :checked="isSubscribed" :disabled="!isSupported || notificationBusy" @change="toggleNotifications" class="h-5 w-5 accent-[#00A3C1]" />
+            </label>
+            <p v-if="!isSupported" class="mt-2 text-xs text-slate-500">Notifications are unavailable in this browser.</p>
+            <p v-if="notificationError" role="alert" class="mt-2 text-xs text-red-600">{{ notificationError }}</p>
           </div>
 
           <RouterLink to="/subscription" class="p-5 flex justify-between items-center border-b border-slate-50 cursor-pointer">
@@ -152,11 +148,23 @@ import { useAuthStore } from '@/stores/auth'
 import { useProgressStore } from '@/stores/progress'
 import { contentApi, uploadApi, userApi } from '@/api'
 import BottomNav from '@/components/BottomNav.vue'
+import { usePushNotifications } from '@/composables/usePushNotifications'
 
 const auth = useAuthStore()
 const progressStore = useProgressStore()
 const router = useRouter()
-const reminders = ref(true)
+const { isSupported, isSubscribed, subscribe, unsubscribe } = usePushNotifications()
+const notificationBusy = ref(false)
+const notificationError = ref('')
+async function toggleNotifications(event) {
+  const enable = event.target.checked
+  event.target.checked = isSubscribed.value
+  notificationBusy.value = true
+  notificationError.value = ''
+  try { if (enable) await subscribe(); else await unsubscribe() }
+  catch (err) { notificationError.value = err.response?.data?.detail || err.message || 'Could not update notifications.' }
+  finally { notificationBusy.value = false }
+}
 const allBadges = ref([])
 const avatarUploading = ref(false)
 const editing = ref(false)

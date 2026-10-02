@@ -43,3 +43,9 @@ mongo_data/
 # ── Logs ─────────────────────────────────────────────────────────────────────
 *.log
 logs/
+
+# Android signing secrets and generated build artifacts
+bubblewrap/*.keystore
+bubblewrap/*.jks
+bubblewrap/*.apk
+bubblewrap/*.aab

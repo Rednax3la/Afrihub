@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const routes = [
+  { path: '/dictionary', name: 'dictionary', component: () => import('@/views/DictionaryView.vue'), meta: { requiresAuth: true, role: 'student' } },
   // ── Public ──────────────────────────────────────────────────────────────────
   { path: '/', name: 'splash', component: () => import('@/views/SplashView.vue') },
   { path: '/login', name: 'login', component: () => import('@/views/LoginView.vue') },

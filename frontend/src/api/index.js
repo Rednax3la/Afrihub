@@ -24,6 +24,7 @@ api.interceptors.response.use(
 
 // ── Auth ───────────────────────────────────────────────────────────────────────
 export const authApi = {
+  loginWithGoogle: (idToken) => api.post('/auth/google', { id_token: idToken }),
   register: (data) => api.post('/auth/register', data),
   registerTutor: (data) => api.post('/auth/register/tutor', data),
   login: (data) => api.post('/auth/login', data),
@@ -31,6 +32,10 @@ export const authApi = {
 
 // ── Users ──────────────────────────────────────────────────────────────────────
 export const userApi = {
+  getVapidPublicKey: () => api.get('/users/vapid-public-key'),
+  savePushSubscription: (data) => api.post('/users/me/push-subscription', data),
+  removePushSubscription: () => api.delete('/users/me/push-subscription'),
+  updateSubscription: (data) => api.patch('/users/me/subscription', data),
   getMe: () => api.get('/users/me'),
   updateProfile: (data) => api.patch('/users/me', data),
   enrollLanguage: (languageId) => api.post(`/users/me/languages/${languageId}`),
@@ -54,6 +59,7 @@ export const contentApi = {
 
 // ── Progress ───────────────────────────────────────────────────────────────────
 export const progressApi = {
+  getDueForReview: () => api.get('/progress/me/due-for-review'),
   getMyProgress: () => api.get('/progress/me'),
   getLessonProgress: (lessonId) => api.get(`/progress/me/lesson/${lessonId}`),
 }
@@ -145,6 +151,16 @@ export const uploadApi = {
 // ── Waitlist ───────────────────────────────────────────────────────────────────
 export const waitlistApi = {
   join: (email) => api.post('/users/waitlist', { email }),
+}
+
+export const dictionaryApi = {
+  search: (q, languageId) => api.get('/dictionary/search', { params: { q, language_id: languageId } }),
+}
+
+export const paymentApi = {
+  googlePay: (paymentToken, tier) => api.post('/payments/google-pay', { payment_token: paymentToken, tier }),
+  stkPush: (phone, tier) => api.post('/payments/mpesa/stk-push', { phone, tier }),
+  mpesaStatus: (id) => api.get(`/payments/mpesa/${encodeURIComponent(id)}`),
 }
 
 export default api

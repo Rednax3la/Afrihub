@@ -4,6 +4,7 @@
       v-for="item in navItems"
       :key="item.to"
       :to="item.to"
+      :aria-label="item.label || item.to.slice(1)"
       class="flex flex-col items-center gap-1 text-slate-400 transition-colors"
       :class="{ 'text-[#003B5C] font-bold': $route.path === item.to }"
     >
@@ -14,6 +15,7 @@
 
 <script setup>
 const navItems = [
+  { to: '/dictionary', icon: 'translate', label: 'Dictionary' },
   { to: '/dashboard', icon: 'home' },
   { to: '/courses', icon: 'map' },
   { to: '/leaderboard', icon: 'emoji_events' },

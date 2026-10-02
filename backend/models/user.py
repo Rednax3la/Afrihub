@@ -52,6 +52,10 @@ class UserPublic(BaseModel):
     earned_badges: List[str] = []
     avatar_url: Optional[str] = None
     is_premium: bool = False
+    subscription_status: str = 'inactive'
+    subscription_tier: Optional[str] = None
+    expires_at: Optional[datetime] = None
+    push_enabled: bool = False
     active_languages: List[str] = []
     created_at: datetime
     language_xp: dict = {}

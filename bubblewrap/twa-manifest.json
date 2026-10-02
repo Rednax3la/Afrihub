@@ -1,0 +1,24 @@
+{
+  "packageId": "africa.vernaculearn.app",
+  "host": "vernaculearn.africa",
+  "name": "Vernaculearn",
+  "launcherName": "Vernaculearn",
+  "display": "standalone",
+  "themeColor": "#003B5C",
+  "backgroundColor": "#003B5C",
+  "startUrl": "/dashboard",
+  "iconUrl": "https://vernaculearn.africa/Vernaculearn logo.png",
+  "maskableIconUrl": "https://vernaculearn.africa/Vernaculearn logo.png",
+  "shortcuts": [
+    {
+      "name": "Dictionary",
+      "url": "/dictionary",
+      "icons": []
+    },
+    {
+      "name": "My Courses",
+      "url": "/courses",
+      "icons": []
+    }
+  ]
+}

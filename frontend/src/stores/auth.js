@@ -59,13 +59,26 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function loginWithGoogle(idToken) {
+    loading.value = true
+    try {
+      const { data } = await authApi.loginWithGoogle(idToken)
+      token.value = data.access_token
+      user.value = data.user
+      localStorage.setItem('token', data.access_token)
+      return { success: true, role: data.user.role }
+    } catch (err) {
+      return { success: false, message: err.response?.data?.detail || 'Google sign-in failed' }
+    } finally { loading.value = false }
+  }
+
   async function fetchMe() {
     if (!token.value) { initialized.value = true; return }
     try {
       const { data } = await userApi.getMe()
       user.value = data
-    } catch {
-      logout()
+    } catch (err) {
+      if (err.response?.status === 401) logout()
     } finally {
       initialized.value = true
     }
@@ -76,10 +89,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function logout() {
+    navigator.serviceWorker?.controller?.postMessage({ type: 'CLEAR_API_CACHE' })
     user.value = null
     token.value = null
     localStorage.removeItem('token')
   }
 
-  return { user, token, loading, initialized, isLoggedIn, role, isAdmin, isTutor, isStudent, register, registerTutor, login, fetchMe, refreshUser, logout }
+  return { user, token, loading, initialized, isLoggedIn, role, isAdmin, isTutor, isStudent, register, registerTutor, login, loginWithGoogle, fetchMe, refreshUser, logout }
 })

@@ -42,6 +42,7 @@
           {{ auth.loading ? 'Signing in...' : 'Sign In' }}
         </button>
       </form>
+      <GoogleSignIn />
 
       <p class="text-center text-slate-500 mt-8">
         Don't have an account?
@@ -52,6 +53,7 @@
 </template>
 
 <script setup>
+import GoogleSignIn from '@/components/GoogleSignIn.vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'

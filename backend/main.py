@@ -4,16 +4,28 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
-from database import connect_db, close_db
-from routes import auth, users, lessons, progress
+from database import connect_db, close_db, get_db
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from tasks.reminders import send_streak_reminders
+from routes import auth, users, lessons, progress, dictionary, payments
 from routes import admin, tutors, upload, tts
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await connect_db()
-    yield
-    await close_db()
+    scheduler = AsyncIOScheduler(timezone='Africa/Nairobi')
+    if os.getenv('ENABLE_STREAK_REMINDERS', 'true').lower() == 'true':
+        scheduler.add_job(send_streak_reminders, 'cron', hour=19, minute=0,
+                          args=[get_db()], id='streak-reminders', replace_existing=True,
+                          coalesce=True, max_instances=1, misfire_grace_time=3600)
+        scheduler.start()
+    try:
+        yield
+    finally:
+        if scheduler.running:
+            scheduler.shutdown(wait=False)
+        await close_db()
 
 
 app = FastAPI(
@@ -58,6 +70,8 @@ uploads_dir = os.path.join(os.path.dirname(__file__), "uploads")
 os.makedirs(uploads_dir, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
+app.include_router(payments.router)
+app.include_router(dictionary.router)
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(lessons.router)

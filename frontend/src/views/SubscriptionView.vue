@@ -65,12 +65,7 @@
       </div>
 
       <div class="px-4 sm:px-6 mt-5 sm:mt-10 pb-8">
-        <button
-          @click="subscribe"
-          class="w-full bg-amber-500 text-[#003B5C] py-5 rounded-3xl font-bold text-lg shadow-xl shadow-amber-500/20 active:scale-95 transition-transform"
-        >
-          Try 7 Days Free
-        </button>
+        <SubscriptionCheckout :tier="selectedPlan" />
         <p class="text-center text-xs text-white/30 mt-6">Cancel anytime. Terms and conditions apply.</p>
       </div>
     </div>
@@ -79,11 +74,8 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useToastStore } from '@/stores/toast'
+import SubscriptionCheckout from '@/components/SubscriptionCheckout.vue'
 
-const router = useRouter()
-const toast = useToastStore()
 const selectedPlan = ref('yearly')
 
 const perks = [
@@ -95,8 +87,4 @@ const perks = [
   'Downloadable completion certificates',
 ]
 
-function subscribe() {
-  toast.info('Payment integration launching soon! Join the waitlist to be first.')
-  router.push({ path: '/dashboard', query: { waitlist_plan: selectedPlan.value } })
-}
 </script>

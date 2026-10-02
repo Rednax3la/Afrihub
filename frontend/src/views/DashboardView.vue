@@ -21,6 +21,19 @@
           </RouterLink>
         </div>
       </header>
+      <section v-if="dueReviews.length" class="px-6 pt-6">
+        <h2 class="font-bold text-[#003B5C] mb-3">Due for Review <span class="ml-2 rounded-full bg-amber-100 px-2 py-1 text-xs">{{ dueReviews.length }}</span></h2>
+        <div class="space-y-2">
+          <div v-for="lesson in dueReviews.slice(0, 5)" :key="lesson.lesson_id">
+            <button v-if="lesson.locked" @click="showUpgrade = true" class="w-full text-left rounded-2xl border border-amber-100 bg-amber-50 p-4">
+              <p class="font-semibold">{{ lesson.title }} <span class="material-icons-outlined text-sm">lock</span></p><p class="text-sm text-slate-500">{{ lesson.language_name }} &middot; Premium review</p>
+            </button>
+            <RouterLink v-else :to="`/lesson/${lesson.lesson_id}`" class="block rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+              <p class="font-semibold">{{ lesson.title }}</p><p class="text-sm text-slate-500">{{ lesson.language_name }}</p>
+            </RouterLink>
+          </div>
+        </div>
+      </section>
 
       <!-- ── LANDING VIEW (no language selected) ───────────────────────── -->
       <template v-if="!activeLangId">
@@ -108,8 +121,12 @@
         <main v-else-if="content.units.length" class="p-6">
           <div v-for="(unit, uIdx) in content.units" :key="unit.id" class="mb-12">
 
+            <button v-if="unit.locked" @click="showUpgrade = true" class="w-full mb-4 flex items-center justify-between rounded-2xl bg-amber-50 p-4 text-left text-[#003B5C]">
+              <span><strong>{{ unit.title }}</strong><span class="block text-sm">Unlock with Premium</span></span>
+              <span class="material-icons-outlined">lock</span>
+            </button>
             <!-- Unit Card -->
-            <div class="bg-[#A7FFEB]/30 rounded-[2.5rem] p-6 mb-12 border border-[#00A3C1]/20 shadow-sm">
+            <div v-if="!unit.locked" class="bg-[#A7FFEB]/30 rounded-[2.5rem] p-6 mb-12 border border-[#00A3C1]/20 shadow-sm">
               <div class="flex justify-between items-start mb-4">
                 <div class="flex-1 min-w-0 mr-4">
                   <span class="text-[10px] font-bold tracking-[0.2em] text-[#003B5C] uppercase bg-[#A7FFEB]/60 px-3 py-1 rounded-full">Unit {{ uIdx + 1 }}</span>
@@ -193,6 +210,16 @@
       </template>
     </div>
 
+    <Modal v-model="showUpgrade" title="Unlock all units">
+      <p class="text-slate-600 mb-4">Continue learning with Vernaculearn Premium.</p>
+      <label class="block text-sm font-semibold mb-4">Choose a plan
+        <select v-model="upgradeTier" class="mt-2 w-full rounded-xl border p-3 bg-white">
+          <option value="monthly">KES 1,299/month</option><option value="yearly">KES 12,999/year</option>
+        </select>
+      </label>
+      <SubscriptionCheckout :tier="upgradeTier" :allow-google="false" @activated="onUpgraded" />
+      <RouterLink to="/subscription" class="block text-center mt-4 text-sm text-[#00A3C1]">More payment options</RouterLink>
+    </Modal>
     <BottomNav />
   </section>
 </template>
@@ -203,6 +230,19 @@ import { useAuthStore } from '@/stores/auth'
 import { useContentStore } from '@/stores/content'
 import { useProgressStore } from '@/stores/progress'
 import BottomNav from '@/components/BottomNav.vue'
+import Modal from '@/components/Modal.vue'
+import SubscriptionCheckout from '@/components/SubscriptionCheckout.vue'
+
+import { progressApi } from '@/api'
+const dueReviews = ref([])
+const showUpgrade = ref(false)
+const upgradeTier = ref('monthly')
+async function onUpgraded() {
+  showUpgrade.value = false
+  if (activeLangId.value) await content.selectLanguage(activeLangId.value)
+  const { data } = await progressApi.getDueForReview()
+  dueReviews.value = data
+}
 
 const auth = useAuthStore()
 const content = useContentStore()
@@ -283,6 +323,7 @@ async function startLang(lang) {
 }
 
 onMounted(async () => {
+  await progressApi.getDueForReview().then(({ data }) => { dueReviews.value = data }).catch(() => {})
   await content.fetchLanguages()
   await progressStore.fetchMyProgress()
 })

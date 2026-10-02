@@ -93,3 +93,25 @@ async def get_lesson_progress(lesson_id: str, current_user=Depends(get_current_u
         "score": doc.get("score", 0),
         "attempts": doc.get("attempts", 0),
     }
+
+
+@router.get('/me/due-for-review')
+async def due_for_review(current_user=Depends(get_current_user)):
+    from services.reviews import today_eat
+    from services.subscriptions import has_active_subscription
+    db = get_db()
+    pipeline = [
+        {'$match': {'user_id': str(current_user['_id']), 'review_schedule.next_review_date': {'$type': 'string', '$lte': today_eat().isoformat()}}},
+        {'$sort': {'review_schedule.next_review_date': 1}},
+        {'$lookup': {'from': 'lessons', 'localField': 'lesson_id', 'foreignField': 'id', 'as': 'lesson'}},
+        {'$unwind': '$lesson'},
+        {'$match': {'lesson.status': {'$nin': ['draft', 'rejected', 'pending_review']}}},
+        {'$lookup': {'from': 'units', 'localField': 'lesson.unit_id', 'foreignField': 'id', 'as': 'unit'}},
+        {'$unwind': '$unit'},
+    ]
+    pipeline.extend([
+        {'$lookup': {'from': 'languages', 'localField': 'unit.language_id', 'foreignField': 'id', 'as': 'language'}},
+        {'$unwind': '$language'},
+        {'$project': {'_id': 0, 'lesson_id': 1, 'title': '$lesson.title', 'language_id': '$language.id', 'language_name': '$language.name', 'review_schedule': 1, 'locked': {'$and': [{'$gt': ['$unit.order', 3]}, {'$literal': not has_active_subscription(current_user)}]}}},
+    ])
+    return await db.progress.aggregate(pipeline).to_list(None)
