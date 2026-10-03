@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from database import get_db
+from database import get_db, log_timing
 from auth import get_current_user
 from bson import ObjectId
 
@@ -14,8 +14,14 @@ async def get_my_progress(current_user=Depends(get_current_user)):
     db = get_db()
     user_id = str(current_user["_id"])
 
+    with log_timing("get_my_progress total"):
+        return await _build_my_progress(db, user_id, current_user)
+
+
+async def _build_my_progress(db, user_id: str, current_user: dict):
     # Grab all progress docs for this user
-    progress_docs = await db.progress.find({"user_id": user_id}).to_list(500)
+    with log_timing("get_my_progress progress query"):
+        progress_docs = await db.progress.find({"user_id": user_id}).to_list(500)
 
     # Build a summary keyed by lesson_id
     progress_map = {
@@ -31,24 +37,37 @@ async def get_my_progress(current_user=Depends(get_current_user)):
     languages_summary = []
     active_lang_ids = current_user.get("active_languages", [])
 
+    # Batch fetch languages, units and lessons for all active languages
+    # (3 queries total instead of 1 + N units per language).
+    languages_by_id = {}
+    unit_to_lang = {}
+    lessons_by_lang = {}
+    if active_lang_ids:
+        with log_timing("get_my_progress languages/units/lessons queries"):
+            languages = await db.languages.find({"id": {"$in": active_lang_ids}}).to_list(None)
+            languages_by_id = {l["id"]: l for l in languages}
+            units = await db.units.find(
+                {"language_id": {"$in": active_lang_ids}}, {"id": 1, "language_id": 1}
+            ).to_list(None)
+            unit_to_lang = {u["id"]: u["language_id"] for u in units}
+            if unit_to_lang:
+                lessons = await db.lessons.find(
+                    {"unit_id": {"$in": list(unit_to_lang.keys())}}, {"id": 1, "unit_id": 1}
+                ).to_list(None)
+                for lesson in lessons:
+                    lessons_by_lang.setdefault(unit_to_lang[lesson["unit_id"]], []).append(lesson["id"])
+
     for lang_id in active_lang_ids:
-        language = await db.languages.find_one({"id": lang_id})
+        language = languages_by_id.get(lang_id)
         if not language:
             continue
 
-        units = await db.units.find({"language_id": lang_id}).to_list(50)
-        total_lessons = 0
-        completed_lessons = 0
-
-        for unit in units:
-            lessons = await db.lessons.find(
-                {"unit_id": unit["id"]}, {"id": 1}
-            ).to_list(50)
-            total_lessons += len(lessons)
-            completed_lessons += sum(
-                1 for l in lessons
-                if progress_map.get(l["id"], {}).get("completed")
-            )
+        lesson_ids = lessons_by_lang.get(lang_id, [])
+        total_lessons = len(lesson_ids)
+        completed_lessons = sum(
+            1 for lid in lesson_ids
+            if progress_map.get(lid, {}).get("completed")
+        )
 
         pct = round((completed_lessons / total_lessons * 100), 1) if total_lessons else 0.0
 
