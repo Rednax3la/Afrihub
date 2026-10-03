@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import datetime, timedelta
 from typing import Optional
@@ -7,6 +8,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from database import get_db
 from bson import ObjectId
+
+logger = logging.getLogger(__name__)
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
 ALGORITHM = "HS256"
@@ -21,7 +24,16 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    plain_len = len(plain) if plain else 0
+    hash_len = len(hashed) if hashed else 0
+    result = pwd_context.verify(plain, hashed)
+    logger.debug(
+        "verify_password: plain_password_length=%s hash_length=%s result=%s",
+        plain_len,
+        hash_len,
+        result,
+    )
+    return result
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

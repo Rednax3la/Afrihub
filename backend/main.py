@@ -1,14 +1,20 @@
+import logging
 import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
-from database import connect_db, close_db, get_db
+from database import connect_db, close_db, get_db, get_connection_status, _mask_uri
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from tasks.reminders import send_streak_reminders
 from routes import auth, users, lessons, progress, dictionary, payments
 from routes import admin, tutors, upload, tts
+
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "DEBUG").upper(),
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 
 
 @asynccontextmanager
@@ -84,10 +90,21 @@ app.include_router(tts.router)
 
 @app.get("/")
 async def root():
+    status = get_connection_status()
+    mongodb_uri = os.getenv("MONGODB_URI")
+
+    if not mongodb_uri:
+        db_status = "❌ MONGODB_URI is not set"
+    elif status["connected"]:
+        db_status = f"✅ Connected ({_mask_uri(mongodb_uri)})"
+    else:
+        db_status = f"❌ Connection failed: {status['error']} ({_mask_uri(mongodb_uri)})"
+
     return {
         "message": "🌍 Vernaculearn API is running",
         "docs": "/docs",
-        "mongodb_uri": os.getenv("MONGODB_URI", "NOT SET"),
+        "mongodb_status": db_status,
+        "mongodb_connected": status["connected"],
     }
 
 
