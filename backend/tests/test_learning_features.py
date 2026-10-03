@@ -150,13 +150,14 @@ async def test_mpesa_callback_does_not_trust_payload(feature_context, monkeypatc
     client, db, user = feature_context
     monkeypatch.setenv('MPESA_CALLBACK_SECRET', 'test-secret')
     await db.payments.insert_one({'_id': 'mpesa-checkout', 'checkout_id': 'checkout', 'user_id': str(user['_id']),
+        'environment': 'production',
         'tier': 'monthly', 'status': 'pending', 'expires_at': datetime.datetime.utcnow() + datetime.timedelta(days=30)})
     body = {'Body': {'stkCallback': {'CheckoutRequestID': 'checkout', 'ResultCode': 0}}}
     assert (await client.post('/api/payments/mpesa/callback', json=body)).status_code == 403
-    with patch.object(payments, 'mpesa_config', return_value={}), patch.object(payments, 'mpesa_credentials', return_value={}), patch.object(payments, 'mpesa_request', AsyncMock(return_value={'ResultCode': '1032'})):
+    with patch.object(payments, 'mpesa_config', return_value={'environment': 'production'}), patch.object(payments, 'mpesa_credentials', return_value={}), patch.object(payments, 'mpesa_request', AsyncMock(return_value={'ResultCode': '1032'})):
         assert (await client.post('/api/payments/mpesa/callback?secret=test-secret', json=body)).status_code == 200
     assert not has_active_subscription(await db.users.find_one({'_id': user['_id']}))
-    with patch.object(payments, 'mpesa_config', return_value={}), patch.object(payments, 'mpesa_credentials', return_value={}), patch.object(payments, 'mpesa_request', AsyncMock(return_value={'ResultCode': '0'})):
+    with patch.object(payments, 'mpesa_config', return_value={'environment': 'production'}), patch.object(payments, 'mpesa_credentials', return_value={}), patch.object(payments, 'mpesa_request', AsyncMock(return_value={'ResultCode': '0'})):
         assert (await client.post('/api/payments/mpesa/callback?secret=test-secret', json=body)).status_code == 200
     assert has_active_subscription(await db.users.find_one({'_id': user['_id']}))
 

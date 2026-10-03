@@ -96,15 +96,26 @@ async def google_pay(body: GooglePayment, current_user=Depends(get_current_user)
 
 
 def mpesa_config():
+    mode = os.getenv('MPESA_ENVIRONMENT', 'sandbox')
+    if mode not in ('sandbox', 'production'):
+        raise HTTPException(503, 'M-Pesa is unavailable: invalid payment environment')
+    if mode == 'sandbox' and os.getenv('APP_ENV', 'production') != 'development':
+        raise HTTPException(503, 'M-Pesa is unavailable: sandbox payments require APP_ENV=development')
     names = ['MPESA_CONSUMER_KEY', 'MPESA_CONSUMER_SECRET', 'MPESA_SHORTCODE', 'MPESA_PASSKEY', 'MPESA_CALLBACK_URL', 'MPESA_CALLBACK_SECRET']
     config = {name: os.getenv(name, '') for name in names}
     if not all(config.values()) or not config['MPESA_CALLBACK_URL'].startswith('https://'):
-        raise HTTPException(503, 'M-Pesa is not configured')
-    mode = os.getenv('MPESA_ENVIRONMENT', 'sandbox')
-    if mode not in ('sandbox', 'production'):
-        raise HTTPException(503, 'Invalid M-Pesa environment')
+        raise HTTPException(503, 'M-Pesa is unavailable: payment configuration is incomplete')
+    config['environment'] = mode
     config['base'] = 'https://api.safaricom.co.ke' if mode == 'production' else 'https://sandbox.safaricom.co.ke'
     return config
+
+
+def validate_mpesa_environment(payment, environment):
+    recorded = payment.get('environment')
+    if recorded not in ('sandbox', 'production'):
+        raise HTTPException(409, 'M-Pesa payment requires reconciliation: checkout environment is missing or unsupported')
+    if recorded != environment:
+        raise HTTPException(409, 'M-Pesa payment requires reconciliation: checkout environment does not match the configured environment')
 
 
 async def mpesa_request(path, data, config):
@@ -146,6 +157,7 @@ async def stk_push(body: MpesaPayment, current_user=Depends(get_current_user)):
     now = datetime.now(timezone.utc)
     await get_db().payments.update_one({'_id': 'mpesa-' + checkout_id}, {'$setOnInsert': {
         'user_id': str(current_user['_id']), 'tier': body.tier, 'provider': 'mpesa', 'status': 'pending',
+        'environment': config['environment'],
         'phone': phone, 'amount': PRICES[body.tier], 'currency': 'KES', 'created_at': now,
         'checkout_id': checkout_id, 'expires_at': now + timedelta(days=DAYS[body.tier]),
     }}, upsert=True)
@@ -153,9 +165,10 @@ async def stk_push(body: MpesaPayment, current_user=Depends(get_current_user)):
 
 
 async def confirm_mpesa(db, payment):
+    config = mpesa_config()
+    validate_mpesa_environment(payment, config['environment'])
     if payment['status'] == 'completed':
         return
-    config = mpesa_config()
     result = await mpesa_request('/mpesa/stkpushquery/v1/query', {
         **mpesa_credentials(config), 'CheckoutRequestID': payment['checkout_id'],
     }, config)
@@ -192,6 +205,7 @@ async def mpesa_status(checkout_id: str, current_user=Depends(get_current_user))
     payment = await db.payments.find_one(query)
     if not payment:
         raise HTTPException(404, 'Payment not found')
+    validate_mpesa_environment(payment, mpesa_config()['environment'])
     if payment['status'] == 'pending':
         await confirm_mpesa(db, payment)
         payment = await db.payments.find_one(query)
