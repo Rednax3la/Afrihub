@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from database import get_db
+from database import get_db, log_timing
 from auth import get_current_user
 from models.lesson import AnswerSubmit, AnswerResult
 from pydantic import BaseModel, Field
@@ -19,7 +19,8 @@ _PUBLISHED_FILTER = {"$nin": ["draft", "rejected", "pending_review"]}
 @router.get("/languages")
 async def list_languages():
     db = get_db()
-    languages = await db.languages.find().to_list(100)
+    with log_timing("list_languages query"):
+        languages = await db.languages.find().to_list(100)
     for lang in languages:
         lang["_id"] = str(lang["_id"])
     return languages
@@ -80,24 +81,35 @@ async def get_leaderboard(language_id: str):
 @router.get("/languages/{language_id}/units")
 async def list_units(language_id: str, current_user=Depends(get_current_user)):
     db = get_db()
-    units = await db.units.find({"language_id": language_id}).sort("order", 1).to_list(50)
-    result = []
-    for unit in units:
-        unit["_id"] = str(unit["_id"])
-        unit['locked'] = unit.get('order', 0) > 3 and not has_active_subscription(current_user)
-        if unit['locked']:
-            unit['lessons'] = []
-            result.append(unit)
-            continue
-        lessons = await db.lessons.find(
-            {"unit_id": unit["id"], "status": _PUBLISHED_FILTER},
-            {"questions": 0}
-        ).sort("order", 1).to_list(50)
-        for lesson in lessons:
-            lesson.pop("_id", None)
-        unit["lessons"] = lessons
-        result.append(unit)
-    return result
+    with log_timing(f"list_units[{language_id}] total"):
+        with log_timing(f"list_units[{language_id}] units query"):
+            units = await db.units.find({"language_id": language_id}).sort("order", 1).to_list(50)
+
+        subscribed = has_active_subscription(current_user)
+        unlocked_unit_ids = []
+        for unit in units:
+            unit["_id"] = str(unit["_id"])
+            unit["locked"] = unit.get("order", 0) > 3 and not subscribed
+            if not unit["locked"]:
+                unlocked_unit_ids.append(unit["id"])
+
+        # Fetch the lessons for every unlocked unit in a single aggregation
+        # round trip (previously one query per unit).
+        lessons_by_unit = {}
+        if unlocked_unit_ids:
+            pipeline = [
+                {"$match": {"unit_id": {"$in": unlocked_unit_ids}, "status": _PUBLISHED_FILTER}},
+                {"$sort": {"order": 1}},
+                {"$project": {"questions": 0, "_id": 0}},
+                {"$group": {"_id": "$unit_id", "lessons": {"$push": "$$ROOT"}}},
+            ]
+            with log_timing(f"list_units[{language_id}] lessons aggregation"):
+                grouped = await db.lessons.aggregate(pipeline).to_list(None)
+            lessons_by_unit = {g["_id"]: g["lessons"] for g in grouped}
+
+        for unit in units:
+            unit["lessons"] = [] if unit["locked"] else lessons_by_unit.get(unit["id"], [])
+    return units
 
 
 # ── Lessons ────────────────────────────────────────────────────────────────────
