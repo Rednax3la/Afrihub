@@ -7,13 +7,16 @@
 </template>
 <script setup>
 import { ref } from 'vue'
+import { loadScript } from '@/utils/loadScript'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 const auth = useAuthStore()
 const router = useRouter()
 const error = ref('')
 const fallbackButton = ref(null)
-function signIn() {
+async function signIn() {
+  try { await loadScript('https://accounts.google.com/gsi/client') }
+  catch (err) { error.value = err.message; return }
   error.value = ''
   const identity = window.google?.accounts?.id
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID

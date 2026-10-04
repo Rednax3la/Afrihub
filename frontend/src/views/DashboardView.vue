@@ -112,6 +112,11 @@
           <div class="ml-auto text-2xl">{{ langMeta(activeLangId).flag_emoji }}</div>
         </div>
 
+        <RouterLink :to="`/foundations/${activeLangId}`" class="block mx-6 my-4 rounded-3xl border border-[#00A3C1]/20 bg-[#A7FFEB]/20 p-5">
+          <span class="material-icons-outlined text-[#003B5C]">record_voice_over</span>
+          <strong class="block text-[#003B5C]">Start with the foundations</strong>
+          <span class="text-sm text-slate-600">Writing, sounds and pronunciation ? Availability varies by language</span>
+        </RouterLink>
         <!-- Loading -->
         <div v-if="content.loading || progressStore.loading" class="flex justify-center py-20">
           <div class="w-10 h-10 border-4 border-[#A7FFEB] border-t-[#00A3C1] rounded-full animate-spin"></div>
@@ -323,8 +328,9 @@ async function startLang(lang) {
 }
 
 onMounted(async () => {
-  await progressApi.getDueForReview().then(({ data }) => { dueReviews.value = data }).catch(() => {})
-  await content.fetchLanguages()
-  await progressStore.fetchMyProgress()
+  await Promise.allSettled([
+    progressApi.getDueForReview().then(({ data }) => { dueReviews.value = data }),
+    content.fetchLanguages(), progressStore.fetchMyProgress(),
+  ])
 })
 </script>

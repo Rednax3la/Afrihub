@@ -1,7 +1,9 @@
 <template>
   <section class="min-h-screen bg-[#FDFCFB] safe-bottom md:pl-64">
     <main class="max-w-2xl mx-auto p-6">
+      <RouterLink to="/explore" class="inline-flex items-center gap-2 mb-4 text-[#007F96]"><span class="material-icons-outlined">arrow_back</span>Explore</RouterLink>
       <h1 class="text-3xl font-bold text-[#003B5C] mb-6">Dictionary</h1>
+      <p class="text-sm text-slate-500 mb-4">Search published entries by word or English meaning. Broader dictionary coverage is being reviewed.</p>
       <label for="word" class="block text-sm font-semibold mb-2">Find a word</label>
       <input id="word" v-model="query" type="search" maxlength="200" placeholder="Search words and translations" class="w-full border rounded-2xl p-4 focus:outline-[#00A3C1]" />
       <label for="language" class="block text-sm font-semibold mt-4 mb-2">Language</label>
@@ -16,6 +18,13 @@
           <p class="text-xs font-semibold text-[#00A3C1] mb-2">{{ entry.language_name }}</p>
           <h2 class="text-2xl font-bold text-[#003B5C]">{{ entry.native }}</h2>
           <p class="mt-1 text-slate-700">{{ entry.english }}</p>
+          <p v-if="entry.part_of_speech" class="text-xs text-slate-500 mt-2">{{ entry.part_of_speech }} ? {{ entry.dialect }}</p>
+          <p class="text-xs text-slate-500 mt-2">{{ entry.review_status === 'reviewed' ? 'Reviewed' : entry.origin === 'lesson' ? 'Lesson-linked entry' : 'Source entry ? not tutor verified' }}</p>
+          <p v-if="entry.source?.url" class="text-xs mt-2">
+            <a :href="entry.source.url" target="_blank" rel="noopener noreferrer" class="underline">{{ entry.source.publisher }}</a>
+            ? <a :href="entry.source.license_url" target="_blank" rel="noopener noreferrer" class="underline">{{ entry.source.license }}</a>
+            <span class="block">{{ entry.source.changes }}</span>
+          </p>
           <p v-if="entry.pronunciation" class="text-sm text-slate-400 mt-2">{{ entry.pronunciation }}</p>
           <AudioPlayer v-if="entry.audio_url" :src="entry.audio_url" label="Listen" class="mt-3" />
         </article>
@@ -28,10 +37,8 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { contentApi, dictionaryApi } from '@/api'
-import { useAuthStore } from '@/stores/auth'
 import BottomNav from '@/components/BottomNav.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
-const auth = useAuthStore()
 const query = ref('')
 const languageId = ref('')
 const languages = ref([])
@@ -59,7 +66,7 @@ watch([query, languageId], () => {
 onMounted(async () => {
   try {
     const { data } = await contentApi.getLanguages()
-    languages.value = data.filter(l => auth.user?.active_languages?.includes(l.id))
+    languages.value = data
   } catch { error.value = 'Could not load your languages.' }
 })
 onUnmounted(() => { clearTimeout(timer); requestId++ })

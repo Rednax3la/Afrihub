@@ -1,0 +1,408 @@
+[
+  {
+    "id": "enwiktionary-kikuyu",
+    "language_id": "kikuyu",
+    "language_name": "Kikuyu",
+    "canonical_code": "ki",
+    "language_codes": [
+      "ki"
+    ],
+    "dialect": "unspecified",
+    "publisher": "English Wiktionary contributors; Kaikki / Tatu Ylonen / Wiktextract",
+    "source_url": "https://kaikki.org/dictionary/Kikuyu/index.html",
+    "download_url": "https://kaikki.org/dictionary/Kikuyu/kaikki.org-dictionary-Kikuyu.jsonl",
+    "license": "CC-BY-SA-4.0 (text only)",
+    "license_evidence": "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
+    "commercial_reuse": "Permitted with attribution, share-alike, change notices; excludes third-party examples/media.",
+    "attribution": "Entry URL/history, Wiktionary contributors, Kaikki link, CC-BY-SA 4.0 link, modification notice.",
+    "fields": [
+      "word",
+      "English glosses",
+      "part of speech",
+      "tags"
+    ],
+    "acquisition": "Official per-language JSONL download, cached and throttled; no HTML entry scraping.",
+    "status": "approved_text_download",
+    "restrictions": "Unreviewed extracted text; validate language, dialect and sense before publication. Per-language postprocessed downloads are deprecated upstream; keep checksum and replace adapter if withdrawn."
+  },
+  {
+    "id": "enwiktionary-swahili",
+    "language_id": "swahili",
+    "language_name": "Swahili",
+    "canonical_code": "sw",
+    "language_codes": [
+      "sw"
+    ],
+    "dialect": "unspecified",
+    "publisher": "English Wiktionary contributors; Kaikki / Tatu Ylonen / Wiktextract",
+    "source_url": "https://kaikki.org/dictionary/Swahili/index.html",
+    "download_url": "https://kaikki.org/dictionary/Swahili/kaikki.org-dictionary-Swahili.jsonl",
+    "license": "CC-BY-SA-4.0 (text only)",
+    "license_evidence": "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
+    "commercial_reuse": "Permitted with attribution, share-alike, change notices; excludes third-party examples/media.",
+    "attribution": "Entry URL/history, Wiktionary contributors, Kaikki link, CC-BY-SA 4.0 link, modification notice.",
+    "fields": [
+      "word",
+      "English glosses",
+      "part of speech",
+      "tags"
+    ],
+    "acquisition": "Official per-language JSONL download, cached and throttled; no HTML entry scraping.",
+    "status": "approved_text_download",
+    "restrictions": "Unreviewed extracted text; validate language, dialect and sense before publication. Per-language postprocessed downloads are deprecated upstream; keep checksum and replace adapter if withdrawn."
+  },
+  {
+    "id": "enwiktionary-yoruba",
+    "language_id": "yoruba",
+    "language_name": "Yoruba",
+    "canonical_code": "yo",
+    "language_codes": [
+      "yo"
+    ],
+    "dialect": "unspecified",
+    "publisher": "English Wiktionary contributors; Kaikki / Tatu Ylonen / Wiktextract",
+    "source_url": "https://kaikki.org/dictionary/Yoruba/index.html",
+    "download_url": "https://kaikki.org/dictionary/Yoruba/kaikki.org-dictionary-Yoruba.jsonl",
+    "license": "CC-BY-SA-4.0 (text only)",
+    "license_evidence": "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
+    "commercial_reuse": "Permitted with attribution, share-alike, change notices; excludes third-party examples/media.",
+    "attribution": "Entry URL/history, Wiktionary contributors, Kaikki link, CC-BY-SA 4.0 link, modification notice.",
+    "fields": [
+      "word",
+      "English glosses",
+      "part of speech",
+      "tags"
+    ],
+    "acquisition": "Official per-language JSONL download, cached and throttled; no HTML entry scraping.",
+    "status": "approved_text_download",
+    "restrictions": "Unreviewed extracted text; validate language, dialect and sense before publication. Per-language postprocessed downloads are deprecated upstream; keep checksum and replace adapter if withdrawn."
+  },
+  {
+    "id": "enwiktionary-zulu",
+    "language_id": "zulu",
+    "language_name": "Zulu",
+    "canonical_code": "zu",
+    "language_codes": [
+      "zu"
+    ],
+    "dialect": "unspecified",
+    "publisher": "English Wiktionary contributors; Kaikki / Tatu Ylonen / Wiktextract",
+    "source_url": "https://kaikki.org/dictionary/Zulu/index.html",
+    "download_url": "https://kaikki.org/dictionary/Zulu/kaikki.org-dictionary-Zulu.jsonl",
+    "license": "CC-BY-SA-4.0 (text only)",
+    "license_evidence": "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
+    "commercial_reuse": "Permitted with attribution, share-alike, change notices; excludes third-party examples/media.",
+    "attribution": "Entry URL/history, Wiktionary contributors, Kaikki link, CC-BY-SA 4.0 link, modification notice.",
+    "fields": [
+      "word",
+      "English glosses",
+      "part of speech",
+      "tags"
+    ],
+    "acquisition": "Official per-language JSONL download, cached and throttled; no HTML entry scraping.",
+    "status": "approved_text_download",
+    "restrictions": "Unreviewed extracted text; validate language, dialect and sense before publication. Per-language postprocessed downloads are deprecated upstream; keep checksum and replace adapter if withdrawn."
+  },
+  {
+    "id": "enwiktionary-amharic",
+    "language_id": "amharic",
+    "language_name": "Amharic",
+    "canonical_code": "am",
+    "language_codes": [
+      "am"
+    ],
+    "dialect": "unspecified",
+    "publisher": "English Wiktionary contributors; Kaikki / Tatu Ylonen / Wiktextract",
+    "source_url": "https://kaikki.org/dictionary/Amharic/index.html",
+    "download_url": "https://kaikki.org/dictionary/Amharic/kaikki.org-dictionary-Amharic.jsonl",
+    "license": "CC-BY-SA-4.0 (text only)",
+    "license_evidence": "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
+    "commercial_reuse": "Permitted with attribution, share-alike, change notices; excludes third-party examples/media.",
+    "attribution": "Entry URL/history, Wiktionary contributors, Kaikki link, CC-BY-SA 4.0 link, modification notice.",
+    "fields": [
+      "word",
+      "English glosses",
+      "part of speech",
+      "tags"
+    ],
+    "acquisition": "Official per-language JSONL download, cached and throttled; no HTML entry scraping.",
+    "status": "approved_text_download",
+    "restrictions": "Unreviewed extracted text; validate language, dialect and sense before publication. Per-language postprocessed downloads are deprecated upstream; keep checksum and replace adapter if withdrawn."
+  },
+  {
+    "id": "enwiktionary-luo",
+    "language_id": "luo",
+    "language_name": "Luo",
+    "canonical_code": "luo",
+    "language_codes": [
+      "luo"
+    ],
+    "dialect": "unspecified",
+    "publisher": "English Wiktionary contributors; Kaikki / Tatu Ylonen / Wiktextract",
+    "source_url": "https://kaikki.org/dictionary/Luo/index.html",
+    "download_url": "https://kaikki.org/dictionary/Luo/kaikki.org-dictionary-Luo.jsonl",
+    "license": "CC-BY-SA-4.0 (text only)",
+    "license_evidence": "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
+    "commercial_reuse": "Permitted with attribution, share-alike, change notices; excludes third-party examples/media.",
+    "attribution": "Entry URL/history, Wiktionary contributors, Kaikki link, CC-BY-SA 4.0 link, modification notice.",
+    "fields": [
+      "word",
+      "English glosses",
+      "part of speech",
+      "tags"
+    ],
+    "acquisition": "Official per-language JSONL download, cached and throttled; no HTML entry scraping.",
+    "status": "needs_permission_or_language_review",
+    "restrictions": "Dholuo vs other Luo varieties: source mapping not yet established.",
+    "additional_candidate": {
+      "url": "https://glosbe.com/en/luo",
+      "publisher": "Glosbe",
+      "licence_or_permission": "Multiple contributed/corpus sources; bulk commercial reuse and exact Dholuo provenance not established. Request a licensed export, do not scrape.",
+      "acquisition": "Not scraped; seek approved export or inspect licensed download."
+    }
+  },
+  {
+    "id": "enwiktionary-kalenjin",
+    "language_id": "kalenjin",
+    "language_name": "Kalenjin",
+    "canonical_code": "kln",
+    "language_codes": [
+      "kln"
+    ],
+    "dialect": "unspecified",
+    "publisher": "English Wiktionary contributors; Kaikki / Tatu Ylonen / Wiktextract",
+    "source_url": "https://kaikki.org/dictionary/Kalenjin/index.html",
+    "download_url": "https://kaikki.org/dictionary/Kalenjin/kaikki.org-dictionary-Kalenjin.jsonl",
+    "license": "CC-BY-SA-4.0 (text only)",
+    "license_evidence": "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
+    "commercial_reuse": "Permitted with attribution, share-alike, change notices; excludes third-party examples/media.",
+    "attribution": "Entry URL/history, Wiktionary contributors, Kaikki link, CC-BY-SA 4.0 link, modification notice.",
+    "fields": [
+      "word",
+      "English glosses",
+      "part of speech",
+      "tags"
+    ],
+    "acquisition": "Official per-language JSONL download, cached and throttled; no HTML entry scraping.",
+    "status": "needs_permission_or_language_review",
+    "restrictions": "Nandi base required; do not substitute an undifferentiated Kalenjin cluster.",
+    "additional_candidate": {
+      "url": "https://lughayangu.com/nandi",
+      "publisher": "Lughayangu",
+      "licence_or_permission": "Nandi-specific word pages; all-rights-reserved site, no commercial export permission established. Request permission or tutor contributions.",
+      "acquisition": "Not scraped; seek approved export or inspect licensed download."
+    }
+  },
+  {
+    "id": "enwiktionary-kamba",
+    "language_id": "kamba",
+    "language_name": "Kamba",
+    "canonical_code": "kam",
+    "language_codes": [
+      "kam"
+    ],
+    "dialect": "unspecified",
+    "publisher": "English Wiktionary contributors; Kaikki / Tatu Ylonen / Wiktextract",
+    "source_url": "https://kaikki.org/dictionary/Kamba/index.html",
+    "download_url": "https://kaikki.org/dictionary/Kamba/kaikki.org-dictionary-Kamba.jsonl",
+    "license": "CC-BY-SA-4.0 (text only)",
+    "license_evidence": "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
+    "commercial_reuse": "Permitted with attribution, share-alike, change notices; excludes third-party examples/media.",
+    "attribution": "Entry URL/history, Wiktionary contributors, Kaikki link, CC-BY-SA 4.0 link, modification notice.",
+    "fields": [
+      "word",
+      "English glosses",
+      "part of speech",
+      "tags"
+    ],
+    "acquisition": "Official per-language JSONL download, cached and throttled; no HTML entry scraping.",
+    "status": "needs_permission_or_language_review",
+    "restrictions": "No approved downloadable English-linked source established.",
+    "additional_candidate": {
+      "url": "https://lughayangu.com/kamba",
+      "publisher": "Lughayangu",
+      "licence_or_permission": "Kikamba-English community definitions; all-rights-reserved site. Written reuse permission and dialect labels required.",
+      "acquisition": "Not scraped; seek approved export or inspect licensed download."
+    }
+  },
+  {
+    "id": "enwiktionary-meru",
+    "language_id": "meru",
+    "language_name": "Meru",
+    "canonical_code": "mer",
+    "language_codes": [
+      "mer"
+    ],
+    "dialect": "unspecified",
+    "publisher": "English Wiktionary contributors; Kaikki / Tatu Ylonen / Wiktextract",
+    "source_url": "https://kaikki.org/dictionary/Meru/index.html",
+    "download_url": "https://kaikki.org/dictionary/Meru/kaikki.org-dictionary-Meru.jsonl",
+    "license": "CC-BY-SA-4.0 (text only)",
+    "license_evidence": "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
+    "commercial_reuse": "Permitted with attribution, share-alike, change notices; excludes third-party examples/media.",
+    "attribution": "Entry URL/history, Wiktionary contributors, Kaikki link, CC-BY-SA 4.0 link, modification notice.",
+    "fields": [
+      "word",
+      "English glosses",
+      "part of speech",
+      "tags"
+    ],
+    "acquisition": "Official per-language JSONL download, cached and throttled; no HTML entry scraping.",
+    "status": "needs_permission_or_language_review",
+    "restrictions": "No approved downloadable English-linked source established.",
+    "additional_candidate": {
+      "url": "https://mer.kasahorow.org/app/d",
+      "publisher": "kasahorow",
+      "licence_or_permission": "Candidate Meru dictionary reference; endpoint/license for this dataset not verified. Do not infer permission from another kasahorow edition.",
+      "acquisition": "Not scraped; seek approved export or inspect licensed download."
+    }
+  },
+  {
+    "id": "enwiktionary-luhya",
+    "language_id": "luhya",
+    "language_name": "Luhya",
+    "canonical_code": "luy",
+    "language_codes": [
+      "luy"
+    ],
+    "dialect": "unspecified",
+    "publisher": "English Wiktionary contributors; Kaikki / Tatu Ylonen / Wiktextract",
+    "source_url": "https://kaikki.org/dictionary/Luhya/index.html",
+    "download_url": "https://kaikki.org/dictionary/Luhya/kaikki.org-dictionary-Luhya.jsonl",
+    "license": "CC-BY-SA-4.0 (text only)",
+    "license_evidence": "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
+    "commercial_reuse": "Permitted with attribution, share-alike, change notices; excludes third-party examples/media.",
+    "attribution": "Entry URL/history, Wiktionary contributors, Kaikki link, CC-BY-SA 4.0 link, modification notice.",
+    "fields": [
+      "word",
+      "English glosses",
+      "part of speech",
+      "tags"
+    ],
+    "acquisition": "Official per-language JSONL download, cached and throttled; no HTML entry scraping.",
+    "status": "needs_permission_or_language_review",
+    "restrictions": "Lubukusu base required; Luhya is a cluster, not an interchangeable single variety.",
+    "additional_candidate": {
+      "url": "https://glosbe.com/en/bxk",
+      "publisher": "Glosbe",
+      "licence_or_permission": "Candidate Bukusu mapping; bulk permission and source provenance need verification. Do not conflate all Luhya varieties.",
+      "acquisition": "Not scraped; seek approved export or inspect licensed download."
+    }
+  },
+  {
+    "id": "enwiktionary-igbo",
+    "language_id": "igbo",
+    "language_name": "Igbo",
+    "canonical_code": "ig",
+    "language_codes": [
+      "ig"
+    ],
+    "dialect": "unspecified",
+    "publisher": "English Wiktionary contributors; Kaikki / Tatu Ylonen / Wiktextract",
+    "source_url": "https://kaikki.org/dictionary/Igbo/index.html",
+    "download_url": "https://kaikki.org/dictionary/Igbo/kaikki.org-dictionary-Igbo.jsonl",
+    "license": "CC-BY-SA-4.0 (text only)",
+    "license_evidence": "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
+    "commercial_reuse": "Permitted with attribution, share-alike, change notices; excludes third-party examples/media.",
+    "attribution": "Entry URL/history, Wiktionary contributors, Kaikki link, CC-BY-SA 4.0 link, modification notice.",
+    "fields": [
+      "word",
+      "English glosses",
+      "part of speech",
+      "tags"
+    ],
+    "acquisition": "Official per-language JSONL download, cached and throttled; no HTML entry scraping.",
+    "status": "approved_text_download",
+    "restrictions": "Unreviewed extracted text; validate language, dialect and sense before publication. Per-language postprocessed downloads are deprecated upstream; keep checksum and replace adapter if withdrawn.",
+    "additional_candidate": {
+      "url": "https://github.com/IgboAPI/igbo_api",
+      "publisher": "Igbo API contributors",
+      "licence_or_permission": "Alternative candidate: verify API/data licence separately from code licence, rate limits, and commercial access before collection.",
+      "acquisition": "Not scraped; seek approved export or inspect licensed download."
+    }
+  },
+  {
+    "id": "enwiktionary-hausa",
+    "language_id": "hausa",
+    "language_name": "Hausa",
+    "canonical_code": "ha",
+    "language_codes": [
+      "ha"
+    ],
+    "dialect": "unspecified",
+    "publisher": "English Wiktionary contributors; Kaikki / Tatu Ylonen / Wiktextract",
+    "source_url": "https://kaikki.org/dictionary/Hausa/index.html",
+    "download_url": "https://kaikki.org/dictionary/Hausa/kaikki.org-dictionary-Hausa.jsonl",
+    "license": "CC-BY-SA-4.0 (text only)",
+    "license_evidence": "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
+    "commercial_reuse": "Permitted with attribution, share-alike, change notices; excludes third-party examples/media.",
+    "attribution": "Entry URL/history, Wiktionary contributors, Kaikki link, CC-BY-SA 4.0 link, modification notice.",
+    "fields": [
+      "word",
+      "English glosses",
+      "part of speech",
+      "tags"
+    ],
+    "acquisition": "Official per-language JSONL download, cached and throttled; no HTML entry scraping.",
+    "status": "approved_text_download",
+    "restrictions": "Unreviewed extracted text; validate language, dialect and sense before publication. Per-language postprocessed downloads are deprecated upstream; keep checksum and replace adapter if withdrawn."
+  },
+  {
+    "id": "enwiktionary-shona",
+    "language_id": "shona",
+    "language_name": "Shona",
+    "canonical_code": "sn",
+    "language_codes": [
+      "sn"
+    ],
+    "dialect": "unspecified",
+    "publisher": "English Wiktionary contributors; Kaikki / Tatu Ylonen / Wiktextract",
+    "source_url": "https://kaikki.org/dictionary/Shona/index.html",
+    "download_url": "https://kaikki.org/dictionary/Shona/kaikki.org-dictionary-Shona.jsonl",
+    "license": "CC-BY-SA-4.0 (text only)",
+    "license_evidence": "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
+    "commercial_reuse": "Permitted with attribution, share-alike, change notices; excludes third-party examples/media.",
+    "attribution": "Entry URL/history, Wiktionary contributors, Kaikki link, CC-BY-SA 4.0 link, modification notice.",
+    "fields": [
+      "word",
+      "English glosses",
+      "part of speech",
+      "tags"
+    ],
+    "acquisition": "Official per-language JSONL download, cached and throttled; no HTML entry scraping.",
+    "status": "approved_text_download",
+    "restrictions": "Unreviewed extracted text; validate language, dialect and sense before publication. Per-language postprocessed downloads are deprecated upstream; keep checksum and replace adapter if withdrawn."
+  },
+  {
+    "id": "enwiktionary-twi",
+    "language_id": "twi",
+    "language_name": "Twi",
+    "canonical_code": "tw",
+    "language_codes": [
+      "tw"
+    ],
+    "dialect": "unspecified",
+    "publisher": "English Wiktionary contributors; Kaikki / Tatu Ylonen / Wiktextract",
+    "source_url": "https://kaikki.org/dictionary/Twi/index.html",
+    "download_url": "https://kaikki.org/dictionary/Twi/kaikki.org-dictionary-Twi.jsonl",
+    "license": "CC-BY-SA-4.0 (text only)",
+    "license_evidence": "https://en.wiktionary.org/wiki/Wiktionary:Copyrights",
+    "commercial_reuse": "Permitted with attribution, share-alike, change notices; excludes third-party examples/media.",
+    "attribution": "Entry URL/history, Wiktionary contributors, Kaikki link, CC-BY-SA 4.0 link, modification notice.",
+    "fields": [
+      "word",
+      "English glosses",
+      "part of speech",
+      "tags"
+    ],
+    "acquisition": "Official per-language JSONL download, cached and throttled; no HTML entry scraping.",
+    "status": "needs_permission_or_language_review",
+    "restrictions": "Do not silently map Akan-wide entries to Asante Twi.",
+    "additional_candidate": {
+      "url": "https://github.com/aberba/twi-synonyms",
+      "publisher": "aberba / Open Twi contributors",
+      "licence_or_permission": "Asante dialect explicitly specified; GPL-3.0 repository. Commercial use permitted under GPL terms; retain licence/source. Dataset integration needs GPL distribution review; do not relabel as CC-BY-SA.",
+      "acquisition": "Not scraped; seek approved export or inspect licensed download."
+    }
+  }
+]

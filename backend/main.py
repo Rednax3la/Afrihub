@@ -4,11 +4,13 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.exception_handlers import request_validation_exception_handler
 from contextlib import asynccontextmanager
 from database import connect_db, close_db, get_db, get_connection_status, _mask_uri
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from tasks.reminders import send_streak_reminders
-from routes import auth, users, lessons, progress, dictionary, payments
+from routes import auth, users, lessons, progress, dictionary, payments, password_reset, foundations
 from routes import admin, tutors, upload, tts
 
 logging.basicConfig(
@@ -56,11 +58,34 @@ app.add_middleware(
 )
 
 
-# Ensure CORS headers are present even on unhandled 500 errors
+@app.middleware('http')
+async def private_auth_responses(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith('/api/auth/'):
+        response.headers['Cache-Control'] = 'no-store'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Referrer-Policy'] = 'no-referrer'
+    return response
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error(request: Request, exc: RequestValidationError):
+    if not request.url.path.startswith('/api/auth/'):
+        return await request_validation_exception_handler(request, exc)
+    # Pydantic's default response includes submitted input (passwords/tokens).
+    return JSONResponse(status_code=422, content={'detail': [
+        {'loc': error['loc'], 'msg': error['msg'], 'type': error['type']}
+        for error in exc.errors()
+    ]})
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    # Ensure CORS headers are present even on unhandled 500 errors.
     origin = request.headers.get("origin", "")
     headers = {}
+    if request.url.path.startswith('/api/auth/'):
+        headers.update({'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer'})
     if origin in _allowed_origins:
         headers["Access-Control-Allow-Origin"] = origin
         headers["Access-Control-Allow-Credentials"] = "true"
@@ -79,6 +104,8 @@ app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 app.include_router(payments.router)
 app.include_router(dictionary.router)
 app.include_router(auth.router)
+app.include_router(password_reset.router)
+app.include_router(foundations.router)
 app.include_router(users.router)
 app.include_router(lessons.router)
 app.include_router(progress.router)

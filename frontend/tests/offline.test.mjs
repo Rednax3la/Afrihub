@@ -64,7 +64,30 @@ test('writes never enter the offline cache', async () => {
   assert.equal(sw.stores.size, 0)
 })
 
-test('install preloads the app shell and nested Vite chunks', async () => {
+test('auth APIs and recovery pages always use network and never fall back offline', async () => {
+  for (const path of ['/api/auth/login', '/api/auth/reset-password', '/api/auth/forgot-password', '/reset-password', '/forgot-password', '/recovery.html']) {
+    const sw = worker()
+    const request = new Request('https://app.test' + path)
+    let options
+    sw.network(async (_, init) => { options = init; return new Response('private') })
+    assert.equal(await (await sw.event('fetch', { request })).text(), 'private')
+    assert.equal(options.cache, 'no-store')
+    assert.equal(options.referrerPolicy, 'no-referrer')
+    assert.equal(sw.stores.size, 0)
+    sw.network(async () => { throw new Error('offline') })
+    await assert.rejects(sw.event('fetch', { request }), /offline/)
+  }
+})
+
+test('no-store API responses are not retained', async () => {
+  const sw = worker()
+  sw.network(async () => new Response('private', { headers: { 'Cache-Control': 'no-store' } }))
+  await sw.event('fetch', { request: apiRequest('alice') })
+  sw.network(async () => { throw new Error('offline') })
+  assert.equal((await sw.event('fetch', { request: apiRequest('alice') })).status, 503)
+})
+
+test('install preloads shell entry assets without eagerly fetching lazy feature chunks', async () => {
   const sw = worker()
   sw.network(async request => {
     const path = new URL(request.url || request.href || request, 'https://app.test').pathname
@@ -73,8 +96,9 @@ test('install preloads the app shell and nested Vite chunks', async () => {
     return new Response('<script src="/assets/main.js"></script>')
   })
   await sw.event('install')
-  const cache = await sw.caches.open('vernaculearn-static-v1')
-  for (const path of ['/', '/dashboard', '/courses', '/lesson', '/assets/main.js', '/assets/Dashboard.js', '/assets/lesson.css']) assert.ok(await cache.match(path), path)
+  const cache = await sw.caches.open('vernaculearn-static-v3')
+  for (const path of ['/', '/dashboard', '/courses', '/lesson', '/assets/main.js']) assert.ok(await cache.match(path), path)
+  for (const path of ['/assets/Dashboard.js', '/assets/lesson.css']) assert.ok(!await cache.match(path), path)
 })
 
 test('logout clears API caches and activation deletes obsolete app caches only', async () => {

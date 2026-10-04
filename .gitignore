@@ -49,3 +49,9 @@ bubblewrap/*.keystore
 bubblewrap/*.jks
 bubblewrap/*.apk
 bubblewrap/*.aab
+
+# Downloaded and normalized content stays outside Git and the frontend build.
+data/dictionary/
+data/research-cache/
+
+frontend/.perf-baseline/

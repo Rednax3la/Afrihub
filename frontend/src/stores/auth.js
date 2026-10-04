@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi, userApi } from '@/api'
+import { authError } from '@/utils/authErrors'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
@@ -23,7 +24,7 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem('token', data.access_token)
       return { success: true }
     } catch (err) {
-      return { success: false, message: err.response?.data?.detail || 'Registration failed' }
+      return { success: false, message: authError(err, 'Registration failed') }
     } finally {
       loading.value = false
     }
@@ -38,7 +39,7 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem('token', data.access_token)
       return { success: true }
     } catch (err) {
-      return { success: false, message: err.response?.data?.detail || 'Registration failed' }
+      return { success: false, message: authError(err, 'Registration failed') }
     } finally {
       loading.value = false
     }
@@ -53,7 +54,7 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem('token', data.access_token)
       return { success: true, role: data.user.role }
     } catch (err) {
-      return { success: false, message: err.response?.data?.detail || 'Invalid credentials' }
+      return { success: false, message: authError(err) }
     } finally {
       loading.value = false
     }
@@ -72,7 +73,13 @@ export const useAuthStore = defineStore('auth', () => {
     } finally { loading.value = false }
   }
 
+  let hydration
   async function fetchMe() {
+    if (hydration) return hydration
+    hydration = hydrate()
+    try { await hydration } finally { hydration = null }
+  }
+  async function hydrate() {
     if (!token.value) { initialized.value = true; return }
     try {
       const { data } = await userApi.getMe()

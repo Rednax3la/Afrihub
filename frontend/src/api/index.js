@@ -1,6 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
+  timeout: 15000,
   baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api` : '/api',
   headers: { 'Content-Type': 'application/json' },
 })
@@ -14,7 +15,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    if (err.response?.status === 401 && !err.config?.url?.startsWith('/auth/')) {
       localStorage.removeItem('token')
       window.location.href = '/'
     }
@@ -158,6 +159,7 @@ export const dictionaryApi = {
 }
 
 export const paymentApi = {
+  availability: () => api.get('/payments/availability'),
   googlePay: (paymentToken, tier) => api.post('/payments/google-pay', { payment_token: paymentToken, tier }),
   stkPush: (phone, tier) => api.post('/payments/mpesa/stk-push', { phone, tier }),
   mpesaStatus: (id) => api.get(`/payments/mpesa/${encodeURIComponent(id)}`),

@@ -121,7 +121,7 @@
             <div class="flex items-center gap-4">
               <span class="material-icons-outlined text-amber-500">workspace_premium</span>
               <span class="font-medium text-amber-600">
-                {{ auth.user?.is_premium ? 'Vernaculearn Premium ✓' : 'Upgrade to Premium' }}
+                {{ subscriptionLabel(auth.user) }}
               </span>
             </div>
             <span class="material-icons-outlined text-slate-300">chevron_right</span>
@@ -142,6 +142,7 @@
 </template>
 
 <script setup>
+import { subscriptionLabel } from '@/utils/navigation'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'

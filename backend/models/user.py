@@ -1,19 +1,24 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, AfterValidator
+from typing import Annotated
+from services.passwords import validate_new_password
 from typing import Optional, List
 from datetime import datetime
+
+
+NewPassword = Annotated[str, AfterValidator(validate_new_password)]
 
 
 class UserRegister(BaseModel):
     name: str = Field(..., min_length=2)
     email: EmailStr
-    password: str = Field(..., min_length=6)
+    password: NewPassword
     location: Optional[str] = None
 
 
 class TutorRegister(BaseModel):
     name: str = Field(..., min_length=2)
     email: EmailStr
-    password: str = Field(..., min_length=6)
+    password: NewPassword
     location: Optional[str] = None
     bio: str = ""
     languages_taught: List[str] = []

@@ -9,14 +9,16 @@ export const useContentStore = defineStore('content', () => {
   const currentLesson = ref(null)
   const loading = ref(false)
 
+  let languageRequest
+  let languagesAt = 0
   async function fetchLanguages() {
-    loading.value = true
-    try {
-      const { data } = await contentApi.getLanguages()
+    if (languages.value.length && Date.now() - languagesAt < 300000) return
+    if (languageRequest) return languageRequest
+    languageRequest = contentApi.getLanguages().then(({ data }) => {
       languages.value = data
-    } finally {
-      loading.value = false
-    }
+      languagesAt = Date.now()
+    }).finally(() => { languageRequest = null })
+    return languageRequest
   }
 
   async function selectLanguage(languageId) {
@@ -47,9 +49,7 @@ export const useContentStore = defineStore('content', () => {
 
   async function enrollInLanguage(languageId) {
     await userApi.enrollLanguage(languageId)
-    if (!activeLanguageId.value) {
-      await selectLanguage(languageId)
-    }
+
   }
 
   return {

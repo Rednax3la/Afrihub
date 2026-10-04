@@ -20,20 +20,19 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
 def hash_password(password: str) -> str:
+    # bcrypt silently truncates beyond 72 bytes unless explicitly guarded.
+    if len(password.encode('utf-8')) > 72 or '\x00' in password:
+        raise ValueError('Password exceeds bcrypt input limits')
     return pwd_context.hash(password)
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    plain_len = len(plain) if plain else 0
-    hash_len = len(hashed) if hashed else 0
-    result = pwd_context.verify(plain, hashed)
-    logger.debug(
-        "verify_password: plain_password_length=%s hash_length=%s result=%s",
-        plain_len,
-        hash_len,
-        result,
-    )
-    return result
+    if len(plain.encode('utf-8')) > 72 or '\x00' in plain:
+        return False
+    try:
+        return pwd_context.verify(plain, hashed)
+    except (ValueError, TypeError):
+        return False
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -59,7 +58,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
     db = get_db()
     user = await db.users.find_one({"_id": ObjectId(user_id)})
-    if not user:
+    if not user or payload.get('session_version', 0) != user.get('session_version', 0):
         raise credentials_exception
     return user
 

@@ -1,12 +1,13 @@
-const STATIC_CACHE = 'vernaculearn-static-v1'
-const API_PREFIX = 'vernaculearn-api-v1-'
+const STATIC_CACHE = 'vernaculearn-static-v3'
+const API_PREFIX = 'vernaculearn-api-v2-'
 const SHELL = ['/', '/dashboard', '/courses', '/lesson']
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(STATIC_CACHE)
     await cache.addAll(SHELL)
-    // Preload Vite chunks, including lazy routes, for offline startup.
+    // Cache only entry assets and static modulepreloads. Visited lazy routes are
+    // cached on use; do not eagerly download every admin/tutor/learning chunk.
     const html = await (await cache.match('/')).text()
     const assets = [...html.matchAll(/(?:src|href)="([^"]+\.(?:js|css))"/g)].map(m => m[1])
     const seen = new Set()
@@ -17,11 +18,6 @@ self.addEventListener('install', event => {
       const response = await fetch(url)
       if (!response.ok) throw new Error('Asset unavailable')
       await cache.put(url, response.clone())
-      if (url.pathname.endsWith('.js')) {
-        const script = await response.text()
-        const chunks = [...script.matchAll(/["']((?:\.\/|\/)?assets\/[^"']+\.(?:js|css)|\.\/[^"']+\.(?:js|css))["']/g)]
-        await Promise.all(chunks.map(m => preload(new URL(m[1].startsWith('assets/') ? '/' + m[1] : m[1], url).href)))
-      }
     }
     await Promise.all(assets.map(preload))
   })())
@@ -41,6 +37,7 @@ async function apiCache(request) {
   return caches.open(API_PREFIX + key)
 }
 self.addEventListener('message', event => {
+  if (event.data?.type === 'ACTIVATE_UPDATE') self.skipWaiting()
   if (event.data?.type === 'CLEAR_API_CACHE') {
     event.waitUntil(caches.keys().then(names => Promise.all(names.filter(n => n.startsWith(API_PREFIX)).map(n => caches.delete(n)))))
   }
@@ -48,6 +45,11 @@ self.addEventListener('message', event => {
 self.addEventListener('fetch', event => {
   const request = event.request
   const url = new URL(request.url)
+  // Authentication and recovery must never use an offline response.
+  if (url.pathname.startsWith('/api/auth/') || ['/reset-password', '/forgot-password', '/recovery.html'].includes(url.pathname.replace(/\/$/, ''))) {
+    event.respondWith(fetch(request, { cache: 'no-store', referrerPolicy: 'no-referrer' }))
+    return
+  }
   // Writes and payments are never cached or replayed.
   if (request.method !== 'GET') return
   if (url.pathname.startsWith('/api/')) {
@@ -55,7 +57,7 @@ self.addEventListener('fetch', event => {
       const cache = await apiCache(request)
       try {
         const response = await fetch(request)
-        if (response.ok) await cache.put(request, response.clone())
+        if (response.ok && !response.headers.get('Cache-Control')?.includes('no-store')) await cache.put(request, response.clone())
         else await cache.delete(request)
         return response
       } catch {
@@ -80,7 +82,7 @@ self.addEventListener('fetch', event => {
       const cached = await cache.match(request)
       if (cached) return cached
       const response = await fetch(request)
-      if (response.ok) await cache.put(request, response.clone())
+      if (response.ok && !response.headers.get('Cache-Control')?.includes('no-store')) await cache.put(request, response.clone())
       return response
     })())
   }

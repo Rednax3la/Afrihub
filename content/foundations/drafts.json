@@ -1,0 +1,1018 @@
+[
+  {
+    "id": "kikuyu-foundation-1",
+    "language_id": "kikuyu",
+    "language_name": "Kikuyu",
+    "order": 1,
+    "stage": "orthography",
+    "title": "Writing and alphabet",
+    "body": "Kikuyu has seven vowel qualities. The tildes in ? and ? distinguish vowel letters; they are not circumflexes or a general instruction to add tone. Keep marks intact.",
+    "focus": "a e i ? o u ?; i/?/e and u/?/o",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/ki.xml",
+      "https://people.umass.edu/scable/LING404-FA10/Materials/Kikuyu-Basics.pdf",
+      "https://www.ruf.rice.edu/~reng/kik/sketch.pdf"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "kikuyu-foundation-2",
+    "language_id": "kikuyu",
+    "language_name": "Kikuyu",
+    "order": 2,
+    "stage": "sounds",
+    "title": "Letters and sounds",
+    "body": "Review target: a e i ? o u ?; i/?/e and u/?/o. Prepare a Kikuyu-specific grapheme-to-sound table. Each sound needs an approved human example before publication.",
+    "focus": "a e i ? o u ?; i/?/e and u/?/o",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/ki.xml",
+      "https://people.umass.edu/scable/LING404-FA10/Materials/Kikuyu-Basics.pdf",
+      "https://www.ruf.rice.edu/~reng/kik/sketch.pdf"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "kikuyu-foundation-3",
+    "language_id": "kikuyu",
+    "language_name": "Kikuyu",
+    "order": 3,
+    "stage": "contrasts",
+    "title": "Hear the difference",
+    "body": "Tutor task: compare a e i ? o u ?; i/?/e and u/?/o in attested words. Do not assert minimal pairs until a specialist confirms them. Example selection: irio; m?t?; m?t?.",
+    "focus": "a e i ? o u ?; i/?/e and u/?/o",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/ki.xml",
+      "https://people.umass.edu/scable/LING404-FA10/Materials/Kikuyu-Basics.pdf",
+      "https://www.ruf.rice.edu/~reng/kik/sketch.pdf"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "kikuyu-foundation-4",
+    "language_id": "kikuyu",
+    "language_name": "Kikuyu",
+    "order": 4,
+    "stage": "listening",
+    "title": "Listen and practise",
+    "body": "Use tutor-approved Kikuyu recordings. Listen, choose the matching written form, then repeat at a comfortable pace. Audio and assessment items are not yet supplied.",
+    "focus": "a e i ? o u ?; i/?/e and u/?/o",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/ki.xml",
+      "https://people.umass.edu/scable/LING404-FA10/Materials/Kikuyu-Basics.pdf",
+      "https://www.ruf.rice.edu/~reng/kik/sketch.pdf"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "swahili-foundation-1",
+    "language_id": "swahili",
+    "language_name": "Swahili",
+    "order": 1,
+    "stage": "orthography",
+    "title": "Writing and alphabet",
+    "body": "Build a Standard Swahili writing introduction. Ask a tutor to distinguish letter names, digraphs, and actual sound values; confirm ng versus ng? in approved examples.",
+    "focus": "a e i o u; ch; ng/ng?",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/sw.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "swahili-foundation-2",
+    "language_id": "swahili",
+    "language_name": "Swahili",
+    "order": 2,
+    "stage": "sounds",
+    "title": "Letters and sounds",
+    "body": "Review target: a e i o u; ch; ng/ng?. Prepare a Swahili-specific grapheme-to-sound table. Each sound needs an approved human example before publication.",
+    "focus": "a e i o u; ch; ng/ng?",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/sw.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "swahili-foundation-3",
+    "language_id": "swahili",
+    "language_name": "Swahili",
+    "order": 3,
+    "stage": "contrasts",
+    "title": "Hear the difference",
+    "body": "Tutor task: compare a e i o u; ch; ng/ng? in attested words. Do not assert minimal pairs until a specialist confirms them. Example selection: Tutor to select Standard Swahili examples.",
+    "focus": "a e i o u; ch; ng/ng?",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/sw.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "swahili-foundation-4",
+    "language_id": "swahili",
+    "language_name": "Swahili",
+    "order": 4,
+    "stage": "listening",
+    "title": "Listen and practise",
+    "body": "Use tutor-approved Swahili recordings. Listen, choose the matching written form, then repeat at a comfortable pace. Audio and assessment items are not yet supplied.",
+    "focus": "a e i o u; ch; ng/ng?",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/sw.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "yoruba-foundation-1",
+    "language_id": "yoruba",
+    "language_name": "Yoruba",
+    "order": 1,
+    "stage": "orthography",
+    "title": "Writing and alphabet",
+    "body": "Keep underdots separate from tone marks in the draft. Ask a Yoruba specialist to verify vowel quality, tone notation and gb before writing exercises.",
+    "focus": "e/?; o/?; s/?; acute/grave marks; gb",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/yo.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "yoruba-foundation-2",
+    "language_id": "yoruba",
+    "language_name": "Yoruba",
+    "order": 2,
+    "stage": "sounds",
+    "title": "Letters and sounds",
+    "body": "Review target: e/?; o/?; s/?; acute/grave marks; gb. Prepare a Yoruba-specific grapheme-to-sound table. Each sound needs an approved human example before publication.",
+    "focus": "e/?; o/?; s/?; acute/grave marks; gb",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/yo.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "yoruba-foundation-3",
+    "language_id": "yoruba",
+    "language_name": "Yoruba",
+    "order": 3,
+    "stage": "contrasts",
+    "title": "Hear the difference",
+    "body": "Tutor task: compare e/?; o/?; s/?; acute/grave marks; gb in attested words. Do not assert minimal pairs until a specialist confirms them. Example selection: Tutor to provide marked minimal contrasts.",
+    "focus": "e/?; o/?; s/?; acute/grave marks; gb",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/yo.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "yoruba-foundation-4",
+    "language_id": "yoruba",
+    "language_name": "Yoruba",
+    "order": 4,
+    "stage": "listening",
+    "title": "Listen and practise",
+    "body": "Use tutor-approved Yoruba recordings. Listen, choose the matching written form, then repeat at a comfortable pace. Audio and assessment items are not yet supplied.",
+    "focus": "e/?; o/?; s/?; acute/grave marks; gb",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/yo.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "zulu-foundation-1",
+    "language_id": "zulu",
+    "language_name": "Zulu",
+    "order": 1,
+    "stage": "orthography",
+    "title": "Writing and alphabet",
+    "body": "Plan separate, tutor-led click practice for c, q and x and review their combinations. Avoid substituting English letter-name recordings.",
+    "focus": "c q x; bh ph th kh; hl dl",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/zu.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "zulu-foundation-2",
+    "language_id": "zulu",
+    "language_name": "Zulu",
+    "order": 2,
+    "stage": "sounds",
+    "title": "Letters and sounds",
+    "body": "Review target: c q x; bh ph th kh; hl dl. Prepare a Zulu-specific grapheme-to-sound table. Each sound needs an approved human example before publication.",
+    "focus": "c q x; bh ph th kh; hl dl",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/zu.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "zulu-foundation-3",
+    "language_id": "zulu",
+    "language_name": "Zulu",
+    "order": 3,
+    "stage": "contrasts",
+    "title": "Hear the difference",
+    "body": "Tutor task: compare c q x; bh ph th kh; hl dl in attested words. Do not assert minimal pairs until a specialist confirms them. Example selection: Tutor to supply context-matched click words.",
+    "focus": "c q x; bh ph th kh; hl dl",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/zu.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "zulu-foundation-4",
+    "language_id": "zulu",
+    "language_name": "Zulu",
+    "order": 4,
+    "stage": "listening",
+    "title": "Listen and practise",
+    "body": "Use tutor-approved Zulu recordings. Listen, choose the matching written form, then repeat at a comfortable pace. Audio and assessment items are not yet supplied.",
+    "focus": "c q x; bh ph th kh; hl dl",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/zu.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "amharic-foundation-1",
+    "language_id": "amharic",
+    "language_name": "Amharic",
+    "order": 1,
+    "stage": "orthography",
+    "title": "Writing and alphabet",
+    "body": "Introduce fidel as a script-specific sequence, not an English alphabet. Review a first consonant-vowel series and consonant distinctions with an Amharic tutor.",
+    "focus": "? ? ? ? ? ? ?",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/am.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "amharic-foundation-2",
+    "language_id": "amharic",
+    "language_name": "Amharic",
+    "order": 2,
+    "stage": "sounds",
+    "title": "Letters and sounds",
+    "body": "Review target: ? ? ? ? ? ? ?. Prepare a Amharic-specific grapheme-to-sound table. Each sound needs an approved human example before publication.",
+    "focus": "? ? ? ? ? ? ?",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/am.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "amharic-foundation-3",
+    "language_id": "amharic",
+    "language_name": "Amharic",
+    "order": 3,
+    "stage": "contrasts",
+    "title": "Hear the difference",
+    "body": "Tutor task: compare ? ? ? ? ? ? ? in attested words. Do not assert minimal pairs until a specialist confirms them. Example selection: Tutor to verify words for the chosen fidel series.",
+    "focus": "? ? ? ? ? ? ?",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/am.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "amharic-foundation-4",
+    "language_id": "amharic",
+    "language_name": "Amharic",
+    "order": 4,
+    "stage": "listening",
+    "title": "Listen and practise",
+    "body": "Use tutor-approved Amharic recordings. Listen, choose the matching written form, then repeat at a comfortable pace. Audio and assessment items are not yet supplied.",
+    "focus": "? ? ? ? ? ? ?",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/am.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "luo-foundation-1",
+    "language_id": "luo",
+    "language_name": "Luo",
+    "order": 1,
+    "stage": "orthography",
+    "title": "Writing and alphabet",
+    "body": "Confirm Dholuo variety and its spelling conventions before attaching phonetic labels to CLDR letters. Design listening comparisons reviewed by a Dholuo tutor.",
+    "focus": "vowel quality, vowel length; ny and ng?",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/luo.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "luo-foundation-2",
+    "language_id": "luo",
+    "language_name": "Luo",
+    "order": 2,
+    "stage": "sounds",
+    "title": "Letters and sounds",
+    "body": "Review target: vowel quality, vowel length; ny and ng?. Prepare a Luo-specific grapheme-to-sound table. Each sound needs an approved human example before publication.",
+    "focus": "vowel quality, vowel length; ny and ng?",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/luo.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "luo-foundation-3",
+    "language_id": "luo",
+    "language_name": "Luo",
+    "order": 3,
+    "stage": "contrasts",
+    "title": "Hear the difference",
+    "body": "Tutor task: compare vowel quality, vowel length; ny and ng? in attested words. Do not assert minimal pairs until a specialist confirms them. Example selection: Tutor to provide Dholuo pairs, not Acholi substitutions.",
+    "focus": "vowel quality, vowel length; ny and ng?",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/luo.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "luo-foundation-4",
+    "language_id": "luo",
+    "language_name": "Luo",
+    "order": 4,
+    "stage": "listening",
+    "title": "Listen and practise",
+    "body": "Use tutor-approved Luo recordings. Listen, choose the matching written form, then repeat at a comfortable pace. Audio and assessment items are not yet supplied.",
+    "focus": "vowel quality, vowel length; ny and ng?",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/luo.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "kalenjin-foundation-1",
+    "language_id": "kalenjin",
+    "language_name": "Kalenjin",
+    "order": 1,
+    "stage": "orthography",
+    "title": "Writing and alphabet",
+    "body": "Nandi is the generator?s intended base. Agree on Nandi orthography and contrast notation with a tutor; do not use one generic Kalenjin alphabet for all varieties.",
+    "focus": "Nandi vowel distinctions, length and tone",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/kln.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "kalenjin-foundation-2",
+    "language_id": "kalenjin",
+    "language_name": "Kalenjin",
+    "order": 2,
+    "stage": "sounds",
+    "title": "Letters and sounds",
+    "body": "Review target: Nandi vowel distinctions, length and tone. Prepare a Kalenjin-specific grapheme-to-sound table. Each sound needs an approved human example before publication.",
+    "focus": "Nandi vowel distinctions, length and tone",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/kln.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "kalenjin-foundation-3",
+    "language_id": "kalenjin",
+    "language_name": "Kalenjin",
+    "order": 3,
+    "stage": "contrasts",
+    "title": "Hear the difference",
+    "body": "Tutor task: compare Nandi vowel distinctions, length and tone in attested words. Do not assert minimal pairs until a specialist confirms them. Example selection: Nandi tutor to supply attested examples.",
+    "focus": "Nandi vowel distinctions, length and tone",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/kln.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "kalenjin-foundation-4",
+    "language_id": "kalenjin",
+    "language_name": "Kalenjin",
+    "order": 4,
+    "stage": "listening",
+    "title": "Listen and practise",
+    "body": "Use tutor-approved Kalenjin recordings. Listen, choose the matching written form, then repeat at a comfortable pace. Audio and assessment items are not yet supplied.",
+    "focus": "Nandi vowel distinctions, length and tone",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/kln.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "kamba-foundation-1",
+    "language_id": "kamba",
+    "language_name": "Kamba",
+    "order": 1,
+    "stage": "orthography",
+    "title": "Writing and alphabet",
+    "body": "Choose a Kikamba orthography with a specialist. Record meaningful vowel contrasts and review competing mark conventions; do not strip marks or assume they encode tone.",
+    "focus": "vowel marks; length; spelling variants",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/kam.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "kamba-foundation-2",
+    "language_id": "kamba",
+    "language_name": "Kamba",
+    "order": 2,
+    "stage": "sounds",
+    "title": "Letters and sounds",
+    "body": "Review target: vowel marks; length; spelling variants. Prepare a Kamba-specific grapheme-to-sound table. Each sound needs an approved human example before publication.",
+    "focus": "vowel marks; length; spelling variants",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/kam.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "kamba-foundation-3",
+    "language_id": "kamba",
+    "language_name": "Kamba",
+    "order": 3,
+    "stage": "contrasts",
+    "title": "Hear the difference",
+    "body": "Tutor task: compare vowel marks; length; spelling variants in attested words. Do not assert minimal pairs until a specialist confirms them. Example selection: Kikamba tutor to select words and spelling standard.",
+    "focus": "vowel marks; length; spelling variants",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/kam.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "kamba-foundation-4",
+    "language_id": "kamba",
+    "language_name": "Kamba",
+    "order": 4,
+    "stage": "listening",
+    "title": "Listen and practise",
+    "body": "Use tutor-approved Kamba recordings. Listen, choose the matching written form, then repeat at a comfortable pace. Audio and assessment items are not yet supplied.",
+    "focus": "vowel marks; length; spelling variants",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/kam.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "meru-foundation-1",
+    "language_id": "meru",
+    "language_name": "Meru",
+    "order": 1,
+    "stage": "orthography",
+    "title": "Writing and alphabet",
+    "body": "Confirm which Meru variety the course teaches before completing its grapheme-sound table. Review marks and length in the source repertoire against a teaching orthography.",
+    "focus": "vowel marks and digraphs; selected Meru variety",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/mer.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "meru-foundation-2",
+    "language_id": "meru",
+    "language_name": "Meru",
+    "order": 2,
+    "stage": "sounds",
+    "title": "Letters and sounds",
+    "body": "Review target: vowel marks and digraphs; selected Meru variety. Prepare a Meru-specific grapheme-to-sound table. Each sound needs an approved human example before publication.",
+    "focus": "vowel marks and digraphs; selected Meru variety",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/mer.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "meru-foundation-3",
+    "language_id": "meru",
+    "language_name": "Meru",
+    "order": 3,
+    "stage": "contrasts",
+    "title": "Hear the difference",
+    "body": "Tutor task: compare vowel marks and digraphs; selected Meru variety in attested words. Do not assert minimal pairs until a specialist confirms them. Example selection: Meru tutor to select variety-specific examples.",
+    "focus": "vowel marks and digraphs; selected Meru variety",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/mer.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "meru-foundation-4",
+    "language_id": "meru",
+    "language_name": "Meru",
+    "order": 4,
+    "stage": "listening",
+    "title": "Listen and practise",
+    "body": "Use tutor-approved Meru recordings. Listen, choose the matching written form, then repeat at a comfortable pace. Audio and assessment items are not yet supplied.",
+    "focus": "vowel marks and digraphs; selected Meru variety",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/mer.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "luhya-foundation-1",
+    "language_id": "luhya",
+    "language_name": "Luhya",
+    "order": 1,
+    "stage": "orthography",
+    "title": "Writing and alphabet",
+    "body": "Lubukusu is the generator?s intended base. A generic Luhya locale repertoire does not establish Lubukusu pronunciation. Tutor confirmation is required.",
+    "focus": "Lubukusu grapheme-sound contrasts",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/luy.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "luhya-foundation-2",
+    "language_id": "luhya",
+    "language_name": "Luhya",
+    "order": 2,
+    "stage": "sounds",
+    "title": "Letters and sounds",
+    "body": "Review target: Lubukusu grapheme-sound contrasts. Prepare a Luhya-specific grapheme-to-sound table. Each sound needs an approved human example before publication.",
+    "focus": "Lubukusu grapheme-sound contrasts",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/luy.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "luhya-foundation-3",
+    "language_id": "luhya",
+    "language_name": "Luhya",
+    "order": 3,
+    "stage": "contrasts",
+    "title": "Hear the difference",
+    "body": "Tutor task: compare Lubukusu grapheme-sound contrasts in attested words. Do not assert minimal pairs until a specialist confirms them. Example selection: Lubukusu tutor to select attested words.",
+    "focus": "Lubukusu grapheme-sound contrasts",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/luy.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "luhya-foundation-4",
+    "language_id": "luhya",
+    "language_name": "Luhya",
+    "order": 4,
+    "stage": "listening",
+    "title": "Listen and practise",
+    "body": "Use tutor-approved Luhya recordings. Listen, choose the matching written form, then repeat at a comfortable pace. Audio and assessment items are not yet supplied.",
+    "focus": "Lubukusu grapheme-sound contrasts",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/luy.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "igbo-foundation-1",
+    "language_id": "igbo",
+    "language_name": "Igbo",
+    "order": 1,
+    "stage": "orthography",
+    "title": "Writing and alphabet",
+    "body": "Preserve marked Igbo letters and have a specialist distinguish vowel quality marks from tone conventions. Approve a consistent teaching variety.",
+    "focus": "i/?; o/?; u/?; n/?; tone notation",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/ig.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "igbo-foundation-2",
+    "language_id": "igbo",
+    "language_name": "Igbo",
+    "order": 2,
+    "stage": "sounds",
+    "title": "Letters and sounds",
+    "body": "Review target: i/?; o/?; u/?; n/?; tone notation. Prepare a Igbo-specific grapheme-to-sound table. Each sound needs an approved human example before publication.",
+    "focus": "i/?; o/?; u/?; n/?; tone notation",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/ig.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "igbo-foundation-3",
+    "language_id": "igbo",
+    "language_name": "Igbo",
+    "order": 3,
+    "stage": "contrasts",
+    "title": "Hear the difference",
+    "body": "Tutor task: compare i/?; o/?; u/?; n/?; tone notation in attested words. Do not assert minimal pairs until a specialist confirms them. Example selection: Igbo tutor to provide marked contrast words.",
+    "focus": "i/?; o/?; u/?; n/?; tone notation",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/ig.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "igbo-foundation-4",
+    "language_id": "igbo",
+    "language_name": "Igbo",
+    "order": 4,
+    "stage": "listening",
+    "title": "Listen and practise",
+    "body": "Use tutor-approved Igbo recordings. Listen, choose the matching written form, then repeat at a comfortable pace. Audio and assessment items are not yet supplied.",
+    "focus": "i/?; o/?; u/?; n/?; tone notation",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/ig.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "hausa-foundation-1",
+    "language_id": "hausa",
+    "language_name": "Hausa",
+    "order": 1,
+    "stage": "orthography",
+    "title": "Writing and alphabet",
+    "body": "Design a Latin-script introduction with a Hausa tutor and explain the chosen convention. Do not treat hooked letters as decorative; leave Ajami as a separately reviewed sequence.",
+    "focus": "b/?; d/?; k/?; Latin versus Ajami",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/ha.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "hausa-foundation-2",
+    "language_id": "hausa",
+    "language_name": "Hausa",
+    "order": 2,
+    "stage": "sounds",
+    "title": "Letters and sounds",
+    "body": "Review target: b/?; d/?; k/?; Latin versus Ajami. Prepare a Hausa-specific grapheme-to-sound table. Each sound needs an approved human example before publication.",
+    "focus": "b/?; d/?; k/?; Latin versus Ajami",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/ha.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "hausa-foundation-3",
+    "language_id": "hausa",
+    "language_name": "Hausa",
+    "order": 3,
+    "stage": "contrasts",
+    "title": "Hear the difference",
+    "body": "Tutor task: compare b/?; d/?; k/?; Latin versus Ajami in attested words. Do not assert minimal pairs until a specialist confirms them. Example selection: Hausa tutor to select hooked-consonant examples.",
+    "focus": "b/?; d/?; k/?; Latin versus Ajami",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/ha.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "hausa-foundation-4",
+    "language_id": "hausa",
+    "language_name": "Hausa",
+    "order": 4,
+    "stage": "listening",
+    "title": "Listen and practise",
+    "body": "Use tutor-approved Hausa recordings. Listen, choose the matching written form, then repeat at a comfortable pace. Audio and assessment items are not yet supplied.",
+    "focus": "b/?; d/?; k/?; Latin versus Ajami",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/ha.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "shona-foundation-1",
+    "language_id": "shona",
+    "language_name": "Shona",
+    "order": 1,
+    "stage": "orthography",
+    "title": "Writing and alphabet",
+    "body": "Confirm the Karanga base requested by the generator and its sound/spelling contrasts. Review sv/zv and sh before recording or attaching phonetic descriptions.",
+    "focus": "sh; sv; zv; syllables",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/sn.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "shona-foundation-2",
+    "language_id": "shona",
+    "language_name": "Shona",
+    "order": 2,
+    "stage": "sounds",
+    "title": "Letters and sounds",
+    "body": "Review target: sh; sv; zv; syllables. Prepare a Shona-specific grapheme-to-sound table. Each sound needs an approved human example before publication.",
+    "focus": "sh; sv; zv; syllables",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/sn.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "shona-foundation-3",
+    "language_id": "shona",
+    "language_name": "Shona",
+    "order": 3,
+    "stage": "contrasts",
+    "title": "Hear the difference",
+    "body": "Tutor task: compare sh; sv; zv; syllables in attested words. Do not assert minimal pairs until a specialist confirms them. Example selection: Karanga tutor to select contrast words.",
+    "focus": "sh; sv; zv; syllables",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/sn.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "shona-foundation-4",
+    "language_id": "shona",
+    "language_name": "Shona",
+    "order": 4,
+    "stage": "listening",
+    "title": "Listen and practise",
+    "body": "Use tutor-approved Shona recordings. Listen, choose the matching written form, then repeat at a comfortable pace. Audio and assessment items are not yet supplied.",
+    "focus": "sh; sv; zv; syllables",
+    "sources": [
+      "https://raw.githubusercontent.com/unicode-org/cldr/release-47/common/main/sn.xml"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "twi-foundation-1",
+    "language_id": "twi",
+    "language_name": "Twi",
+    "order": 1,
+    "stage": "orthography",
+    "title": "Writing and alphabet",
+    "body": "Specify Asante Twi. Do not substitute an Akan-wide dataset or another variety. Establish an approved teaching orthography and marked-letter examples before publication.",
+    "focus": "e/?; o/?; Asante Twi tone and spelling",
+    "sources": [
+      "https://github.com/aberba/twi-synonyms"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "twi-foundation-2",
+    "language_id": "twi",
+    "language_name": "Twi",
+    "order": 2,
+    "stage": "sounds",
+    "title": "Letters and sounds",
+    "body": "Review target: e/?; o/?; Asante Twi tone and spelling. Prepare a Twi-specific grapheme-to-sound table. Each sound needs an approved human example before publication.",
+    "focus": "e/?; o/?; Asante Twi tone and spelling",
+    "sources": [
+      "https://github.com/aberba/twi-synonyms"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "twi-foundation-3",
+    "language_id": "twi",
+    "language_name": "Twi",
+    "order": 3,
+    "stage": "contrasts",
+    "title": "Hear the difference",
+    "body": "Tutor task: compare e/?; o/?; Asante Twi tone and spelling in attested words. Do not assert minimal pairs until a specialist confirms them. Example selection: Asante tutor to provide confirmed examples.",
+    "focus": "e/?; o/?; Asante Twi tone and spelling",
+    "sources": [
+      "https://github.com/aberba/twi-synonyms"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  },
+  {
+    "id": "twi-foundation-4",
+    "language_id": "twi",
+    "language_name": "Twi",
+    "order": 4,
+    "stage": "listening",
+    "title": "Listen and practise",
+    "body": "Use tutor-approved Twi recordings. Listen, choose the matching written form, then repeat at a comfortable pace. Audio and assessment items are not yet supplied.",
+    "focus": "e/?; o/?; Asante Twi tone and spelling",
+    "sources": [
+      "https://github.com/aberba/twi-synonyms"
+    ],
+    "status": "draft",
+    "review_status": "needs_linguist_and_tutor_review",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "recordings": []
+  }
+]

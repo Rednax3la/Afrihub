@@ -1,0 +1,72 @@
+[
+  {
+    "id": "kikuyu",
+    "name": "Kikuyu",
+    "code": "ki"
+  },
+  {
+    "id": "swahili",
+    "name": "Swahili",
+    "code": "sw"
+  },
+  {
+    "id": "yoruba",
+    "name": "Yoruba",
+    "code": "yo"
+  },
+  {
+    "id": "zulu",
+    "name": "Zulu",
+    "code": "zu"
+  },
+  {
+    "id": "amharic",
+    "name": "Amharic",
+    "code": "am"
+  },
+  {
+    "id": "luo",
+    "name": "Luo",
+    "code": "luo"
+  },
+  {
+    "id": "kalenjin",
+    "name": "Kalenjin",
+    "code": "kln"
+  },
+  {
+    "id": "kamba",
+    "name": "Kamba",
+    "code": "kam"
+  },
+  {
+    "id": "meru",
+    "name": "Meru",
+    "code": "mer"
+  },
+  {
+    "id": "luhya",
+    "name": "Luhya",
+    "code": "luy"
+  },
+  {
+    "id": "igbo",
+    "name": "Igbo",
+    "code": "ig"
+  },
+  {
+    "id": "hausa",
+    "name": "Hausa",
+    "code": "ha"
+  },
+  {
+    "id": "shona",
+    "name": "Shona",
+    "code": "sn"
+  },
+  {
+    "id": "twi",
+    "name": "Twi",
+    "code": "tw"
+  }
+]

@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const routes = [
+  { path: '/foundations/:languageId', name: 'foundations', component: () => import('@/views/FoundationsView.vue'), meta: { requiresAuth: true, role: 'student' } },
+  { path: '/explore', name: 'explore', component: () => import('@/views/ExploreView.vue'), meta: { requiresAuth: true, role: 'student' } },
   { path: '/dictionary', name: 'dictionary', component: () => import('@/views/DictionaryView.vue'), meta: { requiresAuth: true, role: 'student' } },
   // ── Public ──────────────────────────────────────────────────────────────────
   { path: '/', name: 'splash', component: () => import('@/views/SplashView.vue') },
@@ -91,7 +93,7 @@ router.beforeEach(async (to) => {
   const auth = useAuthStore()
 
   // Wait for auth to hydrate from localStorage on first load
-  if (!auth.initialized) await auth.fetchMe()
+  if (!auth.initialized && (to.meta.requiresAuth || to.name === 'splash')) await auth.fetchMe()
 
   // Redirect away from splash if already logged in
   if (to.name === 'splash' && auth.isLoggedIn) {

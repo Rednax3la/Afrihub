@@ -1,3 +1,4 @@
+import { loadScript } from '@/utils/loadScript'
 const baseRequest = { apiVersion: 2, apiVersionMinor: 0 }
 const card = { type: 'CARD', parameters: { allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'], allowedCardNetworks: ['VISA', 'MASTERCARD'] } }
 let client
@@ -17,6 +18,7 @@ export function useGooglePay() {
   async function isReady() {
     try {
       if (environment === 'PRODUCTION' && (!import.meta.env.VITE_GOOGLE_PAY_MERCHANT_ID || !import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)) return false
+      await loadScript('https://pay.google.com/gp/p/js/pay.js')
       return !!(await getClient().isReadyToPay({ ...baseRequest, allowedPaymentMethods: [card] })).result
     } catch { return false }
   }

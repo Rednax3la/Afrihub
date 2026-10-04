@@ -102,9 +102,10 @@ async def list_units(language_id: str, current_user=Depends(get_current_user)):
                 {"$sort": {"order": 1}},
                 {"$project": {"questions": 0, "_id": 0}},
                 {"$group": {"_id": "$unit_id", "lessons": {"$push": "$$ROOT"}}},
+                {"$project": {"lessons": {"$slice": ["$lessons", 50]}}},
             ]
             with log_timing(f"list_units[{language_id}] lessons aggregation"):
-                grouped = await db.lessons.aggregate(pipeline).to_list(None)
+                grouped = await db.lessons.aggregate(pipeline).to_list(50)
             lessons_by_unit = {g["_id"]: g["lessons"] for g in grouped}
 
         for unit in units:

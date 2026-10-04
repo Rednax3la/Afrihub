@@ -20,6 +20,23 @@ PRICES = {'monthly': 1299, 'yearly': 12999}
 DAYS = {'monthly': 30, 'yearly': 365}
 
 
+@router.get('/availability')
+async def payment_availability():
+    # Configuration-only: never contact processors or expose configuration values.
+    try:
+        mpesa_config()
+        mpesa = True
+    except HTTPException:
+        mpesa = False
+    mode = os.getenv('GOOGLE_PAY_ENVIRONMENT', 'PRODUCTION').upper()
+    google = (mode == 'PRODUCTION' and os.getenv('STRIPE_SECRET_KEY', '').startswith('sk_live_')) or (
+        mode == 'TEST' and os.getenv('APP_ENV', 'production') == 'development')
+    from fastapi.responses import JSONResponse
+    return JSONResponse({'mpesa': mpesa, 'google_pay': google, 'google_pay_environment': mode,
+                         'message': 'Purchases are unavailable until payment setup is complete.'},
+                        headers={'Cache-Control': 'no-store'})
+
+
 class GooglePayment(BaseModel):
     payment_token: str = Field(min_length=1, max_length=30000)
     tier: Literal['monthly', 'yearly']

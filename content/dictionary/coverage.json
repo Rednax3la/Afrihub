@@ -1,0 +1,80 @@
+{
+  "kikuyu": {
+    "entries": 1913,
+    "status": "acquired_unreviewed",
+    "sha256": "675ecc666fb454d637a58e7dd3deaa95a298853589b15f5f7d583e78555129ac",
+    "download_url": "https://kaikki.org/dictionary/Kikuyu/kaikki.org-dictionary-Kikuyu.jsonl",
+    "raw_bytes": 1778307
+  },
+  "swahili": {
+    "entries": 23980,
+    "status": "acquired_unreviewed",
+    "sha256": "bcf1a096d617ecb3da7ea7bbb4ca555a159b98023c847482ea3d4a6f9f196972",
+    "download_url": "https://kaikki.org/dictionary/Swahili/kaikki.org-dictionary-Swahili.jsonl",
+    "raw_bytes": 81475896
+  },
+  "yoruba": {
+    "entries": 8082,
+    "status": "acquired_unreviewed",
+    "sha256": "1244abf9b29a5510026996306f39f98ed727a15fb0970995a242deb6fb38805f",
+    "download_url": "https://kaikki.org/dictionary/Yoruba/kaikki.org-dictionary-Yoruba.jsonl",
+    "raw_bytes": 11214354
+  },
+  "zulu": {
+    "entries": 4861,
+    "status": "acquired_unreviewed",
+    "sha256": "a67f58928ffdace3a855b20e694917ba197e1e348cdaec8848e0c1c5e14ae021",
+    "download_url": "https://kaikki.org/dictionary/Zulu/kaikki.org-dictionary-Zulu.jsonl",
+    "raw_bytes": 60683461
+  },
+  "amharic": {
+    "entries": 3550,
+    "status": "acquired_unreviewed",
+    "sha256": "239f48ba610668d550d8437cd02666e1429af588d1d3bde61f602cb40423ed1a",
+    "download_url": "https://kaikki.org/dictionary/Amharic/kaikki.org-dictionary-Amharic.jsonl",
+    "raw_bytes": 4866246
+  },
+  "luo": {
+    "entries": 0,
+    "status": "needs_permission_or_language_review"
+  },
+  "kalenjin": {
+    "entries": 0,
+    "status": "needs_permission_or_language_review"
+  },
+  "kamba": {
+    "entries": 0,
+    "status": "needs_permission_or_language_review"
+  },
+  "meru": {
+    "entries": 0,
+    "status": "needs_permission_or_language_review"
+  },
+  "luhya": {
+    "entries": 0,
+    "status": "needs_permission_or_language_review"
+  },
+  "igbo": {
+    "entries": 0,
+    "status": "acquisition_blocked",
+    "reason": "HTTPError"
+  },
+  "hausa": {
+    "entries": 2715,
+    "status": "acquired_unreviewed",
+    "sha256": "298f06f1d5b4b11d605963fa84725144bb2deddac291ee601ad826fae4fa0878",
+    "download_url": "https://kaikki.org/dictionary/Hausa/kaikki.org-dictionary-Hausa.jsonl",
+    "raw_bytes": 2875800
+  },
+  "shona": {
+    "entries": 609,
+    "status": "acquired_unreviewed",
+    "sha256": "056cfdf2640956524a5f9ec6dc73f3855342af63af2cb79df265921c709ceebe",
+    "download_url": "https://kaikki.org/dictionary/Shona/kaikki.org-dictionary-Shona.jsonl",
+    "raw_bytes": 690621
+  },
+  "twi": {
+    "entries": 0,
+    "status": "needs_permission_or_language_review"
+  }
+}

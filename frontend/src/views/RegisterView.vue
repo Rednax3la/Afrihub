@@ -25,22 +25,14 @@
           <label class="block text-sm font-semibold text-slate-600 mb-2">Email</label>
           <input
             v-model="form.email"
-            type="email"
+            type="email" autocomplete="email"
             placeholder="you@example.com"
             required
             class="w-full p-4 rounded-2xl border border-slate-200 bg-white text-slate-800 outline-none focus:border-emerald-400 transition-colors"
           />
         </div>
         <div>
-          <label class="block text-sm font-semibold text-slate-600 mb-2">Password</label>
-          <input
-            v-model="form.password"
-            type="password"
-            placeholder="At least 6 characters"
-            required
-            minlength="6"
-            class="w-full p-4 rounded-2xl border border-slate-200 bg-white text-slate-800 outline-none focus:border-emerald-400 transition-colors"
-          />
+          <PasswordInput id="register-password" v-model="form.password" show-requirements />
         </div>
         <div>
           <label class="block text-sm font-semibold text-slate-600 mb-2">Location <span class="font-normal text-slate-400">(optional)</span></label>
@@ -73,6 +65,8 @@
 </template>
 
 <script setup>
+import { validNewPassword } from '@/utils/passwords'
+import PasswordInput from '@/components/PasswordInput.vue'
 import GoogleSignIn from '@/components/GoogleSignIn.vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -85,6 +79,10 @@ const form = ref({ name: '', email: '', password: '', location: '' })
 
 async function handleRegister() {
   error.value = ''
+  if (!validNewPassword(form.value.password)) {
+    error.value = 'Please meet all the password requirements.'
+    return
+  }
   const result = await auth.register(form.value.name, form.value.email, form.value.password, form.value.location)
   if (result.success) {
     router.push('/dashboard')

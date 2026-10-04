@@ -4,7 +4,7 @@
       <!-- Header -->
       <header class="px-6 pt-6 pb-2 sticky top-0 bg-[#FDFCFB]/80 backdrop-blur-md z-20">
         <h3 class="text-2xl font-bold text-slate-900">Explore Languages</h3>
-        <p class="text-slate-500 text-sm mt-1">50+ African vernaculars, taught by native tutors.</p>
+        <p class="text-slate-500 text-sm mt-1">Find your next language course.</p>
       </header>
 
       <!-- Search -->

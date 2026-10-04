@@ -15,24 +15,19 @@
           <label class="block text-sm font-semibold text-slate-600 mb-2">Email</label>
           <input
             v-model="form.email"
-            type="email"
+            type="email" autocomplete="email"
             placeholder="you@example.com"
             required
             class="w-full p-4 rounded-2xl border border-slate-200 bg-white text-slate-800 outline-none focus:border-emerald-400 transition-colors"
           />
         </div>
         <div>
-          <label class="block text-sm font-semibold text-slate-600 mb-2">Password</label>
-          <input
-            v-model="form.password"
-            type="password"
-            placeholder="••••••••"
-            required
-            class="w-full p-4 rounded-2xl border border-slate-200 bg-white text-slate-800 outline-none focus:border-emerald-400 transition-colors"
-          />
+          <PasswordInput id="login-password" v-model="form.password" autocomplete="current-password" />
         </div>
 
-        <p v-if="error" class="text-red-500 text-sm font-medium">{{ error }}</p>
+        <a href="/forgot-password" class="block text-sm font-semibold text-emerald-800 underline">Forgot password?</a>
+
+        <p v-if="error" role="alert" class="text-red-500 text-sm font-medium">{{ error }}</p>
 
         <button
           type="submit"
@@ -53,6 +48,7 @@
 </template>
 
 <script setup>
+import PasswordInput from '@/components/PasswordInput.vue'
 import GoogleSignIn from '@/components/GoogleSignIn.vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'

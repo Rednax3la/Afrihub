@@ -1,0 +1,18 @@
+{
+  "before": {
+    "initial_js_files": 1,
+    "initial_js_bytes": 162865,
+    "initial_js_gzip_bytes": 62393,
+    "all_js_files": 36,
+    "all_js_bytes": 374183,
+    "eager_third_party_scripts": 2
+  },
+  "after": {
+    "initial_js_files": 2,
+    "initial_js_bytes": 166207,
+    "initial_js_gzip_bytes": 64438,
+    "all_js_files": 42,
+    "all_js_bytes": 390970,
+    "eager_third_party_scripts": 0
+  }
+}

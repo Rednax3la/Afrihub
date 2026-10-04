@@ -30,11 +30,10 @@
           </div>
           <div class="col-span-2">
             <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Email</label>
-            <input v-model="form.email" type="email" required class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition-colors" placeholder="you@example.com" />
+            <input v-model="form.email" type="email" autocomplete="email" required class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition-colors" placeholder="you@example.com" />
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Password</label>
-            <input v-model="form.password" type="password" required minlength="6" class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition-colors" placeholder="Min. 6 characters" />
+            <PasswordInput id="register-password" v-model="form.password" show-requirements />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Location</label>
@@ -116,6 +115,8 @@
 </template>
 
 <script setup>
+import { validNewPassword } from '@/utils/passwords'
+import PasswordInput from '@/components/PasswordInput.vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -150,6 +151,10 @@ function removeLanguage(lang) {
 
 async function submit() {
   error.value = ''
+  if (!validNewPassword(form.value.password)) {
+    error.value = 'Please meet all the password requirements.'
+    return
+  }
   const result = await auth.registerTutor(form.value)
   if (result.success) {
     router.push('/tutor/dashboard')

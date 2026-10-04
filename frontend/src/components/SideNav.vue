@@ -13,7 +13,7 @@
         :to="item.to"
       :aria-label="item.label || item.to.slice(1)"
         class="flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-sm transition-all"
-        :class="$route.path === item.to
+        :class="isNavigationActive($route.path, item.to)
           ? 'bg-[#A7FFEB]/40 text-[#003B5C]'
           : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'"
       >
@@ -53,12 +53,5 @@ import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
 
-const navItems = [
-  { to: '/dictionary', icon: 'translate', label: 'Dictionary' },
-  { to: '/dashboard', icon: 'home', label: 'Home' },
-  { to: '/courses', icon: 'map', label: 'Courses' },
-  { to: '/leaderboard', icon: 'emoji_events', label: 'Leaderboard' },
-  { to: '/subscription', icon: 'workspace_premium', label: 'Premium' },
-  { to: '/profile', icon: 'person', label: 'Profile' },
-]
+import { studentNavigation as navItems, isNavigationActive } from '@/utils/navigation'
 </script>

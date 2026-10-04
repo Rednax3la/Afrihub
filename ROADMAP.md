@@ -1,4 +1,26 @@
 # Vernaculearn — Product Roadmap
+
+## Current follow-up — 3 October 2026
+
+This section supersedes historical plans and completion claims below. Production health, payment merchant readiness and email delivery require deployment verification; a feature existing in code is not proof that its external service is configured.
+
+Canonical supported catalogue: Kikuyu (`kikuyu`/`ki`), Swahili (`swahili`/`sw`), Yoruba (`yoruba`/`yo`), Zulu (`zulu`/`zu`), Amharic (`amharic`/`am`), Luo (`luo`/`luo`), Kalenjin (`kalenjin`/`kln`), Kamba (`kamba`/`kam`), Meru (`meru`/`mer`), Luhya (`luhya`/`luy`), Igbo (`igbo`/`ig`), Hausa (`hausa`/`ha`), Shona (`shona`/`sn`), Twi (`twi`/`tw`). This is the generator's 14-language catalogue; the older seed only has 10. Live database contents have not been audited or reseeded.
+
+| Area | Implemented in this follow-up | Next work / decisions |
+| --- | --- | --- |
+| Identity | Password recovery, strong new passwords, legacy login compatibility, session revocation and accessible password controls | Configure and verify SMTP; Zoho Forever Free eligibility remains unresolved. Repair infrastructure separately. |
+| Explore | Shared mobile/desktop Explore hub; functioning Dictionary destination; other cards clearly Coming soon | No game, AI or video dependencies loaded yet. |
+| Games | Roadmap only | Gimkit-inspired language challenges with XP-based eligibility/unlock. **Decide whether XP is spent, is only a threshold, or earns separate play credits.** Do not deduct lifetime learning XP or change current rewards now. Design anti-abuse and accessible solo/group modes. |
+| AI Chat | Roadmap only | Select languages with evaluated model support, native-speaker accuracy tests, safe corrections, moderation, privacy/retention and consent policy, cost ceilings/rate limits and provider outage handling. No AI-provider integration is included. |
+| Videos | Roadmap only | Short language/culture discovery feed; rights-cleared uploads, captions/transcripts, language filters, moderation and reporting. Use pagination, poster images and adaptive/lazy media loading; never preload a feed of videos. |
+| Dictionary | Independent data model/search, licensed collection/import pipeline and attribution; existing lesson-linked entries preserved | Review acquired senses and source licences before publication. Fill gaps in all 14 languages through permitted sources or tutor contributions. Preserve dialect distinctions and English/native field mapping. See `content/dictionary/SOURCES.md`. |
+| Foundations | Separate pre-lesson surface, 56 unpublished draft modules (four per language), orthography evidence and tutor checklist | Agree on each language/variety's orthography, then approve alphabet, sound relationships, marked letters and listening practice. Obtain consented tutor recordings for contrasts requiring human review. Never relabel synthetic audio as tutor pronunciation. |
+| Premium | Subscription access in Profile; existing monthly/yearly plans and server checks retained; honest unavailable state | **Premium games and video sessions are undecided**, not current benefits. No higher tier, extra pricing or new entitlements are introduced. |
+| Performance | SDKs loaded on demand, parallel dashboard reads, shared catalogue fetch, batched unit lessons, smaller service-worker installation workload | Measure real authenticated API/database latency after infrastructure recovery. Establish mobile rendering/LCP/INP baselines; media CDN work and deeper progress-query tuning remain separate. |
+
+Foundation records never renumber existing units or modify lesson IDs/progress. The current rule still makes units with `order > 3` premium. All proposed pronunciation material stays unpublished until reviewed and recorded.
+
+## Historical roadmap (retained for context)
 *African Language Learning Platform · Version 1.2 · March 2026 · Confidential*
 
 ---

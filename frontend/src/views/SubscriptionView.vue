@@ -5,8 +5,8 @@
 
     <div class="max-w-xl mx-auto">
       <header class="p-6 flex justify-between items-center">
-        <RouterLink to="/dashboard" class="w-10 h-10 flex items-center justify-center">
-          <span class="material-icons-outlined">close</span>
+        <RouterLink to="/profile" aria-label="Back to profile" class="w-10 h-10 flex items-center justify-center">
+          <span class="material-icons-outlined">arrow_back</span>
         </RouterLink>
         <h3 class="font-bold tracking-widest text-xs uppercase">Premium Access</h3>
         <div class="w-10"></div>
@@ -17,7 +17,7 @@
           <span class="material-icons-outlined text-4xl">auto_awesome</span>
         </div>
         <h2 class="text-2xl sm:text-3xl font-bold serif mb-4">Master Your Heritage</h2>
-        <p class="text-white/60 text-lg mb-5 sm:mb-10">Unlock all 50+ African vernaculars with lessons from native tutors.</p>
+        <p class="text-white/60 text-lg mb-5 sm:mb-10">Continue beyond the first three units in available language courses.</p>
       </div>
 
       <div class="px-4 sm:px-6 space-y-3 sm:space-y-4 mb-5 sm:mb-10">
@@ -65,8 +65,9 @@
       </div>
 
       <div class="px-4 sm:px-6 mt-5 sm:mt-10 pb-8">
+        <p v-if="auth.user?.is_premium" class="mb-4 text-sm">Your subscription is active<span v-if="auth.user.expires_at"> until {{ new Date(auth.user.expires_at).toLocaleDateString() }}</span>.</p>
         <SubscriptionCheckout :tier="selectedPlan" />
-        <p class="text-center text-xs text-white/30 mt-6">Cancel anytime. Terms and conditions apply.</p>
+        <p class="text-center text-xs text-white/30 mt-6">Payment must be confirmed before subscription access is activated.</p>
       </div>
     </div>
   </section>
@@ -74,17 +75,12 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+const auth = useAuthStore()
 import SubscriptionCheckout from '@/components/SubscriptionCheckout.vue'
 
 const selectedPlan = ref('yearly')
 
-const perks = [
-  'Revenue directly supports native-speaking tutors',
-  'Unlimited Hearts & Practice sessions',
-  'Offline lessons for remote travel',
-  'All 50+ African languages unlocked',
-  'Ad-free, distraction-free learning',
-  'Downloadable completion certificates',
-]
+const perks = ['Access to currently published units beyond unit 3', 'Monthly or yearly access at the existing plan prices']
 
 </script>
