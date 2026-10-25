@@ -30,7 +30,19 @@
           </div>
           <div class="col-span-2">
             <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Email</label>
-            <input v-model="form.email" type="email" autocomplete="email" required class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition-colors" placeholder="you@example.com" />
+            <input
+              v-model="form.email"
+              type="email"
+              autocomplete="email"
+              required
+              :aria-invalid="!!emailHint"
+              aria-describedby="tutor-email-hint"
+              class="w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none transition-colors"
+              :class="emailHint ? 'border-red-300 focus:border-red-400' : 'border-slate-200 focus:border-emerald-500'"
+              placeholder="you@example.com"
+              @blur="emailTouched = true"
+            />
+            <p v-if="emailHint" id="tutor-email-hint" class="mt-1.5 text-xs font-semibold text-red-500">{{ emailHint }}</p>
           </div>
           <div>
             <PasswordInput id="register-password" v-model="form.password" show-requirements />
@@ -117,13 +129,15 @@
 <script setup>
 import { validNewPassword } from '@/utils/passwords'
 import PasswordInput from '@/components/PasswordInput.vue'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { emailError } from '@/utils/emailValidation'
 
 const auth = useAuthStore()
 const router = useRouter()
 const error = ref('')
+const emailTouched = ref(false)
 const languageInput = ref('')
 
 const form = ref({
@@ -136,6 +150,9 @@ const form = ref({
   voice_character: '',
   bio: '',
 })
+
+// Only surfaced after the field is left or a submit is attempted.
+const emailHint = computed(() => (emailTouched.value ? emailError(form.value.email) : ''))
 
 function addLanguage() {
   const val = languageInput.value.trim().replace(/,$/, '')
@@ -151,6 +168,8 @@ function removeLanguage(lang) {
 
 async function submit() {
   error.value = ''
+  emailTouched.value = true
+  if (emailError(form.value.email)) return
   if (!validNewPassword(form.value.password)) {
     error.value = 'Please meet all the password requirements.'
     return

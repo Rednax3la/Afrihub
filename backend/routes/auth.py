@@ -2,6 +2,7 @@ import logging
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
+from services.email_validation import validate_signup_email
 from services.streaks import effective_streak
 from services.subscriptions import has_active_subscription
 import os
@@ -46,13 +47,16 @@ def serialize_user(user: dict) -> UserPublic:
 @router.post("/register", response_model=TokenResponse, status_code=201)
 async def register(body: UserRegister):
     db = get_db()
-    existing = await db.users.find_one({"email": body.email})
+    # Legitimacy checks run on registration only — never on login, so accounts
+    # created before a rule existed can still sign in.
+    email = await validate_signup_email(body.email)
+    existing = await db.users.find_one({"email": email})
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
 
     user_doc = {
         "name": body.name,
-        "email": body.email,
+        "email": email,
         "password_hash": hash_password(body.password),
         "location": body.location,
         "role": "student",
@@ -74,13 +78,14 @@ async def register(body: UserRegister):
 @router.post("/register/tutor", response_model=TokenResponse, status_code=201)
 async def register_tutor(body: TutorRegister):
     db = get_db()
-    existing = await db.users.find_one({"email": body.email})
+    email = await validate_signup_email(body.email)
+    existing = await db.users.find_one({"email": email})
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
 
     user_doc = {
         "name": body.name,
-        "email": body.email,
+        "email": email,
         "password_hash": hash_password(body.password),
         "location": body.location,
         "role": "tutor",

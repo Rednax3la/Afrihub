@@ -28,8 +28,13 @@
             type="email" autocomplete="email"
             placeholder="you@example.com"
             required
-            class="w-full p-4 rounded-2xl border border-slate-200 bg-white text-slate-800 outline-none focus:border-emerald-400 transition-colors"
+            :aria-invalid="!!emailHint"
+            aria-describedby="register-email-hint"
+            class="w-full p-4 rounded-2xl border bg-white text-slate-800 outline-none transition-colors"
+            :class="emailHint ? 'border-red-300 focus:border-red-400' : 'border-slate-200 focus:border-emerald-400'"
+            @blur="emailTouched = true"
           />
+          <p v-if="emailHint" id="register-email-hint" class="mt-1.5 text-sm font-medium text-red-500">{{ emailHint }}</p>
         </div>
         <div>
           <PasswordInput id="register-password" v-model="form.password" show-requirements />
@@ -68,17 +73,25 @@
 import { validNewPassword } from '@/utils/passwords'
 import PasswordInput from '@/components/PasswordInput.vue'
 import GoogleSignIn from '@/components/GoogleSignIn.vue'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { emailError } from '@/utils/emailValidation'
 
 const router = useRouter()
 const auth = useAuthStore()
 const error = ref('')
+const emailTouched = ref(false)
 const form = ref({ name: '', email: '', password: '', location: '' })
+
+// Only surfaced after the field is left or a submit is attempted, so the user
+// isn't told they're wrong while still typing.
+const emailHint = computed(() => (emailTouched.value ? emailError(form.value.email) : ''))
 
 async function handleRegister() {
   error.value = ''
+  emailTouched.value = true
+  if (emailError(form.value.email)) return
   if (!validNewPassword(form.value.password)) {
     error.value = 'Please meet all the password requirements.'
     return
