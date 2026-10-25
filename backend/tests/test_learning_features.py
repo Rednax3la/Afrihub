@@ -52,7 +52,10 @@ def test_subscription_expiration():
     assert not has_active_subscription({'is_premium': True})
 
 
-async def test_paywall_covers_all_lesson_entrypoints(feature_context):
+async def test_paywall_covers_all_lesson_entrypoints(feature_context, monkeypatch):
+    # The paywall ships disabled (PAYWALL_ENABLED defaults to false); this test
+    # covers the gating logic itself, so it turns the flag on explicitly.
+    monkeypatch.setenv('PAYWALL_ENABLED', 'true')
     client, db, user = feature_context
     units = (await client.get('/api/languages/sw/units')).json()
     assert len(units) == 2
@@ -67,6 +70,20 @@ async def test_paywall_covers_all_lesson_entrypoints(feature_context):
     assert (await client.get('/api/lessons/lesson-4')).status_code == 200
 
 
+async def test_paywall_disabled_opens_every_unit(feature_context, monkeypatch):
+    monkeypatch.delenv('PAYWALL_ENABLED', raising=False)  # default is off
+    client, db, user = feature_context
+    units = (await client.get('/api/languages/sw/units')).json()
+    assert [u['locked'] for u in units] == [False, False]
+    assert all(u['lessons'] for u in units)
+    assert (await client.get('/api/lessons/lesson-4')).status_code == 200
+    assert (await client.get('/api/units/unit-4/lessons')).status_code == 200
+    assert (await client.post('/api/lessons/lesson-4/complete', json={'score': 100})).status_code == 200
+    # Unpublished lessons stay hidden regardless of the flag.
+    await db.lessons.insert_one({'id': 'hidden', 'unit_id': 'unit-4', 'status': 'pending_review', 'questions': []})
+    assert (await client.get('/api/lessons/hidden')).status_code == 404
+
+
 async def test_completion_advances_review_schedule(feature_context):
     client, db, user = feature_context
     for interval in (1, 3, 8):
@@ -79,7 +96,8 @@ async def test_completion_advances_review_schedule(feature_context):
     assert (await client.post('/api/lessons/lesson-1/complete', json={'score': 101})).status_code == 422
 
 
-async def test_due_reviews_are_user_scoped_and_joined(feature_context):
+async def test_due_reviews_are_user_scoped_and_joined(feature_context, monkeypatch):
+    monkeypatch.setenv('PAYWALL_ENABLED', 'true')
     client, db, user = feature_context
     await db.progress.insert_many([
         {'user_id': str(user['_id']), 'lesson_id': 'lesson-1', 'review_schedule': {'next_review_date': today_eat().isoformat()}},

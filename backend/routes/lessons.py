@@ -5,7 +5,11 @@ from models.lesson import AnswerSubmit, AnswerResult
 from pydantic import BaseModel, Field
 from services.reviews import sm2, today_eat
 from services.streaks import effective_streak, next_streak
-from services.subscriptions import has_active_subscription, require_lesson_access
+from services.subscriptions import (
+    has_active_subscription,
+    require_lesson_access,
+    unit_requires_subscription,
+)
 from typing import List, Optional
 from bson import ObjectId
 import datetime
@@ -86,11 +90,13 @@ async def list_units(language_id: str, current_user=Depends(get_current_user)):
         with log_timing(f"list_units[{language_id}] units query"):
             units = await db.units.find({"language_id": language_id}).sort("order", 1).to_list(50)
 
+        # With PAYWALL_ENABLED off, every unit comes back unlocked with its
+        # lessons attached.
         subscribed = has_active_subscription(current_user)
         unlocked_unit_ids = []
         for unit in units:
             unit["_id"] = str(unit["_id"])
-            unit["locked"] = unit.get("order", 0) > 3 and not subscribed
+            unit["locked"] = unit_requires_subscription(unit) and not subscribed
             if not unit["locked"]:
                 unlocked_unit_ids.append(unit["id"])
 

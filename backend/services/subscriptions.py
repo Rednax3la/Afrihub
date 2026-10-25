@@ -1,5 +1,23 @@
+import os
+
 from datetime import datetime, timezone
 from fastapi import HTTPException
+
+# Premium unit gating is temporarily switched off. The paywall code below is
+# intact -- set PAYWALL_ENABLED=true to turn it back on without a code change.
+PAYWALL_DEFAULT = "false"
+
+
+def paywall_enabled() -> bool:
+    """Read at call time so the flag is a pure env change (and testable)."""
+    return os.getenv("PAYWALL_ENABLED", PAYWALL_DEFAULT).strip().lower() in ("true", "1", "yes")
+
+
+def unit_requires_subscription(unit) -> bool:
+    """Whether this unit sits behind the paywall. False whenever it is off."""
+    if not paywall_enabled():
+        return False
+    return bool(unit) and unit.get("order", 0) > 3
 
 
 def has_active_subscription(user):
@@ -26,6 +44,8 @@ async def update_subscription(db, user_id, tier, expires_at):
 async def require_lesson_access(db, lesson, user):
     if not lesson or lesson.get('status') in ('draft', 'rejected', 'pending_review'):
         raise HTTPException(404, 'Lesson not found')
+    if not paywall_enabled():
+        return
     unit = await db.units.find_one({'id': lesson.get('unit_id')})
-    if unit and unit.get('order', 0) > 3 and not has_active_subscription(user):
+    if unit_requires_subscription(unit) and not has_active_subscription(user):
         raise HTTPException(403, 'An active subscription is required for this unit')

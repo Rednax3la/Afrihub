@@ -113,12 +113,12 @@
         <main v-else-if="content.units.length" class="p-6">
           <div v-for="(unit, uIdx) in content.units" :key="unit.id" class="mb-12">
 
-            <button v-if="unit.locked" @click="showUpgrade = true" class="w-full mb-4 flex items-center justify-between rounded-2xl bg-amber-50 p-4 text-left text-[#003B5C]">
+            <button v-if="isUnitLocked(unit)" @click="showUpgrade = true" class="w-full mb-4 flex items-center justify-between rounded-2xl bg-amber-50 p-4 text-left text-[#003B5C]">
               <span><strong>{{ unit.title }}</strong><span class="block text-sm">Unlock with Premium</span></span>
               <span class="material-icons-outlined">lock</span>
             </button>
             <!-- Unit Card -->
-            <div v-if="!unit.locked" class="bg-[#A7FFEB]/30 rounded-[2.5rem] p-6 mb-12 border border-[#00A3C1]/20 shadow-sm">
+            <div v-if="!isUnitLocked(unit)" class="bg-[#A7FFEB]/30 rounded-[2.5rem] p-6 mb-12 border border-[#00A3C1]/20 shadow-sm">
               <div class="flex justify-between items-start mb-4">
                 <div class="flex-1 min-w-0 mr-4">
                   <span class="text-[10px] font-bold tracking-[0.2em] text-[#003B5C] uppercase bg-[#A7FFEB]/60 px-3 py-1 rounded-full">Unit {{ uIdx + 1 }}</span>
@@ -202,7 +202,7 @@
       </template>
     </div>
 
-    <Modal v-model="showUpgrade" title="Unlock all units">
+    <Modal v-if="PAYWALL_ENABLED" v-model="showUpgrade" title="Unlock all units">
       <p class="text-slate-600 mb-4">Continue learning with Vernaculearn Premium.</p>
       <label class="block text-sm font-semibold mb-4">Choose a plan
         <select v-model="upgradeTier" class="mt-2 w-full rounded-xl border p-3 bg-white">
@@ -221,6 +221,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useContentStore } from '@/stores/content'
 import { useProgressStore } from '@/stores/progress'
+import { PAYWALL_ENABLED } from '@/utils/flags'
 import BottomNav from '@/components/BottomNav.vue'
 import Modal from '@/components/Modal.vue'
 import SubscriptionCheckout from '@/components/SubscriptionCheckout.vue'
@@ -284,6 +285,12 @@ const currentLessonId = computed(() => {
   }
   return null
 })
+
+// The server already returns locked=false for every unit while the paywall is
+// off; this keeps the UI honest even against a stale cached response.
+function isUnitLocked(unit) {
+  return PAYWALL_ENABLED && !!unit.locked
+}
 
 function unitCompletedCount(unit) {
   return (unit.lessons ?? []).filter(l => progressStore.isCompleted(l.id)).length
