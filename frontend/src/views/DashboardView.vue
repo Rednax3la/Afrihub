@@ -21,19 +21,6 @@
           </RouterLink>
         </div>
       </header>
-      <section v-if="dueReviews.length" class="px-6 pt-6">
-        <h2 class="font-bold text-[#003B5C] mb-3">Due for Review <span class="ml-2 rounded-full bg-amber-100 px-2 py-1 text-xs">{{ dueReviews.length }}</span></h2>
-        <div class="space-y-2">
-          <div v-for="lesson in dueReviews.slice(0, 5)" :key="lesson.lesson_id">
-            <button v-if="lesson.locked" @click="showUpgrade = true" class="w-full text-left rounded-2xl border border-amber-100 bg-amber-50 p-4">
-              <p class="font-semibold">{{ lesson.title }} <span class="material-icons-outlined text-sm">lock</span></p><p class="text-sm text-slate-500">{{ lesson.language_name }} &middot; Premium review</p>
-            </button>
-            <RouterLink v-else :to="`/lesson/${lesson.lesson_id}`" class="block rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-              <p class="font-semibold">{{ lesson.title }}</p><p class="text-sm text-slate-500">{{ lesson.language_name }}</p>
-            </RouterLink>
-          </div>
-        </div>
-      </section>
 
       <!-- ── LANDING VIEW (no language selected) ───────────────────────── -->
       <template v-if="!activeLangId">
@@ -238,15 +225,11 @@ import BottomNav from '@/components/BottomNav.vue'
 import Modal from '@/components/Modal.vue'
 import SubscriptionCheckout from '@/components/SubscriptionCheckout.vue'
 
-import { progressApi } from '@/api'
-const dueReviews = ref([])
 const showUpgrade = ref(false)
 const upgradeTier = ref('monthly')
 async function onUpgraded() {
   showUpgrade.value = false
   if (activeLangId.value) await content.selectLanguage(activeLangId.value)
-  const { data } = await progressApi.getDueForReview()
-  dueReviews.value = data
 }
 
 const auth = useAuthStore()
@@ -329,7 +312,6 @@ async function startLang(lang) {
 
 onMounted(async () => {
   await Promise.allSettled([
-    progressApi.getDueForReview().then(({ data }) => { dueReviews.value = data }),
     content.fetchLanguages(), progressStore.fetchMyProgress(),
   ])
 })
