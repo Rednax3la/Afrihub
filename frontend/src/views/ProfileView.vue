@@ -13,9 +13,10 @@
             />
             <label class="absolute bottom-0 right-0 w-8 h-8 bg-[#00A3C1] rounded-full border-4 border-white flex items-center justify-center cursor-pointer" :class="avatarUploading ? 'opacity-60' : ''">
               <span class="material-icons-outlined text-white text-[12px]">{{ avatarUploading ? 'hourglass_empty' : 'edit' }}</span>
-              <input type="file" accept="image/*" class="hidden" @change="uploadAvatar" :disabled="avatarUploading" />
+              <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" :disabled="avatarUploading" @change="uploadAvatar" />
             </label>
           </div>
+          <p v-if="avatarError" role="alert" class="-mt-2 mb-3 max-w-xs text-center text-xs font-medium text-red-600">{{ avatarError }}</p>
 
           <!-- Editable name/location -->
           <div v-if="editing" class="w-full space-y-3 mt-2 mb-4">
@@ -27,6 +28,7 @@
               </button>
               <button @click="editing = false" class="flex-1 py-3 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm">Cancel</button>
             </div>
+            <p v-if="profileError" role="alert" class="text-xs font-medium text-red-600">{{ profileError }}</p>
           </div>
           <template v-else>
             <h2 class="text-2xl font-bold text-slate-900">{{ auth.user?.name }}</h2>
@@ -171,12 +173,15 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProgressStore } from '@/stores/progress'
 import { contentApi, uploadApi, userApi } from '@/api'
+import { downscaleImage } from '@/utils/images'
+import { useToastStore } from '@/stores/toast'
 import BottomNav from '@/components/BottomNav.vue'
 import { usePushNotifications } from '@/composables/usePushNotifications'
 
 const auth = useAuthStore()
 const progressStore = useProgressStore()
 const router = useRouter()
+const toast = useToastStore()
 const { isSupported, isSubscribed, subscribe, unsubscribe } = usePushNotifications()
 const notificationBusy = ref(false)
 const notificationError = ref('')
@@ -191,6 +196,8 @@ async function toggleNotifications(event) {
 }
 const allBadges = ref([])
 const avatarUploading = ref(false)
+const avatarError = ref('')
+const profileError = ref('')
 const editing = ref(false)
 const editName = ref('')
 const editLocation = ref('')
@@ -206,11 +213,21 @@ async function uploadAvatar(e) {
   const file = e.target.files?.[0]
   if (!file) return
   avatarUploading.value = true
+  avatarError.value = ''
   try {
-    const { data } = await uploadApi.image(file)
+    // Shrink to 512px before upload — the avatar never renders larger.
+    const resized = await downscaleImage(file, 512)
+    const { data } = await uploadApi.image(resized)
     await userApi.updateProfile({ avatar_url: data.url })
+    // Re-read the user so the new picture appears immediately here, in the
+    // nav and anywhere else bound to auth.user.
     await auth.fetchMe()
-  } catch { /* silent */ } finally {
+    toast.success('Profile picture updated')
+  } catch (err) {
+    avatarError.value =
+      err.response?.data?.detail || err.message || 'Could not update your picture. Please try again.'
+    toast.error(avatarError.value)
+  } finally {
     avatarUploading.value = false
     e.target.value = ''
   }
@@ -218,11 +235,15 @@ async function uploadAvatar(e) {
 
 async function saveProfile() {
   savingProfile.value = true
+  profileError.value = ''
   try {
     await userApi.updateProfile({ name: editName.value, location: editLocation.value })
     await auth.fetchMe()
     editing.value = false
-  } catch { /* silent */ } finally {
+  } catch (err) {
+    profileError.value = err.response?.data?.detail || err.message || 'Could not save your profile.'
+    toast.error(profileError.value)
+  } finally {
     savingProfile.value = false
   }
 }

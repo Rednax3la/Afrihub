@@ -133,22 +133,24 @@ export const tutorApi = {
 }
 
 // ── Upload ─────────────────────────────────────────────────────────────────────
+// The field name must stay "file" — that is what FastAPI's
+// `file: UploadFile = File(...)` binds to. The multipart Content-Type must
+// override this instance's application/json default (otherwise axios would
+// JSON-stringify the FormData); the browser then replaces it with the same
+// type plus the generated boundary.
+function fileUpload(path, file) {
+  const form = new FormData()
+  form.append('file', file)
+  return api.post(path, form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 120000, // large media over a mobile connection
+  })
+}
+
 export const uploadApi = {
-  audio: (file) => {
-    const form = new FormData()
-    form.append('file', file)
-    return api.post('/upload/audio', form, { headers: { 'Content-Type': 'multipart/form-data' } })
-  },
-  image: (file) => {
-    const form = new FormData()
-    form.append('file', file)
-    return api.post('/upload/image', form, { headers: { 'Content-Type': 'multipart/form-data' } })
-  },
-  video: (file) => {
-    const form = new FormData()
-    form.append('file', file)
-    return api.post('/upload/video', form, { headers: { 'Content-Type': 'multipart/form-data' } })
-  },
+  audio: (file) => fileUpload('/upload/audio', file),
+  image: (file) => fileUpload('/upload/image', file),
+  video: (file) => fileUpload('/upload/video', file),
 }
 
 // ── Waitlist ───────────────────────────────────────────────────────────────────

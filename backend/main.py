@@ -43,9 +43,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# The apex domain is the live frontend; it was missing from the default list,
+# so any deployment that had not overridden ALLOWED_ORIGINS blocked every
+# browser request (uploads included) at the CORS preflight.
 _raw_origins = os.getenv(
     "ALLOWED_ORIGINS",
-    "http://localhost:5173,http://localhost:3000,https://vernaculearn.vercel.app",
+    "http://localhost:5173,http://localhost:3000,"
+    "https://vernaculearn.africa,https://www.vernaculearn.africa,"
+    "https://vernaculearn.vercel.app",
 )
 _allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
 
