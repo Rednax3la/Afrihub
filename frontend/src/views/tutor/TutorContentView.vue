@@ -62,12 +62,14 @@
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
                 <p class="font-semibold text-slate-900">{{ lesson.title }}</p>
-                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                  :class="lesson.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'">
-                  {{ lesson.status || 'published' }}
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full" :class="statusClass(lesson.status)">
+                  {{ statusLabel(lesson.status) }}
                 </span>
               </div>
               <p class="text-xs text-slate-400">{{ lesson.questions?.length || 0 }} questions · Unit: {{ lesson.unit_id }}</p>
+              <p v-if="lesson.status === 'rejected' && lesson.rejection_reason" class="mt-1 text-xs font-medium text-red-600">
+                Rejected: {{ lesson.rejection_reason }}
+              </p>
             </div>
             <span class="text-xs bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-full shrink-0">+{{ lesson.xp_reward }} XP</span>
             <div class="flex gap-1 shrink-0">
@@ -170,17 +172,14 @@
             <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">XP Reward</label>
             <input v-model.number="lessonForm.xp_reward" type="number" min="1" class="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400" />
           </div>
-          <!-- Status (Gap 1) -->
-          <div class="col-span-2 flex items-center gap-3 py-1">
-            <label class="text-xs font-bold text-slate-500 uppercase">Status</label>
-            <button type="button"
-              @click="lessonForm.status = lessonForm.status === 'published' ? 'draft' : 'published'"
-              class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors"
-              :class="lessonForm.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'"
-            >
-              <span class="material-icons-outlined text-sm">{{ lessonForm.status === 'published' ? 'visibility' : 'visibility_off' }}</span>
-              {{ lessonForm.status === 'published' ? 'Published' : 'Draft' }}
-            </button>
+          <!-- Status: tutors cannot self-publish; the server always stores
+               pending_review until an admin approves. -->
+          <div class="col-span-2 flex items-start gap-2 rounded-2xl bg-amber-50 border border-amber-100 px-4 py-3">
+            <span class="material-icons-outlined text-amber-600 text-lg shrink-0">schedule</span>
+            <p class="text-xs text-amber-800">
+              Saving sends this lesson for <strong>admin review</strong>. It stays hidden from
+              learners until it is approved. Editing an approved lesson sends it back for review.
+            </p>
           </div>
         </div>
 
@@ -336,6 +335,20 @@ const lessonLanguageCode = computed(() => {
 
 onMounted(() => tutorStore.fetchContent())
 
+const STATUS_LABELS = {
+  published: 'published',
+  pending_review: 'in review',
+  rejected: 'rejected',
+  draft: 'draft',
+}
+const STATUS_CLASSES = {
+  published: 'bg-emerald-100 text-emerald-700',
+  pending_review: 'bg-amber-100 text-amber-700',
+  rejected: 'bg-red-100 text-red-700',
+}
+const statusLabel = status => STATUS_LABELS[status] ?? status ?? 'in review'
+const statusClass = status => STATUS_CLASSES[status] ?? 'bg-slate-100 text-slate-500'
+
 function openUnitModal(unit = null) {
   editingUnit.value = unit
   unitForm.value = unit ? { ...unit } : {
@@ -366,14 +379,14 @@ function openLessonModal(lesson = null) {
     ? {
         ...lesson,
         questions: (lesson.questions || []).map(q => ({ ...q, options: [...(q.options || [])] })),
-        status: lesson.status || 'published',
+        status: lesson.status || 'pending_review',
         audio_intro_url: lesson.audio_intro_url || '',
         cultural_note: lesson.cultural_note || '',
         cultural_note_title: lesson.cultural_note_title || '',
       }
     : {
         id: '', unit_id: '', title: '', description: '', order: 1, xp_reward: 15,
-        questions: [], status: 'published', audio_intro_url: '', cultural_note: '', cultural_note_title: '',
+        questions: [], status: 'pending_review', audio_intro_url: '', cultural_note: '', cultural_note_title: '',
       }
   showLessonModal.value = true
 }
@@ -394,10 +407,10 @@ async function saveLesson() {
   try {
     if (editingLesson.value?.id) {
       await tutorStore.updateLesson(editingLesson.value.id, lessonForm.value)
-      toast.success('Lesson updated')
+      toast.success('Lesson updated — sent for admin review')
     } else {
       await tutorStore.createLesson(lessonForm.value)
-      toast.success('Lesson created')
+      toast.success('Lesson created — sent for admin review')
     }
     showLessonModal.value = false
   } catch (e) {

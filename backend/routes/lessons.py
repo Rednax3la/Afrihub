@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from services.reviews import sm2, today_eat
 from services.streaks import effective_streak, next_streak
 from services.subscriptions import (
-    has_active_subscription,
+    is_premium,
     require_lesson_access,
     unit_requires_subscription,
 )
@@ -92,7 +92,7 @@ async def list_units(language_id: str, current_user=Depends(get_current_user)):
 
         # With PAYWALL_ENABLED off, every unit comes back unlocked with its
         # lessons attached.
-        subscribed = has_active_subscription(current_user)
+        subscribed = is_premium(current_user)
         unlocked_unit_ids = []
         for unit in units:
             unit["_id"] = str(unit["_id"])

@@ -39,10 +39,17 @@ class UserUpdate(BaseModel):
 
 
 class AdminUserUpdate(BaseModel):
+    # `is_premium` deliberately removed: it wrote a field nothing read.
+    # Premium changes go through PATCH /api/admin/users/{id}/premium.
     name: Optional[str] = None
-    is_premium: Optional[bool] = None
     role: Optional[str] = None
     location: Optional[str] = None
+
+
+class AdminPremiumUpdate(BaseModel):
+    granted: bool
+    expires_at: Optional[datetime] = None
+    note: Optional[str] = Field(default=None, max_length=500)
 
 
 class UserPublic(BaseModel):
@@ -60,6 +67,7 @@ class UserPublic(BaseModel):
     subscription_status: str = 'inactive'
     subscription_tier: Optional[str] = None
     expires_at: Optional[datetime] = None
+    admin_granted: bool = False
     push_enabled: bool = False
     active_languages: List[str] = []
     created_at: datetime

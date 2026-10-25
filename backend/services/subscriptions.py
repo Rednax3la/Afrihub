@@ -20,9 +20,7 @@ def unit_requires_subscription(unit) -> bool:
     return bool(unit) and unit.get("order", 0) > 3
 
 
-def has_active_subscription(user):
-    if user.get('subscription_status') != 'active':
-        return False
+def _not_expired(user) -> bool:
     expiry = user.get('expires_at')
     if not expiry:
         return True
@@ -31,6 +29,24 @@ def has_active_subscription(user):
     if expiry.tzinfo is None:
         expiry = expiry.replace(tzinfo=timezone.utc)
     return expiry > datetime.now(timezone.utc)
+
+
+def has_active_subscription(user):
+    """A paid, unexpired subscription."""
+    return user.get('subscription_status') == 'active' and _not_expired(user)
+
+
+def is_premium(user) -> bool:
+    """THE premium check. Paywall, serialize_user and the admin table all use this.
+
+    True when the user has an unexpired active subscription, or an admin grant
+    that has not expired. The legacy boolean `is_premium` field on the user
+    document is deliberately ignored: writing it was the bug that made admin
+    grants appear to succeed while changing nothing.
+    """
+    if not _not_expired(user):
+        return False
+    return user.get('subscription_status') == 'active' or user.get('admin_granted') is True
 
 
 async def update_subscription(db, user_id, tier, expires_at):
@@ -47,5 +63,5 @@ async def require_lesson_access(db, lesson, user):
     if not paywall_enabled():
         return
     unit = await db.units.find_one({'id': lesson.get('unit_id')})
-    if unit_requires_subscription(unit) and not has_active_subscription(user):
+    if unit_requires_subscription(unit) and not is_premium(user):
         raise HTTPException(403, 'An active subscription is required for this unit')

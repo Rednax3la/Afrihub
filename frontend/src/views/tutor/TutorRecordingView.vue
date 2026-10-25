@@ -7,6 +7,7 @@
         <span v-else-if="queue.total_pending === 0">All caught up — no recordings needed.</span>
         <span v-else>{{ queue.total_pending }} phrase{{ queue.total_pending === 1 ? '' : 's' }} need your voice</span>
       </p>
+      <p class="mt-1 text-xs text-slate-400">Recordings are published by an administrator after review.</p>
     </div>
 
     <!-- Session progress -->
@@ -74,9 +75,9 @@
                 </div>
 
                 <!-- Submitted state -->
-                <div v-if="submittedSet.has(`${item.lesson_id}:${q.question_id}`)" class="flex items-center gap-3">
-                  <span class="material-icons-outlined text-emerald-600">check_circle</span>
-                  <span class="text-sm font-semibold text-emerald-700">Recording submitted</span>
+                <div v-if="submittedSet.has(`${item.lesson_id}:${q.question_id}`)" class="flex flex-wrap items-center gap-3">
+                  <span class="material-icons-outlined text-amber-600">schedule</span>
+                  <span class="text-sm font-semibold text-amber-700">Awaiting admin review</span>
                   <AudioPlayer :src="submittedUrls[`${item.lesson_id}:${q.question_id}`]" label="Preview" />
                 </div>
 
@@ -149,7 +150,7 @@ async function onAudioUploaded(lessonId, questionId, url) {
     submittedSet.add(key)
     submittedUrls[key] = url
     sessionRecorded.value++
-    toast.success('Recording submitted')
+    toast.success('Recording sent for admin review')
   } catch (e) {
     toast.error(e.response?.data?.detail || 'Failed to submit recording')
     delete pendingUrls[key]

@@ -31,6 +31,16 @@ export const useAdminStore = defineStore('admin', () => {
     return data
   }
 
+  // Always replaces the row with the server's serialized user — never an
+  // optimistic guess, which is how the old toggle claimed success while the
+  // row stayed Free.
+  async function setUserPremium(id, granted, options = {}) {
+    const { data } = await adminApi.setPremium(id, { granted, ...options })
+    const idx = users.value.findIndex(u => u.id === id)
+    if (idx !== -1) users.value[idx] = data
+    return data
+  }
+
   async function deleteUser(id) {
     await adminApi.deleteUser(id)
     users.value = users.value.filter(u => u.id !== id)
@@ -129,7 +139,7 @@ export const useAdminStore = defineStore('admin', () => {
 
   return {
     stats, users, tutors, languages, units, lessons, loading,
-    fetchStats, fetchUsers, updateUser, deleteUser,
+    fetchStats, fetchUsers, updateUser, setUserPremium, deleteUser,
     fetchTutors, approveTutor, suspendTutor,
     fetchLanguages, createLanguage, updateLanguage, deleteLanguage,
     fetchUnits, createUnit, updateUnit, deleteUnit,

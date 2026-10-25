@@ -2,7 +2,10 @@
   <div class="p-6 lg:p-8 max-w-4xl mx-auto">
     <div class="mb-6">
       <h1 class="text-2xl font-bold text-slate-900">Review Queue</h1>
-      <p class="text-slate-500 text-sm mt-0.5">Review pending content for the languages you teach.</p>
+      <p class="text-slate-500 text-sm mt-0.5">
+        Review pending <strong>scraped</strong> content for the languages you teach. Your own
+        submissions — lessons and recordings — are reviewed by an administrator.
+      </p>
     </div>
 
     <div v-if="loading" class="flex justify-center py-20">
@@ -96,20 +99,21 @@ async function doApprove(id) {
     await tutorApi.approveReview(id)
     toast.success('Lesson approved')
     await load()
-  } catch {
-    toast.error('Failed to approve')
+  } catch (err) {
+    toast.error(err.response?.data?.detail || 'Failed to approve')
   } finally { processing.value[id] = false }
 }
 
 async function doReject(id) {
-  if (!confirm('Reject this lesson?')) return
+  const reason = prompt('Reason for rejecting this lesson? (optional)')
+  if (reason === null) return
   processing.value[id] = true
   try {
-    await tutorApi.rejectReview(id)
+    await tutorApi.rejectReview(id, reason.trim() || null)
     toast.success('Lesson rejected')
     await load()
-  } catch {
-    toast.error('Failed to reject')
+  } catch (err) {
+    toast.error(err.response?.data?.detail || 'Failed to reject')
   } finally { processing.value[id] = false }
 }
 

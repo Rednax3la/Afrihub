@@ -76,6 +76,10 @@ export const adminApi = {
   // Users
   listUsers: () => api.get('/admin/users'),
   updateUser: (id, data) => api.patch(`/admin/users/${id}`, data),
+  // Premium is its own endpoint: it writes subscription_status/tier/expires_at/
+  // admin_granted, the fields the paywall actually reads.
+  setPremium: (id, { granted, expiresAt = null, note = null } = {}) =>
+    api.patch(`/admin/users/${id}/premium`, { granted, expires_at: expiresAt, note }),
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
   // Tutors
   listTutors: () => api.get('/admin/tutors'),
@@ -102,7 +106,11 @@ export const adminApi = {
   getReviewQueue: () => api.get('/admin/review-queue'),
   getReviewStats: () => api.get('/admin/review-queue/stats'),
   approveLesson: (id) => api.patch(`/admin/lessons/${id}/approve`),
-  rejectLesson: (id) => api.patch(`/admin/lessons/${id}/reject`),
+  rejectLesson: (id, reason = null) => api.patch(`/admin/lessons/${id}/reject`, { reason }),
+  // Tutor-submitted recordings (admin-only approval)
+  getAudioReviewQueue: () => api.get('/admin/review-queue/audio'),
+  approveAudio: (id) => api.patch(`/admin/review-queue/audio/${id}/approve`),
+  rejectAudio: (id, reason = null) => api.patch(`/admin/review-queue/audio/${id}/reject`, { reason }),
 }
 
 // ── Tutors ─────────────────────────────────────────────────────────────────────
@@ -122,7 +130,8 @@ export const tutorApi = {
   getReviewQueue: () => api.get('/tutors/me/review-queue'),
   getReviewQueueCount: () => api.get('/tutors/me/review-queue/count'),
   approveReview: (lessonId) => api.patch(`/tutors/me/review/${lessonId}/approve`),
-  rejectReview: (lessonId) => api.patch(`/tutors/me/review/${lessonId}/reject`),
+  rejectReview: (lessonId, reason = null) => api.patch(`/tutors/me/review/${lessonId}/reject`, { reason }),
+  getMyRecordingSubmissions: () => api.get('/tutors/me/recordings/submitted'),
   // Cultural notes (2C)
   createCulturalNote: (data) => api.post('/tutors/me/cultural-notes', data),
   updateCulturalNote: (id, data) => api.patch(`/tutors/me/cultural-notes/${id}`, data),

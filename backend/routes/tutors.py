@@ -1,8 +1,13 @@
+import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from database import get_db
 from auth import get_current_user, require_active_tutor
 from routes.auth import serialize_user
 from bson import ObjectId
+
+# Tutors review scraped content only; their own submissions go to an admin.
+SCRAPER_SOURCES = ["scraper", "scraped"]
 
 router = APIRouter(prefix="/api/tutors", tags=["tutors"])
 
@@ -98,14 +103,29 @@ async def update_unit(unit_id: str, body: dict, tutor=Depends(_active_tutor)):
     return _serialize_unit(unit)
 
 
+def _mark_for_review(body: dict, tutor: dict) -> dict:
+    """Tutor submissions are never self-published.
+
+    A tutor cannot choose their own status: everything they write lands in
+    pending_review with source="tutor" and waits for an admin.
+    """
+    body.pop("_id", None)
+    body["tutor_id"] = str(tutor["_id"])
+    body["tutor_name"] = tutor.get("name")
+    body["source"] = "tutor"
+    body["status"] = "pending_review"
+    body["submitted_at"] = datetime.datetime.now(datetime.timezone.utc)
+    body.pop("rejection_reason", None)
+    return body
+
+
 @router.post("/me/lessons", status_code=201)
 async def create_lesson(body: dict, tutor=Depends(_active_tutor)):
     db = get_db()
-    body.pop("_id", None)
-    body["tutor_id"] = str(tutor["_id"])
+    _mark_for_review(body, tutor)
     if "questions" not in body:
         body["questions"] = []
-    result = await db.lessons.insert_one(body)
+    await db.lessons.insert_one(body)
     body.pop("_id", None)
     return body
 
@@ -117,8 +137,11 @@ async def update_lesson(lesson_id: str, body: dict, tutor=Depends(_active_tutor)
     existing = await db.lessons.find_one({"id": lesson_id})
     if not existing or existing.get("tutor_id") != tutor_id:
         raise HTTPException(403, "You do not own this lesson")
-    body.pop("_id", None)
-    await db.lessons.update_one({"id": lesson_id}, {"$set": body})
+    # An edit invalidates any previous approval and goes back through review.
+    _mark_for_review(body, tutor)
+    await db.lessons.update_one(
+        {"id": lesson_id}, {"$set": body, "$unset": {"rejection_reason": ""}}
+    )
     lesson = await db.lessons.find_one({"id": lesson_id})
     return _serialize_lesson(lesson)
 
@@ -145,13 +168,33 @@ async def delete_unit(unit_id: str, tutor=Depends(_active_tutor)):
 
 # ── Review Queue (2E) ──────────────────────────────────────────────────────────
 
+def _tutor_queue_filter(tutor: dict) -> dict:
+    """Scraped content in the tutor's languages -- never tutor submissions."""
+    return {
+        "status": "pending_review",
+        "language_id": {"$in": tutor.get("languages_taught", [])},
+        "source": {"$in": SCRAPER_SOURCES},
+    }
+
+
+async def _tutor_reviewable_lesson(db, lesson_id: str, tutor: dict) -> dict:
+    lesson = await db.lessons.find_one({"id": lesson_id})
+    if not lesson:
+        raise HTTPException(404, "Lesson not found")
+    if lesson.get("language_id") not in tutor.get("languages_taught", []):
+        raise HTTPException(403, "This lesson is not in your languages")
+    if lesson.get("source") not in SCRAPER_SOURCES:
+        # Covers the tutor's own submissions and anything else an admin owns.
+        raise HTTPException(403, "Only an administrator can review this item")
+    if lesson.get("tutor_id") == str(tutor["_id"]):
+        raise HTTPException(403, "You cannot review your own submission")
+    return lesson
+
+
 @router.get("/me/review-queue")
 async def get_review_queue(tutor=Depends(_active_tutor)):
     db = get_db()
-    languages_taught = tutor.get("languages_taught", [])
-    lessons = await db.lessons.find(
-        {"status": "pending_review", "language_id": {"$in": languages_taught}}
-    ).sort("language_id", 1).to_list(200)
+    lessons = await db.lessons.find(_tutor_queue_filter(tutor)).sort("language_id", 1).to_list(200)
     grouped: dict = {}
     for lesson in lessons:
         lesson.pop("_id", None)
@@ -163,39 +206,35 @@ async def get_review_queue(tutor=Depends(_active_tutor)):
 @router.get("/me/review-queue/count")
 async def get_review_queue_count(tutor=Depends(_active_tutor)):
     db = get_db()
-    languages_taught = tutor.get("languages_taught", [])
-    count = await db.lessons.count_documents(
-        {"status": "pending_review", "language_id": {"$in": languages_taught}}
-    )
+    count = await db.lessons.count_documents(_tutor_queue_filter(tutor))
     return {"count": count}
 
 
 @router.patch("/me/review/{lesson_id}/approve")
 async def tutor_approve_lesson(lesson_id: str, tutor=Depends(_active_tutor)):
     db = get_db()
-    languages_taught = tutor.get("languages_taught", [])
-    lesson = await db.lessons.find_one({"id": lesson_id})
-    if not lesson:
-        raise HTTPException(404, "Lesson not found")
-    if lesson.get("language_id") not in languages_taught:
-        raise HTTPException(403, "This lesson is not in your languages")
-    await db.lessons.update_one({"id": lesson_id}, {"$set": {"status": "published"}})
-    lesson = await db.lessons.find_one({"id": lesson_id})
-    return _serialize_lesson(lesson)
+    await _tutor_reviewable_lesson(db, lesson_id, tutor)
+    await db.lessons.update_one(
+        {"id": lesson_id},
+        {"$set": {"status": "published", "reviewed_by": str(tutor["_id"])},
+         "$unset": {"rejection_reason": ""}},
+    )
+    return _serialize_lesson(await db.lessons.find_one({"id": lesson_id}))
 
 
 @router.patch("/me/review/{lesson_id}/reject")
-async def tutor_reject_lesson(lesson_id: str, tutor=Depends(_active_tutor)):
+async def tutor_reject_lesson(lesson_id: str, body: dict | None = None, tutor=Depends(_active_tutor)):
     db = get_db()
-    languages_taught = tutor.get("languages_taught", [])
-    lesson = await db.lessons.find_one({"id": lesson_id})
-    if not lesson:
-        raise HTTPException(404, "Lesson not found")
-    if lesson.get("language_id") not in languages_taught:
-        raise HTTPException(403, "This lesson is not in your languages")
-    await db.lessons.update_one({"id": lesson_id}, {"$set": {"status": "rejected"}})
-    lesson = await db.lessons.find_one({"id": lesson_id})
-    return _serialize_lesson(lesson)
+    await _tutor_reviewable_lesson(db, lesson_id, tutor)
+    await db.lessons.update_one(
+        {"id": lesson_id},
+        {"$set": {
+            "status": "rejected",
+            "reviewed_by": str(tutor["_id"]),
+            "rejection_reason": (body or {}).get("reason"),
+        }},
+    )
+    return _serialize_lesson(await db.lessons.find_one({"id": lesson_id}))
 
 
 # ── Cultural Notes (2C) ────────────────────────────────────────────────────────
@@ -246,11 +285,19 @@ async def get_recording_queue(tutor=Depends(_active_tutor)):
         "status": {"$nin": ["draft", "rejected", "pending_review"]},
     }).sort("language_id", 1).to_list(500)
 
+    # Don't re-offer questions whose recording is already awaiting an admin.
+    pending = await db.audio_submissions.find(
+        {"tutor_id": str(tutor["_id"]), "status": "pending_review"},
+        {"lesson_id": 1, "question_id": 1},
+    ).to_list(1000)
+    pending_keys = {(p["lesson_id"], p["question_id"]) for p in pending}
+
     queue = []
     for lesson in lessons:
         needs_audio = [
             q for q in lesson.get("questions", [])
             if q.get("audio_url") is None
+            and (lesson["id"], q.get("id")) not in pending_keys
             and q.get("type") in ("translate", "multiple_choice", "listen", "listen_comprehension")
         ]
         if needs_audio:
@@ -288,6 +335,10 @@ async def submit_recording(
     """
     Tutor submits an audio_url for a specific question.
     Body: { "audio_url": "https://..." }
+
+    The recording is queued for admin review rather than written straight onto
+    the lesson, so a tutor can never publish their own audio. An admin applies
+    it on approval.
     """
     db = get_db()
     audio_url = body.get("audio_url")
@@ -301,11 +352,48 @@ async def submit_recording(
     if lesson.get("language_id") not in languages_taught:
         raise HTTPException(403, "This lesson is not in your languages")
 
-    result = await db.lessons.update_one(
-        {"id": lesson_id, "questions.id": question_id},
-        {"$set": {"questions.$.audio_url": audio_url}}
-    )
-    if result.modified_count == 0:
+    question = next((q for q in lesson.get("questions", []) if q.get("id") == question_id), None)
+    if not question:
         raise HTTPException(404, "Question not found in this lesson")
 
-    return {"message": "Recording submitted", "lesson_id": lesson_id, "question_id": question_id}
+    submission = {
+        "lesson_id": lesson_id,
+        "question_id": question_id,
+        "audio_url": audio_url,
+        "status": "pending_review",
+        "source": "tutor",
+        "tutor_id": str(tutor["_id"]),
+        "tutor_name": tutor.get("name"),
+        "language_id": lesson.get("language_id"),
+        "lesson_title": lesson.get("title", ""),
+        "unit_id": lesson.get("unit_id", ""),
+        "prompt": question.get("prompt", ""),
+        "native_text": question.get("native_text", ""),
+        "submitted_at": datetime.datetime.now(datetime.timezone.utc),
+        "rejection_reason": None,
+    }
+    # One live submission per (tutor, lesson, question): resubmitting replaces.
+    await db.audio_submissions.update_one(
+        {"lesson_id": lesson_id, "question_id": question_id, "tutor_id": str(tutor["_id"])},
+        {"$set": submission},
+        upsert=True,
+    )
+
+    return {
+        "message": "Recording submitted for admin review",
+        "lesson_id": lesson_id,
+        "question_id": question_id,
+        "status": "pending_review",
+    }
+
+
+@router.get("/me/recordings/submitted")
+async def list_my_recording_submissions(tutor=Depends(_active_tutor)):
+    """So a tutor can see what is awaiting review and what was rejected (and why)."""
+    db = get_db()
+    rows = await db.audio_submissions.find(
+        {"tutor_id": str(tutor["_id"])}
+    ).sort("submitted_at", -1).to_list(500)
+    for row in rows:
+        row["_id"] = str(row["_id"])
+    return rows

@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from database import get_db
 from auth import require_role
 from routes.auth import serialize_user
-from models.user import AdminUserUpdate
+from models.user import AdminPremiumUpdate, AdminUserUpdate
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timezone
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -57,6 +57,54 @@ async def list_users(admin=Depends(_admin)):
     db = get_db()
     users = await db.users.find({"role": {"$in": ["student", None]}}).sort("created_at", -1).to_list(500)
     return [serialize_user(u) for u in users]
+
+
+@router.patch("/users/{user_id}/premium")
+async def set_user_premium(user_id: str, body: AdminPremiumUpdate, admin=Depends(_admin)):
+    """Grant or revoke premium access.
+
+    Writes the fields the paywall and serialize_user actually read
+    (subscription_status / subscription_tier / expires_at / admin_granted).
+    The old PATCH /users/{id} path wrote a standalone `is_premium` boolean that
+    nothing consumed, which is why grants appeared to succeed and changed
+    nothing.
+    """
+    db = get_db()
+    try:
+        oid = ObjectId(user_id)
+    except Exception:
+        raise HTTPException(400, "Invalid user id")
+
+    if body.granted:
+        expires_at = body.expires_at
+        if expires_at is not None:
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            if expires_at <= datetime.now(timezone.utc):
+                raise HTTPException(422, "expires_at must be in the future")
+        update = {
+            "subscription_status": "active",
+            "subscription_tier": "admin_grant",
+            "admin_granted": True,
+            "expires_at": expires_at,
+            "admin_grant_note": body.note,
+            "admin_grant_by": str(admin["_id"]),
+            "admin_grant_at": datetime.now(timezone.utc),
+        }
+    else:
+        update = {
+            "subscription_status": "inactive",
+            "admin_granted": False,
+            "admin_grant_note": body.note,
+            "admin_grant_by": str(admin["_id"]),
+            "admin_grant_at": datetime.now(timezone.utc),
+        }
+
+    result = await db.users.update_one({"_id": oid}, {"$set": update})
+    if result.matched_count == 0:
+        raise HTTPException(404, "User not found")
+    updated = await db.users.find_one({"_id": oid})
+    return serialize_user(updated)
 
 
 @router.patch("/users/{user_id}")
@@ -232,37 +280,129 @@ async def review_queue_stats(admin=Depends(_admin)):
     ]
     rows = await db.lessons.aggregate(pipeline).to_list(100)
     total = sum(r["count"] for r in rows)
-    return {"total": total, "by_language": {r["_id"]: r["count"] for r in rows}}
+    audio_pending = await db.audio_submissions.count_documents({"status": "pending_review"})
+    return {
+        "total": total,
+        "by_language": {r["_id"]: r["count"] for r in rows},
+        "audio_pending": audio_pending,
+    }
+
+
+async def _tutor_names(db, tutor_ids: set[str]) -> dict:
+    """Resolve tutor_id -> display name for the review queue."""
+    oids = []
+    for tid in tutor_ids:
+        try:
+            oids.append(ObjectId(tid))
+        except Exception:
+            continue
+    if not oids:
+        return {}
+    rows = await db.users.find({"_id": {"$in": oids}}, {"name": 1}).to_list(len(oids))
+    return {str(r["_id"]): r.get("name", "Unknown tutor") for r in rows}
 
 
 @router.get("/review-queue")
 async def get_review_queue(admin=Depends(_admin)):
     db = get_db()
     lessons = await db.lessons.find({"status": "pending_review"}).sort("language_id", 1).to_list(500)
-    # Group by language
+    names = await _tutor_names(db, {l["tutor_id"] for l in lessons if l.get("tutor_id")})
     grouped: dict = {}
     for lesson in lessons:
         lesson.pop("_id", None)
-        lang = lesson.get("language_id", "unknown")
-        grouped.setdefault(lang, []).append(lesson)
+        if lesson.get("tutor_id"):
+            lesson.setdefault("tutor_name", names.get(lesson["tutor_id"], "Unknown tutor"))
+        grouped.setdefault(lesson.get("language_id", "unknown"), []).append(lesson)
     return grouped
+
+
+@router.get("/review-queue/audio")
+async def get_audio_review_queue(admin=Depends(_admin)):
+    """Tutor-submitted recordings awaiting approval, with lesson context."""
+    db = get_db()
+    rows = await db.audio_submissions.find(
+        {"status": "pending_review"}
+    ).sort("submitted_at", 1).to_list(500)
+    names = await _tutor_names(db, {r["tutor_id"] for r in rows if r.get("tutor_id")})
+    for row in rows:
+        row["_id"] = str(row["_id"])
+        row["tutor_name"] = row.get("tutor_name") or names.get(row.get("tutor_id"), "Unknown tutor")
+    return rows
+
+
+def _audio_filter(submission_id: str) -> dict:
+    try:
+        return {"_id": ObjectId(submission_id)}
+    except Exception:
+        raise HTTPException(400, "Invalid submission id")
+
+
+@router.patch("/review-queue/audio/{submission_id}/approve")
+async def approve_audio(submission_id: str, admin=Depends(_admin)):
+    """Approving is what actually writes audio_url onto the question."""
+    db = get_db()
+    submission = await db.audio_submissions.find_one(_audio_filter(submission_id))
+    if not submission:
+        raise HTTPException(404, "Submission not found")
+    result = await db.lessons.update_one(
+        {"id": submission["lesson_id"], "questions.id": submission["question_id"]},
+        {"$set": {"questions.$.audio_url": submission["audio_url"]}},
+    )
+    if result.matched_count == 0:
+        raise HTTPException(404, "The question this recording belongs to no longer exists")
+    await db.audio_submissions.update_one(
+        {"_id": submission["_id"]},
+        {"$set": {
+            "status": "approved",
+            "reviewed_by": str(admin["_id"]),
+            "reviewed_at": datetime.now(timezone.utc),
+            "rejection_reason": None,
+        }},
+    )
+    return {"status": "approved", "lesson_id": submission["lesson_id"],
+            "question_id": submission["question_id"], "audio_url": submission["audio_url"]}
+
+
+@router.patch("/review-queue/audio/{submission_id}/reject")
+async def reject_audio(submission_id: str, body: dict | None = None, admin=Depends(_admin)):
+    db = get_db()
+    result = await db.audio_submissions.update_one(
+        _audio_filter(submission_id),
+        {"$set": {
+            "status": "rejected",
+            "reviewed_by": str(admin["_id"]),
+            "reviewed_at": datetime.now(timezone.utc),
+            "rejection_reason": (body or {}).get("reason"),
+        }},
+    )
+    if result.matched_count == 0:
+        raise HTTPException(404, "Submission not found")
+    return {"status": "rejected"}
 
 
 @router.patch("/lessons/{lesson_id}/approve")
 async def approve_lesson(lesson_id: str, admin=Depends(_admin)):
     db = get_db()
-    await db.lessons.update_one({"id": lesson_id}, {"$set": {"status": "published"}})
-    lesson = await db.lessons.find_one({"id": lesson_id})
-    if not lesson:
+    result = await db.lessons.update_one(
+        {"id": lesson_id},
+        {"$set": {"status": "published", "reviewed_by": str(admin["_id"]),
+                  "reviewed_at": datetime.now(timezone.utc)},
+         "$unset": {"rejection_reason": ""}},
+    )
+    if result.matched_count == 0:
         raise HTTPException(404, "Lesson not found")
-    return _serialize_lesson(lesson)
+    return _serialize_lesson(await db.lessons.find_one({"id": lesson_id}))
 
 
 @router.patch("/lessons/{lesson_id}/reject")
-async def reject_lesson(lesson_id: str, admin=Depends(_admin)):
+async def reject_lesson(lesson_id: str, body: dict | None = None, admin=Depends(_admin)):
     db = get_db()
-    await db.lessons.update_one({"id": lesson_id}, {"$set": {"status": "rejected"}})
-    lesson = await db.lessons.find_one({"id": lesson_id})
-    if not lesson:
+    result = await db.lessons.update_one(
+        {"id": lesson_id},
+        {"$set": {"status": "rejected", "reviewed_by": str(admin["_id"]),
+                  "reviewed_at": datetime.now(timezone.utc),
+                  "rejection_reason": (body or {}).get("reason")}},
+    )
+    if result.matched_count == 0:
         raise HTTPException(404, "Lesson not found")
-    return _serialize_lesson(lesson)
+    return _serialize_lesson(await db.lessons.find_one({"id": lesson_id}))

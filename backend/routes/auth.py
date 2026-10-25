@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 from services.email_validation import validate_signup_email
 from services.streaks import effective_streak
-from services.subscriptions import has_active_subscription
+from services.subscriptions import is_premium
 import os
 from datetime import datetime
 from bson import ObjectId
@@ -29,8 +29,9 @@ def serialize_user(user: dict) -> UserPublic:
         badges=user.get("badges", 0),
         earned_badges=user.get("earned_badges", []),
         avatar_url=user.get("avatar_url"),
-        is_premium=has_active_subscription(user),
-        subscription_status='active' if has_active_subscription(user) else 'inactive',
+        is_premium=is_premium(user),
+        subscription_status=user.get('subscription_status', 'inactive'),
+        admin_granted=user.get('admin_granted', False),
         subscription_tier=user.get('subscription_tier'),
         expires_at=user.get('expires_at'),
         push_enabled=bool(user.get('push_subscription')),

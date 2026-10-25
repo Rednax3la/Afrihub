@@ -118,10 +118,10 @@ async def get_lesson_progress(lesson_id: str, current_user=Depends(get_current_u
 @router.get('/me/due-for-review')
 async def due_for_review(current_user=Depends(get_current_user)):
     from services.reviews import today_eat
-    from services.subscriptions import has_active_subscription, paywall_enabled
+    from services.subscriptions import is_premium, paywall_enabled
     db = get_db()
     # Nothing is premium-locked while the paywall flag is off.
-    locked_possible = paywall_enabled() and not has_active_subscription(current_user)
+    locked_possible = paywall_enabled() and not is_premium(current_user)
     pipeline = [
         {'$match': {'user_id': str(current_user['_id']), 'review_schedule.next_review_date': {'$type': 'string', '$lte': today_eat().isoformat()}}},
         {'$sort': {'review_schedule.next_review_date': 1}},

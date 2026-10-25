@@ -219,3 +219,89 @@ async def test_google_login_and_passwordless_login(feature_context, monkeypatch)
     assert (await client.post('/api/auth/login', json={'email': payload['email'], 'password': 'anything'})).status_code == 401
     with patch('google.oauth2.id_token.verify_oauth2_token', side_effect=ValueError('bad token')):
         assert (await client.post('/api/auth/google', json={'id_token': 'invalid'})).status_code == 401
+
+
+# ── Admin premium grants (item 10) ────────────────────────────────────────────
+
+def test_is_premium_combines_subscription_and_admin_grant():
+    from services.subscriptions import is_premium
+    assert not is_premium({})
+    assert is_premium({'subscription_status': 'active'})
+    assert is_premium({'admin_granted': True})
+    assert not is_premium({'admin_granted': False, 'subscription_status': 'inactive'})
+    # An expiry in the past beats both routes.
+    assert not is_premium({'subscription_status': 'active', 'expires_at': '2020-01-01T00:00:00Z'})
+    assert not is_premium({'admin_granted': True, 'expires_at': '2020-01-01T00:00:00Z'})
+    # The legacy standalone boolean is ignored on purpose.
+    assert not is_premium({'is_premium': True})
+
+
+async def test_admin_premium_grant_unlocks_paywalled_units(feature_context, monkeypatch):
+    monkeypatch.setenv('PAYWALL_ENABLED', 'true')
+    client, db, user = feature_context
+    admin = {'_id': ObjectId(), 'name': 'Admin', 'email': 'admin@vernaculearn.com', 'role': 'admin',
+             'created_at': datetime.datetime.utcnow()}
+    await db.users.insert_one(admin)
+    app.dependency_overrides[get_current_user] = lambda: admin
+
+    assert (await client.patch(f'/api/admin/users/{user["_id"]}/premium',
+                               json={'granted': True, 'note': 'beta tester'})).json()['is_premium'] is True
+    stored = await db.users.find_one({'_id': user['_id']})
+    assert stored['subscription_status'] == 'active'
+    assert stored['subscription_tier'] == 'admin_grant'
+    assert stored['admin_granted'] is True
+
+    # The student now gets past the paywall.
+    app.dependency_overrides[get_current_user] = lambda: stored
+    assert (await client.get('/api/lessons/lesson-4')).status_code == 200
+
+    app.dependency_overrides[get_current_user] = lambda: admin
+    revoked = (await client.patch(f'/api/admin/users/{user["_id"]}/premium',
+                                  json={'granted': False})).json()
+    assert revoked['is_premium'] is False
+    assert (await db.users.find_one({'_id': user['_id']}))['admin_granted'] is False
+
+
+async def test_tutor_submissions_go_to_admin_review_only(feature_context):
+    client, db, _ = feature_context
+    tutor = {'_id': ObjectId(), 'name': 'Cucu Margaret', 'email': 'cucu@vernaculearn.com',
+             'role': 'tutor', 'tutor_status': 'active', 'languages_taught': ['sw'],
+             'created_at': datetime.datetime.utcnow()}
+    await db.users.insert_one(tutor)
+    app.dependency_overrides[get_current_user] = lambda: tutor
+    # The recording routes scope by the lesson's own language_id.
+    await db.lessons.update_one({'id': 'lesson-1'}, {'$set': {'language_id': 'sw'}})
+
+    created = (await client.post('/api/tutors/me/lessons', json={
+        'id': 'tutor-lesson', 'unit_id': 'unit-1', 'language_id': 'sw',
+        'title': 'Mine', 'status': 'published', 'questions': []})).json()
+    # The tutor asked for "published"; the server overrides it.
+    assert created['status'] == 'pending_review' and created['source'] == 'tutor'
+
+    # Their own lesson never appears in their (scraper-only) queue...
+    assert (await client.get('/api/tutors/me/review-queue')).json() == {}
+    # ...and they cannot approve it.
+    assert (await client.patch('/api/tutors/me/review/tutor-lesson/approve')).status_code == 403
+
+    # Audio is queued for an admin rather than written onto the question.
+    submit = await client.patch('/api/tutors/me/recording/lesson-1/q1',
+                                json={'audio_url': 'https://media.example/a.mp3'})
+    assert submit.status_code == 200 and submit.json()['status'] == 'pending_review'
+    assert (await db.lessons.find_one({'id': 'lesson-1'}))['questions'][0].get('audio_url') is None
+
+    # An admin approves, and only then does the audio land on the question.
+    admin = {'_id': ObjectId(), 'name': 'Admin', 'email': 'a@vernaculearn.com', 'role': 'admin',
+             'created_at': datetime.datetime.utcnow()}
+    await db.users.insert_one(admin)
+    app.dependency_overrides[get_current_user] = lambda: admin
+    queue = (await client.get('/api/admin/review-queue/audio')).json()
+    assert len(queue) == 1 and queue[0]['tutor_name'] == 'Cucu Margaret'
+    assert (await client.patch(f'/api/admin/review-queue/audio/{queue[0]["_id"]}/approve')).status_code == 200
+    assert (await db.lessons.find_one({'id': 'lesson-1'}))['questions'][0]['audio_url'] == 'https://media.example/a.mp3'
+
+    # Rejection reasons reach the tutor.
+    await client.patch('/api/admin/lessons/tutor-lesson/reject', json={'reason': 'Needs tone marks'})
+    assert (await db.lessons.find_one({'id': 'tutor-lesson'}))['rejection_reason'] == 'Needs tone marks'
+    # And students still cannot see it.
+    app.dependency_overrides[get_current_user] = lambda: tutor
+    assert (await client.get('/api/lessons/tutor-lesson')).status_code == 404
