@@ -143,28 +143,11 @@ async def run_seed(key: str):
         from fastapi import HTTPException
         raise HTTPException(status_code=403, detail="Forbidden")
     try:
+        # Deliberately the same code path as `python seed.py`. These used to be
+        # two separate implementations that applied passwords differently.
         from database import get_db
-        from auth import hash_password
-        from seed import LANGUAGES, UNITS, LESSONS, USERS, BADGES, CULTURAL_NOTES
-        from datetime import datetime
-        db = get_db()
-        await db.languages.drop()
-        await db.units.drop()
-        await db.lessons.drop()
-        await db.badges.drop()
-        await db.cultural_notes.drop()
-        await db.languages.insert_many(LANGUAGES)
-        await db.units.insert_many(UNITS)
-        await db.lessons.insert_many(LESSONS)
-        await db.badges.insert_many(BADGES)
-        await db.cultural_notes.insert_many(CULTURAL_NOTES)
-        for u in USERS:
-            u["created_at"] = datetime.utcnow()
-            if u["name"] == "Admin":
-                u["password_hash"] = hash_password("Admin1234!")
-            else:
-                u["password_hash"] = hash_password("Tutor1234!")
-            await db.users.update_one({"email": u["email"]}, {"$set": u}, upsert=True)
-        return {"message": "Database seeded successfully"}
+        from seed import seed_database
+        counts = await seed_database(get_db())
+        return {"message": "Database seeded successfully", "counts": counts}
     except Exception as e:
         return {"error": str(e), "trace": traceback.format_exc()}

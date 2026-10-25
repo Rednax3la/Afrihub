@@ -96,6 +96,8 @@ export const adminApi = {
   createLesson: (data) => api.post('/admin/lessons', data),
   updateLesson: (id, data) => api.patch(`/admin/lessons/${id}`, data),
   deleteLesson: (id) => api.delete(`/admin/lessons/${id}`),
+  // Diagnostics: which media storage backend is live (R2 vs local fallback)
+  getUploadStatus: () => api.get('/upload/status'),
   // Review queue (2E)
   getReviewQueue: () => api.get('/admin/review-queue'),
   getReviewStats: () => api.get('/admin/review-queue/stats'),

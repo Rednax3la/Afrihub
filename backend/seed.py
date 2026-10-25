@@ -361,57 +361,108 @@ LESSONS = [
     },
 ]
 
-USERS = [
-    {
-        "name": "Admin",
-        "email": "admin@vernaculearn.com",
-        "password_hash": None,
-        "role": "admin",
-        "xp": 0,
-        "streak": 0,
-        "badges": 0,
-        "avatar_url": None,
-        "is_premium": True,
-        "active_languages": [],
-        "created_at": datetime.utcnow(),
-    },
-    {
-        "name": "Amara Okafor",
-        "email": "amara@vernaculearn.com",
-        "password_hash": None,
+# Temporary shared password for every seeded tutor account.
+MOCK_TUTOR_PASSWORD = "Tutor1234!"
+ADMIN_PASSWORD = "Admin1234!"
+# Mock/seed accounts all live on this domain.
+MOCK_DOMAIN = "vernaculearn.com"
+
+
+def mock_tutor(
+    *, name, email, languages_taught, bio="", voice_character=None, location=None
+) -> dict:
+    """Build a seed tutor.
+
+    Every seed tutor goes through this one helper. Previously each tutor was
+    written out by hand and the password hash was applied by a name-gated
+    `if` in seed(), so any tutor added later was inserted with
+    password_hash=None and could never log in.
+    """
+    return {
+        "name": name,
+        "email": email.strip().lower(),
+        "password_hash": hash_password(MOCK_TUTOR_PASSWORD),
         "role": "tutor",
         "tutor_status": "active",
-        "bio": "Native Yoruba speaker from Lagos. Language educator with 8 years of experience teaching vernacular languages to diaspora learners.",
-        "languages_taught": ["yoruba"],
-        "voice_character": "Amara",
-        "location": "Lagos, Nigeria",
-        "xp": 0,
-        "streak": 0,
-        "badges": 0,
-        "avatar_url": None,
-        "is_premium": False,
-        "active_languages": [],
-        "created_at": datetime.utcnow(),
-    },
-    {
-        "name": "Juma Mwangi",
-        "email": "juma@vernaculearn.com",
-        "password_hash": None,
-        "role": "tutor",
-        "tutor_status": "active",
-        "bio": "Nairobi-born linguist and Swahili language advocate. Passionate about preserving East African language heritage.",
-        "languages_taught": ["swahili"],
-        "voice_character": "Juma",
-        "location": "Nairobi, Kenya",
-        "xp": 0,
-        "streak": 0,
-        "badges": 0,
-        "avatar_url": None,
-        "is_premium": False,
-        "active_languages": [],
-        "created_at": datetime.utcnow(),
-    },
+        "auth_provider": "password",
+        "bio": bio,
+        "languages_taught": languages_taught,
+        "voice_character": voice_character or name.split()[0],
+        "location": location,
+    }
+
+
+ADMIN_USER = {
+    "name": "Admin",
+    "email": f"admin@{MOCK_DOMAIN}",
+    "password_hash": hash_password(ADMIN_PASSWORD),
+    "role": "admin",
+    "auth_provider": "password",
+    "is_premium": True,
+}
+
+TUTORS = [
+    mock_tutor(
+        name="Amara Okafor",
+        email=f"amara@{MOCK_DOMAIN}",
+        languages_taught=["yoruba"],
+        bio="Native Yoruba speaker from Lagos. Language educator with 8 years of experience teaching vernacular languages to diaspora learners.",
+        voice_character="Amara",
+        location="Lagos, Nigeria",
+    ),
+    mock_tutor(
+        name="Juma Mwangi",
+        email=f"juma@{MOCK_DOMAIN}",
+        languages_taught=["swahili"],
+        bio="Nairobi-born linguist and Swahili language advocate. Passionate about preserving East African language heritage.",
+        voice_character="Juma",
+        location="Nairobi, Kenya",
+    ),
+    mock_tutor(
+        name="Cucu Margaret",
+        email=f"cucu@{MOCK_DOMAIN}",
+        languages_taught=["kikuyu"],
+        bio="Kikuyu elder and storyteller from Nyeri. Teaches the language the way it is spoken at home, through proverbs, songs and everyday conversation.",
+        voice_character="Cucu",
+        location="Nyeri, Kenya",
+    ),
 ]
+
+USERS = [ADMIN_USER, *TUTORS]
+
+# Fields a reseed must never clobber on an account that already exists --
+# real progress and anything an admin or the tutor has since changed.
+_PRESERVE_ON_UPDATE = (
+    "xp", "streak", "badges", "earned_badges", "language_xp", "last_activity_date",
+    "active_languages", "avatar_url", "created_at", "session_version",
+    "subscription_status", "subscription_tier", "expires_at", "admin_granted",
+)
+
+_USER_DEFAULTS = {
+    "xp": 0,
+    "streak": 0,
+    "badges": 0,
+    "avatar_url": None,
+    "active_languages": [],
+    "language_xp": {},
+}
+
+
+async def upsert_seed_user(db, user: dict) -> None:
+    """Idempotent upsert: never duplicates, never overwrites earned data."""
+    doc = dict(user)
+    email = doc["email"].strip().lower()
+    doc["email"] = email
+
+    set_fields = {k: v for k, v in doc.items() if k not in _PRESERVE_ON_UPDATE}
+    insert_only = {**_USER_DEFAULTS, "created_at": datetime.utcnow()}
+    insert_only = {k: v for k, v in insert_only.items() if k not in set_fields}
+
+    await db.users.update_one(
+        {"email": email},
+        {"$set": set_fields, "$setOnInsert": insert_only},
+        upsert=True,
+    )
 
 BADGES = [
     {"id": "first-lesson", "name": "First Step", "description": "Complete your first lesson", "icon": "🎯", "criteria_type": "lessons_completed", "criteria_value": 1},
@@ -453,58 +504,56 @@ CULTURAL_NOTES = [
 ]
 
 
-async def seed():
-    client = AsyncIOMotorClient(MONGODB_URI)
-    db = client[DB_NAME]
+async def _upsert_all(collection, docs, key="id") -> None:
+    """Upsert by natural key instead of dropping the collection.
 
-    # Clear existing data
-    await db.languages.drop()
-    await db.units.drop()
-    await db.lessons.drop()
-    await db.badges.drop()
-    await db.cultural_notes.drop()
+    Dropping would have destroyed tutor-authored units, lessons and notes on
+    every reseed.
+    """
+    for doc in docs:
+        payload = {k: v for k, v in doc.items() if k != "_id"}
+        await collection.update_one({key: doc[key]}, {"$set": payload}, upsert=True)
 
-    await db.languages.insert_many(LANGUAGES)
-    print(f"✅ Inserted {len(LANGUAGES)} languages")
 
-    await db.units.insert_many(UNITS)
-    print(f"✅ Inserted {len(UNITS)} units")
+async def seed_database(db) -> dict:
+    """Idempotent seed. Safe to run repeatedly against a live database."""
+    await _upsert_all(db.languages, LANGUAGES)
+    await _upsert_all(db.units, UNITS)
+    await _upsert_all(db.lessons, LESSONS)
+    await _upsert_all(db.badges, BADGES)
+    await _upsert_all(db.cultural_notes, CULTURAL_NOTES)
 
-    await db.lessons.insert_many(LESSONS)
-    print(f"✅ Inserted {len(LESSONS)} lessons")
+    for user in USERS:
+        await upsert_seed_user(db, user)
 
-    await db.badges.insert_many(BADGES)
-    print(f"✅ Inserted {len(BADGES)} badges (Phase 3 scaffold)")
-
-    await db.cultural_notes.insert_many(CULTURAL_NOTES)
-    print(f"✅ Inserted {len(CULTURAL_NOTES)} cultural notes")
-
-    # Set password hashes
-    for u in USERS:
-        if u["name"] == "Admin":
-            u["password_hash"] = hash_password("Admin1234!")
-        elif u["name"] in ("Amara Okafor", "Juma Mwangi"):
-            u["password_hash"] = hash_password("Tutor1234!")
-
-    # Seed users (upsert by email)
-    for u in USERS:
-        await db.users.update_one(
-            {"email": u["email"]},
-            {"$set": u},
-            upsert=True,
-        )
-    print(f"✅ Upserted {len(USERS)} seed users (admin + tutors)")
-
-    # Create indexes
     await db.users.create_index("email", unique=True)
     await db.progress.create_index([("user_id", 1), ("lesson_id", 1)], unique=True)
     await db.cultural_notes.create_index("language_id")
     await db.lessons.create_index([("status", 1), ("language_id", 1)])
 
+    return {
+        "languages": len(LANGUAGES),
+        "units": len(UNITS),
+        "lessons": len(LESSONS),
+        "badges": len(BADGES),
+        "cultural_notes": len(CULTURAL_NOTES),
+        "users": len(USERS),
+    }
+
+
+async def seed():
+    client = AsyncIOMotorClient(MONGODB_URI)
+    db = client[DB_NAME]
+    counts = await seed_database(db)
+
+    for name, count in counts.items():
+        print(f"✅ Upserted {count} {name.replace('_', ' ')}")
+
     print("\n🌍 Vernaculearn database seeded successfully!")
-    print("   Admin:  admin@vernaculearn.com  /  Admin1234!")
-    print("   Tutor1: amara@vernaculearn.com  /  Tutor1234!")
-    print("   Tutor2: juma@vernaculearn.com   /  Tutor1234!")
+    print(f"   Admin: {ADMIN_USER['email']}  /  {ADMIN_PASSWORD}")
+    for tutor in TUTORS:
+        print(f"   Tutor: {tutor['email']:<28}  /  {MOCK_TUTOR_PASSWORD}  ({tutor['name']})")
+    print(f"\n   ⚠️  {MOCK_TUTOR_PASSWORD} is a temporary shared password for mock tutor accounts.")
     client.close()
 
 

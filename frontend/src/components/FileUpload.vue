@@ -30,7 +30,7 @@
         <span class="text-xs text-slate-500 text-center">
           {{ modelValue ? 'Replace file' : `Upload ${type}` }} · drag & drop or click
         </span>
-        <span class="text-xs text-slate-400">{{ type === 'audio' ? 'MP3, WAV, OGG, M4A · max 15 MB' : type === 'video' ? 'MP4, WebM, MOV · max 100 MB' : 'JPG, PNG, WebP · max 15 MB' }}</span>
+        <span class="text-xs text-slate-400">{{ type === 'audio' ? 'MP3, WAV, OGG, M4A, WebM · max 25 MB' : type === 'video' ? 'MP4, WebM, MOV · max 100 MB' : 'JPG, PNG, WebP · max 15 MB' }}</span>
       </template>
     </label>
 
@@ -81,7 +81,10 @@ async function upload(file) {
     emit('update:modelValue', data.url)
     toast.success('File uploaded')
   } catch (e) {
-    error.value = e.response?.data?.detail || 'Upload failed'
+    // Surface the server's reason (format, size, storage failure) rather than
+    // a generic message, and make sure it is visible as a toast too.
+    error.value = e.response?.data?.detail || e.message || 'Upload failed'
+    toast.error(error.value)
   } finally {
     uploading.value = false
     dragging.value = false

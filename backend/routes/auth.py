@@ -111,7 +111,14 @@ async def register_tutor(body: TutorRegister):
 @router.post("/login", response_model=TokenResponse)
 async def login(body: UserLogin):
     db = get_db()
-    user = await db.users.find_one({"email": body.email})
+    # Addresses are stored lowercase from registration onwards, but older
+    # documents may be mixed case or carry stray whitespace. Try the address
+    # as typed first, then the normalised form, so neither can lock anyone out.
+    typed = body.email
+    normalized = typed.strip().lower()
+    user = await db.users.find_one({"email": typed})
+    if not user and normalized != typed:
+        user = await db.users.find_one({"email": normalized})
     if not user or not user.get("password_hash") or not verify_password(body.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 

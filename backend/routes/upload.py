@@ -1,57 +1,86 @@
 import os
-import uuid
-import asyncio
-import aiofiles
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Request
-from auth import get_current_user
+
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
+
+from auth import get_current_user, require_role
+from services.storage import store_media, storage_status
 
 router = APIRouter(prefix="/api/upload", tags=["upload"])
 
-UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "uploads")
-ALLOWED_AUDIO = {".mp3", ".wav", ".ogg", ".m4a", ".webm"}
+# Browser MediaRecorder output is webm (Chrome/Firefox) or mp4/m4a (Safari).
+ALLOWED_AUDIO = {".mp3", ".wav", ".ogg", ".m4a", ".webm", ".mp4", ".aac", ".oga", ".opus"}
 ALLOWED_IMAGE = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 ALLOWED_VIDEO = {".mp4", ".webm", ".mov"}
-MAX_SIZE = 15 * 1024 * 1024  # 15 MB
+
+MAX_AUDIO_SIZE = 25 * 1024 * 1024   # 25 MB — a long tutor take at a sane bitrate
+MAX_IMAGE_SIZE = 15 * 1024 * 1024   # 15 MB
 MAX_VIDEO_SIZE = 100 * 1024 * 1024  # 100 MB
 
-R2_ENABLED = os.getenv("R2_ENABLED", "false").lower() == "true"
+# A MediaRecorder blob often arrives as "blob" with no extension, so the MIME
+# type is the only reliable signal.
+_MIME_EXTENSIONS = {
+    "audio/mpeg": ".mp3",
+    "audio/mp3": ".mp3",
+    "audio/wav": ".wav",
+    "audio/x-wav": ".wav",
+    "audio/wave": ".wav",
+    "audio/ogg": ".ogg",
+    "audio/opus": ".opus",
+    "audio/webm": ".webm",
+    "audio/mp4": ".m4a",
+    "audio/x-m4a": ".m4a",
+    "audio/aac": ".aac",
+    "video/webm": ".webm",
+    "video/mp4": ".mp4",
+    "video/quicktime": ".mov",
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+    "image/gif": ".gif",
+    "image/heic": ".heic",
+    "image/heif": ".heic",
+}
 
 
-def _get_r2_client():
-    import boto3
-    return boto3.client(
-        "s3",
-        endpoint_url=f"https://{os.getenv('R2_ACCOUNT_ID')}.r2.cloudflarestorage.com",
-        aws_access_key_id=os.getenv("R2_ACCESS_KEY_ID"),
-        aws_secret_access_key=os.getenv("R2_SECRET_ACCESS_KEY"),
-        region_name="auto",
-    )
-
-
-async def _upload_to_r2(content: bytes, key: str, content_type: str) -> str:
-    bucket = os.getenv("R2_BUCKET_NAME", "vernaculearn-media")
-    public_url = os.getenv("R2_PUBLIC_URL", "").rstrip("/")
-
-    def _sync():
-        _get_r2_client().put_object(
-            Bucket=bucket,
-            Key=key,
-            Body=content,
-            ContentType=content_type,
+def _resolve_extension(file: UploadFile, allowed: set[str], label: str) -> str:
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in allowed:
+        # Fall back to the declared MIME type before giving up.
+        mime = (file.content_type or "").split(";")[0].strip().lower()
+        mapped = _MIME_EXTENSIONS.get(mime)
+        if mapped in allowed:
+            return mapped
+        if mapped in (".heic",):
+            raise HTTPException(
+                400,
+                "HEIC images aren't supported yet. Please choose JPEG, PNG or WebP "
+                "(on iPhone: Settings > Camera > Formats > Most Compatible).",
+            )
+        got = ext or mime or "unknown"
+        raise HTTPException(
+            400,
+            f"Unsupported {label} format ({got}) - allowed: {', '.join(sorted(allowed))}",
         )
-
-    await asyncio.to_thread(_sync)
-    return f"{public_url}/{key}"
+    return ext
 
 
-async def _upload_local(content: bytes, subdir: str, filename: str, request: Request) -> str:
-    dest = os.path.join(UPLOAD_DIR, subdir)
-    os.makedirs(dest, exist_ok=True)
-    async with aiofiles.open(os.path.join(dest, filename), "wb") as f:
-        await f.write(content)
-    # Return absolute URL so it works when frontend and backend are on different domains
-    base = str(request.base_url).rstrip("/")
-    return f"{base}/uploads/{subdir}/{filename}"
+async def _read_within_limit(file: UploadFile, max_size: int) -> bytes:
+    content = await file.read()
+    if not content:
+        raise HTTPException(400, "The uploaded file was empty.")
+    if len(content) > max_size:
+        raise HTTPException(
+            400,
+            f"File too large ({len(content) / 1024 / 1024:.1f} MB). "
+            f"Maximum is {max_size // 1024 // 1024} MB.",
+        )
+    return content
+
+
+@router.get("/status")
+async def upload_status(admin=Depends(require_role("admin"))):
+    """Which storage backend this instance is actually using."""
+    return storage_status()
 
 
 @router.post("/audio")
@@ -60,20 +89,11 @@ async def upload_audio(
     file: UploadFile = File(...),
     current_user=Depends(get_current_user),
 ):
-    ext = os.path.splitext(file.filename or "")[1].lower()
-    if ext not in ALLOWED_AUDIO:
-        raise HTTPException(400, f"Unsupported format. Allowed: {', '.join(ALLOWED_AUDIO)}")
-
-    content = await file.read()
-    if len(content) > MAX_SIZE:
-        raise HTTPException(400, "File too large (max 15 MB)")
-
-    filename = f"{uuid.uuid4()}{ext}"
-    if R2_ENABLED:
-        url = await _upload_to_r2(content, f"audio/{filename}", file.content_type or "audio/mpeg")
-    else:
-        url = await _upload_local(content, "audio", filename, request)
-
+    ext = _resolve_extension(file, ALLOWED_AUDIO, "audio")
+    content = await _read_within_limit(file, MAX_AUDIO_SIZE)
+    url, filename = await store_media(
+        content, "audio", ext, file.content_type or "audio/mpeg", request
+    )
     return {"url": url, "filename": filename}
 
 
@@ -83,20 +103,11 @@ async def upload_video(
     file: UploadFile = File(...),
     current_user=Depends(get_current_user),
 ):
-    ext = os.path.splitext(file.filename or "")[1].lower()
-    if ext not in ALLOWED_VIDEO:
-        raise HTTPException(400, f"Unsupported format. Allowed: {', '.join(ALLOWED_VIDEO)}")
-
-    content = await file.read()
-    if len(content) > MAX_VIDEO_SIZE:
-        raise HTTPException(400, "File too large (max 100 MB)")
-
-    filename = f"{uuid.uuid4()}{ext}"
-    if R2_ENABLED:
-        url = await _upload_to_r2(content, f"video/{filename}", file.content_type or "video/mp4")
-    else:
-        url = await _upload_local(content, "video", filename, request)
-
+    ext = _resolve_extension(file, ALLOWED_VIDEO, "video")
+    content = await _read_within_limit(file, MAX_VIDEO_SIZE)
+    url, filename = await store_media(
+        content, "video", ext, file.content_type or "video/mp4", request
+    )
     return {"url": url, "filename": filename}
 
 
@@ -106,18 +117,9 @@ async def upload_image(
     file: UploadFile = File(...),
     current_user=Depends(get_current_user),
 ):
-    ext = os.path.splitext(file.filename or "")[1].lower()
-    if ext not in ALLOWED_IMAGE:
-        raise HTTPException(400, f"Unsupported format. Allowed: {', '.join(ALLOWED_IMAGE)}")
-
-    content = await file.read()
-    if len(content) > MAX_SIZE:
-        raise HTTPException(400, "File too large (max 15 MB)")
-
-    filename = f"{uuid.uuid4()}{ext}"
-    if R2_ENABLED:
-        url = await _upload_to_r2(content, f"image/{filename}", file.content_type or "image/jpeg")
-    else:
-        url = await _upload_local(content, "image", filename, request)
-
+    ext = _resolve_extension(file, ALLOWED_IMAGE, "image")
+    content = await _read_within_limit(file, MAX_IMAGE_SIZE)
+    url, filename = await store_media(
+        content, "image", ext, file.content_type or "image/jpeg", request
+    )
     return {"url": url, "filename": filename}
