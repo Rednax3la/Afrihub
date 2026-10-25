@@ -127,6 +127,29 @@
             <span class="material-icons-outlined text-slate-300">chevron_right</span>
           </RouterLink>
 
+          <!-- Contact Support -->
+          <div class="p-5 border-b border-slate-50">
+            <div class="flex items-center gap-3 mb-2">
+              <span class="material-icons-outlined text-[#00A3C1]">support_agent</span>
+              <h5 class="font-bold text-slate-800">Contact Support</h5>
+            </div>
+            <p class="text-sm text-slate-500">
+              Something broken or confusing? Email us and we'll get back to you.
+            </p>
+            <a
+              :href="supportMailto"
+              class="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#003B5C] px-4 py-3 text-sm font-bold text-white active:scale-95 transition-transform"
+            >
+              <span class="material-icons-outlined text-base">mail</span>
+              Email support
+            </a>
+            <p class="mt-3 text-xs text-slate-500">
+              Or write to
+              <span class="block break-all select-all font-mono text-slate-700 sm:inline">{{ SUPPORT_EMAIL }}</span>
+            </p>
+            <p class="mt-2 text-xs text-slate-400">In-app support tickets coming soon.</p>
+          </div>
+
           <button @click="logout" class="w-full p-5 flex justify-between items-center cursor-pointer">
             <div class="flex items-center gap-4 text-red-500">
               <span class="material-icons-outlined">logout</span>
@@ -203,6 +226,24 @@ async function saveProfile() {
     savingProfile.value = false
   }
 }
+
+// ── Contact support ──────────────────────────────────────────────────────────
+const SUPPORT_EMAIL = 'hello@vernaculearn.africa'
+// Placeholder until a build-time version is injected (set VITE_APP_VERSION).
+const APP_VERSION = import.meta.env.VITE_APP_VERSION || 'unknown'
+
+const supportMailto = computed(() => {
+  const subject = `Vernaculearn support: ${auth.user?.name || 'Learner'}`
+  const body = [
+    'Please describe what happened:',
+    '',
+    '',
+    '---',
+    `Account email: ${auth.user?.email || 'not signed in'}`,
+    `App version: ${APP_VERSION}`,
+  ].join('\n')
+  return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+})
 
 const avatarUrl = computed(() =>
   `https://ui-avatars.com/api/?name=${encodeURIComponent(auth.user?.name || 'U')}&background=003B5C&color=fff&rounded=true&size=200`
