@@ -1,6 +1,6 @@
 {
   "name": "Vernaculearn",
-  "short_name": "VLearn",
+  "short_name": "Vernaculearn",
   "description": "Learn African vernacular languages with native speakers",
   "start_url": "/dashboard",
   "display": "standalone",

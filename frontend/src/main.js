@@ -3,6 +3,10 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import './style.css'
+import { registerInstallListeners } from './composables/useInstallPrompt'
+
+// Registered before mount so `beforeinstallprompt` is never missed.
+registerInstallListeners()
 
 const app = createApp(App)
 app.use(createPinia())

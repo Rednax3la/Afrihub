@@ -11,6 +11,7 @@
       </Transition>
     </RouterView>
     <Toast />
+    <InstallPrompt />
   </div>
 </template>
 
@@ -19,6 +20,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import SideNav from '@/components/SideNav.vue'
 import Toast from '@/components/Toast.vue'
+import InstallPrompt from '@/components/InstallPrompt.vue'
 
 import { useOffline } from '@/composables/useOffline'
 const { isOffline } = useOffline()
