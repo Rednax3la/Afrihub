@@ -6,7 +6,7 @@ export const studentNavigation = [
   { to: '/profile', icon: 'person', label: 'Profile' },
 ]
 export const exploreFeatures = [
-  { name: 'Games', icon: 'sports_esports', description: 'Language challenges to put your learning into practice.' },
+  { name: 'Games', icon: 'sports_esports', description: 'Real arcade games powered by your XP. Spend XP as lives — when it runs out the game pauses and you learn to earn more.' },
   { name: 'AI Chat', icon: 'forum', description: 'Conversation practice in the languages you are learning.' },
   { name: 'Videos', icon: 'smart_display', description: 'Short stories about language and culture.' },
   { name: 'Dictionary', icon: 'translate', description: 'Look up words and their English meanings.', to: '/dictionary' },

@@ -10,7 +10,7 @@ Canonical supported catalogue: Kikuyu (`kikuyu`/`ki`), Swahili (`swahili`/`sw`),
 | --- | --- | --- |
 | Identity | Password recovery, strong new passwords, legacy login compatibility, session revocation and accessible password controls | Configure and verify SMTP; Zoho Forever Free eligibility remains unresolved. Repair infrastructure separately. |
 | Explore | Shared mobile/desktop Explore hub; functioning Dictionary destination; other cards clearly Coming soon | No game, AI or video dependencies loaded yet. |
-| Games | Roadmap only | Gimkit-inspired language challenges with XP-based eligibility/unlock. **Decide whether XP is spent, is only a threshold, or earns separate play credits.** Do not deduct lifetime learning XP or change current rewards now. Design anti-abuse and accessible solo/group modes. |
+| Games | Roadmap only (copy updated) | **Definition settled: games are real arcade-style games powered by XP, not language quizzes.** XP is the player's lives/fuel and is spent as they play. The instant XP hits zero the game auto-pauses and prompts the player to learn — complete a lesson to earn more XP and resume. First planned example: an obstacle-jumping runner. Still to design: the XP-to-lives conversion rate, whether a separate play balance protects lifetime learning XP, anti-abuse, and accessible solo/group modes. Nothing is built yet; the Explore entry point stays **Coming soon**. |
 | AI Chat | Roadmap only | Select languages with evaluated model support, native-speaker accuracy tests, safe corrections, moderation, privacy/retention and consent policy, cost ceilings/rate limits and provider outage handling. No AI-provider integration is included. |
 | Videos | Roadmap only | Short language/culture discovery feed; rights-cleared uploads, captions/transcripts, language filters, moderation and reporting. Use pagination, poster images and adaptive/lazy media loading; never preload a feed of videos. |
 | Dictionary | Independent data model/search, licensed collection/import pipeline and attribution; existing lesson-linked entries preserved | Review acquired senses and source licences before publication. Fill gaps in all 14 languages through permitted sources or tutor contributions. Preserve dialect distinctions and English/native field mapping. See `content/dictionary/SOURCES.md`. |
@@ -132,6 +132,13 @@ Instead of partnering with schools, Vernaculearn works with **individual vetted 
 - Downloadable PDF certificates
 - Level system: Bronze → Silver → Gold → Platinum
 - Hearts/lives system
+- **XP-powered arcade games** — not language challenges. Real arcade games in
+  which XP is the player's lives/fuel: it drains as they play, and the instant
+  it reaches zero the game auto-pauses and prompts them to learn (complete a
+  lesson) to earn more XP and resume. First planned example: an
+  obstacle-jumping runner. Design work still open: XP-to-lives conversion,
+  whether play draws on a separate balance so lifetime learning XP is never
+  deducted, anti-abuse, and accessible solo/group modes.
 - Push notifications (PWA + email)
 - A Translator/Dictionary function between English and other vernacular languages
 
