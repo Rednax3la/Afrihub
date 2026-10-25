@@ -2,6 +2,7 @@ import logging
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
+from services.streaks import effective_streak
 from services.subscriptions import has_active_subscription
 import os
 from datetime import datetime
@@ -23,7 +24,7 @@ def serialize_user(user: dict) -> UserPublic:
         role=user.get("role", "student"),
         location=user.get("location"),
         xp=user.get("xp", 0),
-        streak=user.get("streak", 0),
+        streak=effective_streak(user),
         badges=user.get("badges", 0),
         earned_badges=user.get("earned_badges", []),
         avatar_url=user.get("avatar_url"),

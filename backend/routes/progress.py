@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from database import get_db, log_timing
 from auth import get_current_user
+from services.streaks import effective_streak
 from bson import ObjectId
 
 router = APIRouter(prefix="/api/progress", tags=["progress"])
@@ -88,7 +89,7 @@ async def _build_my_progress(db, user_id: str, current_user: dict):
     return {
         "user_id": user_id,
         "total_xp": current_user.get("xp", 0),
-        "streak": current_user.get("streak", 0),
+        "streak": effective_streak(current_user),
         "languages": languages_summary,
         "lesson_progress": progress_map,
         "language_progress": language_progress,

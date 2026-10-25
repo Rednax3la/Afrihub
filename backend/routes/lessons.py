@@ -4,6 +4,7 @@ from auth import get_current_user
 from models.lesson import AnswerSubmit, AnswerResult
 from pydantic import BaseModel, Field
 from services.reviews import sm2, today_eat
+from services.streaks import effective_streak, next_streak
 from services.subscriptions import has_active_subscription, require_lesson_access
 from typing import List, Optional
 from bson import ObjectId
@@ -62,14 +63,14 @@ async def get_leaderboard(language_id: str):
                 {"role": {"$nin": ["admin", "tutor"]}},
             ]
         },
-        {"name": 1, "language_xp": 1, "streak": 1, "avatar_url": 1}
+        {"name": 1, "language_xp": 1, "streak": 1, "avatar_url": 1, "last_activity_date": 1}
     ).sort(lang_xp_field, -1).to_list(20)
     return [
         {
             "id": str(u["_id"]),
             "name": u.get("name", "Learner"),
             "xp": u.get("language_xp", {}).get(language_id, 0),
-            "streak": u.get("streak", 0),
+            "streak": effective_streak(u),
             "avatar_url": u.get("avatar_url"),
         }
         for u in users
@@ -272,25 +273,12 @@ async def complete_lesson(
     )
 
     # ── Streak tracking (Gap 5) ─────────────────────────────────────────────
-    # Compare dates in East Africa Time (UTC+3) so that 11:59 PM and 12:01 AM
-    # local time count as consecutive days, not the same UTC day.
-    _EAT_OFFSET = datetime.timedelta(hours=3)
+    # Day boundaries are the Africa/Nairobi calendar day, so 11:59 PM and
+    # 12:01 AM local time count as consecutive days, not the same UTC day.
+    # Completing a lesson is the only action that ever writes the streak.
     user = await db.users.find_one({"_id": ObjectId(user_id)})
-    last_activity = user.get("last_activity_date")
-    current_streak = user.get("streak", 0)
-    today = (now + _EAT_OFFSET).date()
-
-    if last_activity is None:
-        new_streak = 1
-    else:
-        last_date = (last_activity + _EAT_OFFSET).date() if hasattr(last_activity, "date") else last_activity
-        delta = (today - last_date).days
-        if delta == 0:
-            new_streak = current_streak  # same day — no change
-        elif delta == 1:
-            new_streak = current_streak + 1  # consecutive day — increment
-        else:
-            new_streak = 1  # gap — reset
+    current_streak = effective_streak(user)
+    new_streak = next_streak(user)
 
     await db.users.update_one(
         {"_id": ObjectId(user_id)},
