@@ -11,5 +11,9 @@ export const exploreFeatures = [
   { name: 'Videos', icon: 'smart_display', description: 'Short stories about language and culture.' },
   { name: 'Dictionary', icon: 'translate', description: 'Look up words and their English meanings.', to: '/dictionary' },
 ]
-export const isNavigationActive = (path, to) => path === to || (to === '/explore' && path === '/dictionary')
+export const isNavigationActive = (path, to) =>
+  path === to ||
+  (to === '/explore' && path === '/dictionary') ||
+  // A language's course page (/learn/:languageId) belongs to Home.
+  (to === '/dashboard' && path.startsWith('/learn/'))
 export const subscriptionLabel = user => user?.is_premium ? 'Manage subscription' : 'Go Premium'

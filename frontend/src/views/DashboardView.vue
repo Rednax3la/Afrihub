@@ -87,8 +87,8 @@
         <!-- Back + Language Header -->
         <div class="px-6 pt-4 pb-2 flex items-center gap-3">
           <button
-            @click="activeLangId = null"
             class="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0 active:scale-90 transition-transform"
+            @click="closeLearningPath"
           >
             <span class="material-icons-outlined text-slate-700 text-xl">arrow_back</span>
           </button>
@@ -97,6 +97,13 @@
             <h3 class="text-lg font-bold text-[#003B5C] leading-tight">{{ activeLangName }}</h3>
           </div>
           <div class="ml-auto text-2xl">{{ langMeta(activeLangId).flag_emoji }}</div>
+        </div>
+
+        <!-- Shown when a lesson finished the whole course (item 11). -->
+        <div v-if="showCourseComplete" class="mx-6 mt-4 rounded-3xl border border-[#00A3C1]/30 bg-[#A7FFEB]/30 p-5">
+          <span class="material-icons-outlined text-[#00A3C1] text-3xl">emoji_events</span>
+          <strong class="mt-1 block text-[#003B5C]">You've finished every lesson in {{ activeLangName }}!</strong>
+          <span class="text-sm text-slate-600">Revisit any lesson to practise — more units are on the way.</span>
         </div>
 
         <RouterLink :to="`/foundations/${activeLangId}`" class="block mx-6 my-4 rounded-3xl border border-[#00A3C1]/20 bg-[#A7FFEB]/20 p-5">
@@ -217,7 +224,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useContentStore } from '@/stores/content'
 import { useProgressStore } from '@/stores/progress'
@@ -236,9 +244,11 @@ async function onUpgraded() {
 const auth = useAuthStore()
 const content = useContentStore()
 const progressStore = useProgressStore()
+const route = useRoute()
+const router = useRouter()
 
 // Which language's path is open (null = landing page)
-const activeLangId = ref(null)
+const activeLangId = ref(route.params.languageId || null)
 
 const colorMap = {
   emerald: '#003B5C',
@@ -265,6 +275,8 @@ function langMeta(langId) {
 }
 
 const activeLangName = computed(() => langMap.value[activeLangId.value]?.name ?? '')
+
+const showCourseComplete = computed(() => route.query.completed === '1')
 
 // Only show a language as "currently learning" once the first lesson is done
 const learningLangs = computed(() =>
@@ -302,9 +314,19 @@ function unitProgressPct(unit) {
   return Math.round((unitCompletedCount(unit) / lessons.length) * 100)
 }
 
-async function openLearningPath(langId) {
+// The learning path has its own URL (/learn/:languageId) so a lesson's back
+// button can return straight to it instead of the dashboard landing page.
+async function openLearningPath(langId, { navigate = true } = {}) {
   activeLangId.value = langId
+  if (navigate && route.params.languageId !== langId) {
+    await router.push({ name: 'language-course', params: { languageId: langId } })
+  }
   await content.selectLanguage(langId)
+}
+
+function closeLearningPath() {
+  activeLangId.value = null
+  if (route.name === 'language-course') router.push({ name: 'dashboard' })
 }
 
 async function startLang(lang) {
@@ -317,9 +339,19 @@ async function startLang(lang) {
   await openLearningPath(lang.id)
 }
 
+// Keep the open language in step with the URL, including browser back/forward.
+watch(
+  () => route.params.languageId,
+  (langId) => {
+    if (langId && langId !== activeLangId.value) openLearningPath(langId, { navigate: false })
+    else if (!langId) activeLangId.value = null
+  }
+)
+
 onMounted(async () => {
   await Promise.allSettled([
     content.fetchLanguages(), progressStore.fetchMyProgress(),
   ])
+  if (route.params.languageId) await openLearningPath(route.params.languageId, { navigate: false })
 })
 </script>

@@ -3,6 +3,7 @@ from database import get_db, log_timing
 from auth import get_current_user
 from models.lesson import AnswerSubmit, AnswerResult
 from pydantic import BaseModel, Field
+from services.grading import grade_lesson
 from services.reviews import sm2, today_eat
 from services.streaks import effective_streak, next_streak
 from services.subscriptions import (
@@ -175,22 +176,10 @@ async def submit_answer(body: AnswerSubmit, current_user=Depends(get_current_use
         raise HTTPException(status_code=404, detail="Question not found")
 
     correct = question["correct_answer_id"] == body.answer_id
-    xp_earned = lesson.get("xp_reward", 10) if correct else 0
-
-    if correct:
-        # Resolve language_id via unit for per-language XP tracking
-        language_id = None
-        if lesson.get("unit_id"):
-            unit = await db.units.find_one({"id": lesson["unit_id"]}, {"language_id": 1})
-            if unit:
-                language_id = unit.get("language_id")
-        inc_payload = {"xp": xp_earned}
-        if language_id:
-            inc_payload[f"language_xp.{language_id}"] = xp_earned
-        await db.users.update_one(
-            {"_id": ObjectId(str(current_user["_id"]))},
-            {"$inc": inc_payload}
-        )
+    # XP is NOT awarded here. It used to be granted per correct answer, which
+    # meant an answer could be resubmitted for more XP. All XP now comes from
+    # the one-shot lesson completion below.
+    xp_earned = 0
 
     await db.progress.update_one(
         {"user_id": str(current_user["_id"]), "lesson_id": body.lesson_id},
@@ -218,9 +207,63 @@ class QuestionResult(BaseModel):
     correct_answer: Optional[str] = None
 
 
+class SubmittedAnswer(BaseModel):
+    question_id: str
+    answer_id: Optional[str] = None
+    answer_text: Optional[str] = None
+
+
 class LessonCompleteBody(BaseModel):
-    score: int = Field(ge=0, le=100)
+    # `answers` is the current path: the client posts everything at the end and
+    # the server grades. `score` / `questions_attempted` remain for reading
+    # lessons (no questions) and for older clients.
+    answers: List[SubmittedAnswer] = []
+    score: Optional[int] = Field(default=None, ge=0, le=100)
     questions_attempted: List[QuestionResult] = []
+
+
+async def _next_lesson(db, lesson: dict) -> dict:
+    """Where the learner should go next: next lesson, next unit, or done."""
+    unit = await db.units.find_one({"id": lesson.get("unit_id")}) if lesson.get("unit_id") else None
+    if not unit:
+        return {"next_lesson_id": None, "course_complete": False}
+
+    siblings = await db.lessons.find(
+        {"unit_id": unit["id"], "status": _PUBLISHED_FILTER},
+        {"id": 1, "title": 1, "order": 1, "_id": 0},
+    ).sort("order", 1).to_list(200)
+    ids = [l["id"] for l in siblings]
+    if lesson["id"] in ids:
+        index = ids.index(lesson["id"])
+        if index + 1 < len(siblings):
+            nxt = siblings[index + 1]
+            return {
+                "next_lesson_id": nxt["id"], "next_lesson_title": nxt.get("title"),
+                "next_unit_id": unit["id"], "language_id": unit.get("language_id"),
+                "course_complete": False,
+            }
+
+    # Last lesson of the unit — fall through to the first lesson of the next.
+    later_units = await db.units.find(
+        {"language_id": unit.get("language_id"), "order": {"$gt": unit.get("order", 0)}},
+        {"id": 1, "order": 1, "_id": 0},
+    ).sort("order", 1).to_list(100)
+    for candidate in later_units:
+        first = await db.lessons.find(
+            {"unit_id": candidate["id"], "status": _PUBLISHED_FILTER},
+            {"id": 1, "title": 1, "order": 1, "_id": 0},
+        ).sort("order", 1).to_list(1)
+        if first:
+            return {
+                "next_lesson_id": first[0]["id"], "next_lesson_title": first[0].get("title"),
+                "next_unit_id": candidate["id"], "language_id": unit.get("language_id"),
+                "course_complete": False,
+            }
+
+    return {
+        "next_lesson_id": None, "next_lesson_title": None, "next_unit_id": None,
+        "language_id": unit.get("language_id"), "course_complete": True,
+    }
 
 
 @router.post("/lessons/{lesson_id}/complete")
@@ -236,15 +279,38 @@ async def complete_lesson(
     await require_lesson_access(db, lesson, current_user)
     previous = await db.progress.find_one({'user_id': user_id, 'lesson_id': lesson_id}) or {}
     schedule = previous.get('review_schedule') or {}
-    ease_factor, interval = sm2(schedule.get('ease_factor', 2.5), schedule.get('interval_days', 0), body.score)
+
+    # Grade here, never on the client: correct_answer_id is stripped from the
+    # lesson payload, so this is the only place the truth lives.
+    questions = lesson.get("questions", []) if lesson else []
+    results: List[dict] = []
+    if body.answers:
+        results, score = grade_lesson(questions, body.answers)
+    elif body.score is not None:
+        score = body.score
+    else:
+        score = 0
+
+    # Per-question accuracy is still recorded, for the spaced-repetition data.
+    attempted = [
+        {
+            "question_id": r["question_id"],
+            "correct": r["correct"],
+            "answer_given": r["answer_given"],
+            "correct_answer": r["correct_answer_id"],
+        }
+        for r in results
+    ] or [q.model_dump() for q in body.questions_attempted]
+
+    ease_factor, interval = sm2(schedule.get('ease_factor', 2.5), schedule.get('interval_days', 0), score)
 
     # Store the next review as an ISO calendar date in East Africa Time.
     progress_update = {
         "$set": {
             "completed": True,
-            "score": body.score,
+            "score": score,
             "last_attempted": now,
-            "questions_attempted": [q.model_dump() for q in body.questions_attempted],
+            "questions_attempted": attempted,
             "review_schedule": {
                 "next_review_date": (today_eat() + datetime.timedelta(days=interval)).isoformat(),
                 "interval_days": interval,
@@ -260,8 +326,10 @@ async def complete_lesson(
         upsert=True,
     )
 
-    # Award lesson XP bonus
-    bonus_xp = lesson.get("xp_reward", 10)
+    # Award the lesson XP bonus exactly once per lesson, ever. Re-submitting a
+    # corrected set of answers -- or redoing the lesson -- cannot pay again.
+    already_completed = bool(previous.get("completed"))
+    bonus_xp = 0 if already_completed else lesson.get("xp_reward", 10)
 
     # Resolve language_id via unit for per-language XP tracking
     language_id = None
@@ -269,14 +337,12 @@ async def complete_lesson(
         unit = await db.units.find_one({"id": lesson["unit_id"]}, {"language_id": 1})
         if unit:
             language_id = unit.get("language_id")
-    inc_payload = {"xp": bonus_xp}
-    if language_id:
-        inc_payload[f"language_xp.{language_id}"] = bonus_xp
 
-    await db.users.update_one(
-        {"_id": ObjectId(user_id)},
-        {"$inc": inc_payload}
-    )
+    if bonus_xp:
+        inc_payload = {"xp": bonus_xp}
+        if language_id:
+            inc_payload[f"language_xp.{language_id}"] = bonus_xp
+        await db.users.update_one({"_id": ObjectId(user_id)}, {"$inc": inc_payload})
 
     # ── Streak tracking (Gap 5) ─────────────────────────────────────────────
     # Day boundaries are the Africa/Nairobi calendar day, so 11:59 PM and
@@ -318,7 +384,7 @@ async def complete_lesson(
             qualifies = True
         elif criteria_type == "xp" and current_xp >= criteria_value:
             qualifies = True
-        elif criteria_type == "perfect_lesson" and body.score == 100:
+        elif criteria_type == "perfect_lesson" and score == 100:
             qualifies = True
 
         if qualifies:
@@ -328,7 +394,17 @@ async def complete_lesson(
             )
             new_badges.append({"id": badge_id, "name": badge.get("name", "Badge"), "icon": badge.get("icon", "🏆")})
 
-    return {"message": "Lesson completed!", "xp_earned": bonus_xp, "streak": new_streak, "new_badges": new_badges}
+    return {
+        "message": "Lesson completed!",
+        "xp_earned": bonus_xp,
+        "xp_already_awarded": already_completed,
+        "score": score,
+        # Correct answers are revealed only now, after the single submit.
+        "results": results,
+        "streak": new_streak,
+        "new_badges": new_badges,
+        **(await _next_lesson(db, lesson)),
+    }
 
 
 # ── Badges (public list) ────────────────────────────────────────────────────────

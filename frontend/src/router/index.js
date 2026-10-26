@@ -19,6 +19,15 @@ const routes = [
     meta: { requiresAuth: true, role: 'student' },
   },
   {
+    // The language's course page: the unit/lesson path for one language.
+    // Backed by DashboardView, which opens straight into the learning path.
+    // Leaving a lesson returns here rather than to the dashboard.
+    path: '/learn/:languageId',
+    name: 'language-course',
+    component: () => import('@/views/DashboardView.vue'),
+    meta: { requiresAuth: true, role: 'student' },
+  },
+  {
     path: '/courses',
     name: 'courses',
     component: () => import('@/views/CoursesView.vue'),

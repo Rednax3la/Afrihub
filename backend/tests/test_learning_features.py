@@ -305,3 +305,67 @@ async def test_tutor_submissions_go_to_admin_review_only(feature_context):
     # And students still cannot see it.
     app.dependency_overrides[get_current_user] = lambda: tutor
     assert (await client.get('/api/lessons/tutor-lesson')).status_code == 404
+
+
+# ── Server-side grading, single XP award, next lesson (items 11 + 13) ─────────
+
+def test_grading_resolves_typed_alternatives():
+    from services.grading import grade_answer, resolve_typed_answer
+    question = {'id': 'q1', 'correct_answer_id': 'a',
+                'options': [{'id': 'a', 'text': 'Happy/Feeling good'}, {'id': 'b', 'text': 'Sad'}]}
+    assert resolve_typed_answer(question, '  feeling GOOD! ') == 'a'
+    assert resolve_typed_answer(question, 'nonsense') is None
+    assert grade_answer(question, 'a', None)['correct'] is True
+    assert grade_answer(question, 'b', None)['correct'] is False
+    graded = grade_answer(question, None, 'Happy')
+    assert graded['correct'] and graded['correct_answer_text'] == 'Happy/Feeling good'
+
+
+async def test_answers_are_graded_server_side_and_xp_is_awarded_once(feature_context):
+    client, db, user = feature_context
+    before = (await db.users.find_one({'_id': user['_id']})).get('xp', 0)
+
+    # Per-answer submission no longer pays XP, however many times it is called.
+    for _ in range(3):
+        answer = await client.post('/api/lessons/answer', json={
+            'lesson_id': 'lesson-1', 'question_id': 'q1', 'answer_id': 'a'})
+        assert answer.status_code == 200 and answer.json()['xp_earned'] == 0
+    assert (await db.users.find_one({'_id': user['_id']})).get('xp', 0) == before
+
+    # One submit grades everything and reveals the correct answers.
+    first = (await client.post('/api/lessons/lesson-1/complete',
+                               json={'answers': [{'question_id': 'q1', 'answer_id': 'a'}]})).json()
+    assert first['score'] == 100
+    assert first['xp_earned'] == 10 and first['xp_already_awarded'] is False
+    assert first['results'][0]['correct'] is True
+    assert first['results'][0]['correct_answer_id'] == 'a'
+    assert (await db.users.find_one({'_id': user['_id']})).get('xp') == before + 10
+
+    # Editing and resubmitting re-grades but never pays again.
+    second = (await client.post('/api/lessons/lesson-1/complete',
+                                json={'answers': [{'question_id': 'q1', 'answer_id': 'b'}]})).json()
+    assert second['score'] == 0 and second['results'][0]['correct'] is False
+    assert second['xp_earned'] == 0 and second['xp_already_awarded'] is True
+    assert (await db.users.find_one({'_id': user['_id']})).get('xp') == before + 10
+    # Per-question accuracy is still stored for spaced repetition.
+    progress = await db.progress.find_one({'user_id': str(user['_id']), 'lesson_id': 'lesson-1'})
+    assert progress['questions_attempted'][0]['correct'] is False
+
+
+async def test_completion_reports_the_next_lesson(feature_context, monkeypatch):
+    monkeypatch.delenv('PAYWALL_ENABLED', raising=False)
+    client, db, _ = feature_context
+    await db.lessons.insert_one({'id': 'lesson-1b', 'unit_id': 'unit-1', 'title': 'Lesson 1b',
+                                 'order': 2, 'status': 'published', 'questions': []})
+    # Next lesson inside the same unit.
+    body = (await client.post('/api/lessons/lesson-1/complete', json={'score': 100})).json()
+    assert body['next_lesson_id'] == 'lesson-1b' and body['course_complete'] is False
+
+    # Last lesson of the unit rolls forward into the next unit.
+    body = (await client.post('/api/lessons/lesson-1b/complete', json={'score': 100})).json()
+    assert body['next_lesson_id'] == 'lesson-4' and body['next_unit_id'] == 'unit-4'
+
+    # Last lesson of the last unit ends the course.
+    body = (await client.post('/api/lessons/lesson-4/complete', json={'score': 100})).json()
+    assert body['next_lesson_id'] is None and body['course_complete'] is True
+    assert body['language_id'] == 'sw'

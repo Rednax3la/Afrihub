@@ -7,7 +7,8 @@
       "Bash(npm run:*)",
       "Bash(docker --version)",
       "Bash(cmd.exe /c \"docker --version 2>&1\")",
-      "Bash(cmd.exe /c \"\\\\\"C:\\\\\\\\Program Files\\\\\\\\Docker\\\\\\\\Docker\\\\\\\\resources\\\\\\\\bin\\\\\\\\docker.exe\\\\\" --version 2>&1 || where docker 2>&1\")"
+      "Bash(cmd.exe /c \"\\\\\"C:\\\\\\\\Program Files\\\\\\\\Docker\\\\\\\\Docker\\\\\\\\resources\\\\\\\\bin\\\\\\\\docker.exe\\\\\" --version 2>&1 || where docker 2>&1\")",
+      "Bash(git pull:*)"
     ]
   }
 }

@@ -50,9 +50,11 @@ export const contentApi = {
   getLessons: (unitId) => api.get(`/units/${unitId}/lessons`),
   getLesson: (lessonId) => api.get(`/lessons/${lessonId}`),
   submitAnswer: (data) => api.post('/lessons/answer', data),
-  // score + per-question results sent as JSON body (Gap 3)
-  completeLesson: (lessonId, score, questionsAttempted = []) =>
-    api.post(`/lessons/${lessonId}/complete`, { score, questions_attempted: questionsAttempted }),
+  // All answers are posted once, at the end; the server grades them, awards XP
+  // and returns the correct answers plus the next lesson.
+  // body: { answers: [{question_id, answer_id|answer_text}] } or { score } for
+  // reading lessons.
+  completeLesson: (lessonId, body) => api.post(`/lessons/${lessonId}/complete`, body),
   getCulturalNotes: (languageId) => api.get(`/languages/${languageId}/cultural-notes`),
   getLeaderboard: (languageId) => api.get(`/leaderboard/${languageId}`),
   getBadges: () => api.get('/badges'),
